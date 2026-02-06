@@ -1,0 +1,83 @@
+---
+version: '3.5'
+
+services:
+    nginx:
+        container_name: 'nginx'
+        image: 'jwilder/nginx-proxy'
+        restart: 'always'
+        ports:
+            - '80:80'
+            - '443:443'
+        volumes:
+            - '/var/run/docker.sock:/tmp/docker.sock:ro'
+            - '${DEPLOY_DIRECTORY}/nginx/html/:/usr/share/nginx/html/'
+            - '${DEPLOY_DIRECTORY}/nginx/conf.d/:/etc/nginx/conf.d/'
+            - '${DEPLOY_DIRECTORY}/nginx/certs/:/etc/nginx/certs/:ro'
+            - '${DEPLOY_DIRECTORY}/nginx/vhost.d/:/etc/nginx/vhost.d/'
+            - '${DEPLOY_DIRECTORY}/nginx/dhparam/:/etc/nginx/dhparam/'
+            - '${DEPLOY_DIRECTORY}/media/:/giphouse/media/'
+            - '${DEPLOY_DIRECTORY}/static/:/giphouse/static/:ro'
+            - '${DEPLOY_DIRECTORY}/security.txt/:/giphouse/security.txt:ro'
+        environment:
+            ENABLE_IPV6: 'true'
+
+    letsencrypt:
+        image: 'jrcs/letsencrypt-nginx-proxy-companion'
+        restart: 'always'
+        depends_on:
+            - 'nginx'
+        volumes:
+            - '/var/run/docker.sock:/var/run/docker.sock:ro'
+            - '${DEPLOY_DIRECTORY}/nginx/html/:/usr/share/nginx/html/'
+            - '${DEPLOY_DIRECTORY}/nginx/conf.d/:/etc/nginx/conf.d/'
+            - '${DEPLOY_DIRECTORY}/nginx/vhost.d/:/etc/nginx/vhost.d/'
+            - '${DEPLOY_DIRECTORY}/nginx/dhparam/:/etc/nginx/dhparam/'
+            - '${DEPLOY_DIRECTORY}/nginx/certs/:/etc/nginx/certs/'
+        environment:
+            NGINX_PROXY_CONTAINER: 'nginx'
+            DEFAULT_EMAIL: 'directors@giphouse.nl'
+
+    postgres:
+        image: 'postgres:15'
+        restart: 'always'
+        volumes:
+            - '${DEPLOY_DIRECTORY}/database/:/var/lib/postgresql/data/'
+        environment:
+            PGDATA: '/var/lib/postgresql/data/pgdata'
+            POSTGRES_DB: '${POSTGRES_NAME}'
+            POSTGRES_USER: '${POSTGRES_USER}'
+            POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+
+    web:
+        image: '${DOCKER_IMAGE}'
+        restart: 'always'
+        expose:
+            - '8000'
+        depends_on:
+            - 'postgres'
+            - 'nginx'
+            - 'letsencrypt'
+        volumes:
+            - '${DEPLOY_DIRECTORY}/static:/giphouse/static/'
+            - '${DEPLOY_DIRECTORY}/media:/giphouse/media/'
+            - '${DEPLOY_DIRECTORY}/log/:/giphouse/log/'
+        environment:
+            DJANGO_SECRET_KEY: '${DJANGO_SECRET_KEY}'
+            POSTGRES_HOST: 'postgres'
+            POSTGRES_NAME: '${POSTGRES_NAME}'
+            POSTGRES_USER: '${POSTGRES_USER}'
+            POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+            DJANGO_GITHUB_SYNC_ORGANIZATION_NAME: 'GipHouse'
+            DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64: '${DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64}'
+            DJANGO_GITHUB_SYNC_APP_ID: '68807'
+            DJANGO_GITHUB_SYNC_APP_INSTALLATION_ID: '9753190'
+            DJANGO_GITHUB_CLIENT_ID: '${DJANGO_GITHUB_CLIENT_ID}'
+            DJANGO_GITHUB_CLIENT_SECRET: '${DJANGO_GITHUB_CLIENT_SECRET}'
+            DJANGO_GITHUB_SYNC_SUPERUSER_ID: '${DJANGO_GITHUB_SYNC_SUPERUSER_ID}'
+            DJANGO_GSUITE_ADMIN_USER: '${DJANGO_GSUITE_ADMIN_USER}'
+            DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64: '${DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64}'
+            VIRTUAL_HOST: '${DEPLOYMENT_HOST},www.${DEPLOYMENT_HOST}'
+            VIRTUAL_PROTO: 'uwsgi'
+            LETSENCRYPT_HOST: '${DEPLOYMENT_HOST},www.${DEPLOYMENT_HOST}'
+            LETSENCRYPT_EMAIL: 'directors@giphouse.nl'
