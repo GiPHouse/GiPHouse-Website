@@ -1,0 +1,64 @@
+// Fontawesome
+@import "fontawesome/fontawesome.scss";
+@import "fontawesome/brands.scss";
+@import "fontawesome/solid.scss";
+
+$blue: #268AFF;
+$secondary: #FD9A28;
+$navbar-padding-y: 1rem;
+
+.btn-primary {
+  color: #ffffff !important; // override the color, because the contrast color would be black
+}
+
+.section-title {
+  margin-bottom: 1rem;
+}
+
+.card-header button {
+  text-decoration: none;
+}
+
+// Our own classes
+
+.course {
+  margin-bottom: 3rem;
+}
+
+.no-underline {
+  text-decoration: none !important;
+}
+
+.left-and-right {
+  display: flex;
+  justify-content: space-between;
+}
+
+.client-logo {
+  height: 6em;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.client-logo img {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
+.project-logo {
+  height: auto;
+  width: 15rem;
+}
+
+// Bootstrap and its default variables
+// Required includes
+@import "bootstrap/bootstrap";
+
+
+// Room Reservation
+@import "../../../room_reservation/static/scss/index.scss";
+
+// Questionnaires
+@import "../../../questionnaires/static/scss/index.scss";

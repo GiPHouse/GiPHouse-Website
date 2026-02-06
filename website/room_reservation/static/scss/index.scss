@@ -1,0 +1,72 @@
+@import "fullcalendar/main.min.css";
+
+.fc .fc-button-primary, .fc .fc-button-primary:disabled {
+  color: #ffffff;
+  background-color: $primary;
+  border-color: $primary;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active, .fc .fc-button-primary:not(:disabled):active, .fc .fc-button-primary:hover {
+  color: #ffffff;
+  background-color: tint-color($primary, $btn-active-bg-shade-amount);
+  border-color: tint-color($primary, $btn-active-bg-shade-amount);
+}
+
+#calendar a:not(.fc-event-draggable) {
+  text-decoration: none;
+  cursor: default;
+  &:hover {
+    color: $primary;
+  }
+}
+
+.fc-event {
+  background-color: var(--fc-event-bg-color,#3788d8);
+}
+
+#external-events .fc-event.draggable {
+  cursor: pointer;
+}
+
+#external-events .fc-event {
+  margin: 10px;
+  padding: 10px 8px;
+}
+
+.fc-event, .fc-event:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+#notifications {
+  position: absolute;
+  z-index: 100;
+  right: 0;
+  color: white;
+  max-width: 80%;
+
+  .notification {
+    border-radius: 5px;
+    @media(min-width: 800px) {
+      margin-right: 20px;
+    }
+    margin-right: 5px;
+    padding: 10px 17px 10px 5px;
+    background: rgba($primary, .8);
+    margin-bottom: 5px;
+    transition: .3s;
+    overflow: auto;
+    p {
+      float: left;
+      margin-bottom: 0;
+      // Make the text the same size as the buttons
+      @include button-size($btn-padding-y, $btn-padding-x, $btn-font-size, $btn-border-radius);
+    }
+  }
+  .notification-collapsed {
+    height: 0;
+  }
+  .notification:hover {
+    background: rgba($primary, 1);
+  }
+}
