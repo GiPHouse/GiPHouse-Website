@@ -10,7 +10,7 @@ authors = [
 license = "AGPL-3.0-only"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "~3.13"
 Django = "^4.1"
 requests = "^2.28.1"
 libsass = "^0.21.0"
@@ -18,7 +18,7 @@ django-compressor = "^4.1"
 django-sass-processor = "^1.2.2"
 uwsgi = {version = "^2.0",optional = true}
 psycopg2-binary = {version = "^2.9.3", optional = true}
-Pillow = "^8.2.0"
+Pillow = "^11.0.0"
 django-admin-autocomplete-filter = {git = "https://github.com/farhan0581/django-admin-autocomplete-filter.git", branch="pre_release"}
 google-api-python-client = "^2.65.0"
 google-auth-httplib2 = "^0.1.0"
