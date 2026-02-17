@@ -167,7 +167,7 @@ The website has multiple settings. By default, the development settings are used
 
 ### Getting Started
 Follow the following steps to setup your own personal development environment.
-1. Install Python 3.13 (for now).
+1. Install Python 3.14.
 2. Install [poetry](https://python-poetry.org/docs/#installing-with-the-official-installer), make sure it uses the intended python version for installation.
 	1. In the output of the install script, poetry's installation directory will be stated. Add it to system PATH so poetry can be used from anywhere.
 3. Clone this repository.
