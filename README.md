@@ -167,22 +167,41 @@ The website has multiple settings. By default, the development settings are used
 
 ### Getting Started
 Follow the following steps to setup your own personal development environment.
-1. Install Python 3.8+ and [poetry](https://poetry.eustace.io/).
-2. Clone this repository.
-3. Run `poetry install` to install all dependencies into virtual environment.
-4. Run `poetry shell` to enter the virtual environment.
-5. Run `python website/manage.py migrate` to initialize the database.
-6. Run `python website/manage.py runserver` to start the local testing server.
-7. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
+1. Install Python 3.13 (for now).
+2. Install [poetry](https://python-poetry.org/docs/#installing-with-the-official-installer), make sure it uses the intended python version for installation.
+	1. In the output of the install script, poetry's installation directory will be stated. Add it to system PATH so poetry can be used from anywhere.
+3. Clone this repository.
+	1. Open a terminal in the project root.
+4. Run `poetry install` to install all dependencies into virtual environment.
+5. Refer to this [guide](https://python-poetry.org/docs/managing-environments/#powershell) to enter the virtual environment. **All commands from this point on must be ran inside the virtual environment**.
+6. Run `python website/manage.py migrate` to initialize the database.
+7. Run `python website/manage.py runserver` to start the local testing server.
+8. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
 
 #### Logging into the Backend
 Because the authentication is based on Github OAuth authentication, some setup is required for users to be able to login in their own development environment.
-You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and set your client ID and client secret key as environment variables (`DJANGO_GITHUB_CLIENT_ID` and `DJANGO_GITHUB_CLIENT_SECRET` respectively). [direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
 
-You will then be able to create a new superuser with the `createsuperuser` management command.
+<!-- You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/)
+that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and 
+set your client ID and client secret key as environment variables (`DJANGO_GITHUB_CLIENT_ID` and `DJANGO_GITHUB_CLIENT_SECRET` respectively). 
+[direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
+-->
+
+When the `createsuperuser` management command is ran:
 ```Bash
 $ python website/manage.py createsuperuser --github_id=<your_github_id> --github_username=<your_github_username> --no-input
 ```
+, the added superuser should in theory persist in the current files we share, i.e. the account should remain a superuser for everyone working in our GitHub repo.
+One's GitHub account will be used for login; you can find your GitHub id by changing your username in the link and following it: https://api.github.com/users/yourusername.
+
+To make the backend (`http://127.0.0.1:8000/admin/`) work, an existing GitHub App must be present and Django must have access to it. For now, these are the credentials one can use (Valerijs' app):
+```
+DJANGO_GITHUB_CLIENT_ID=Iv23liE9mYKxrugudlw2
+DJANGO_GITHUB_CLIENT_SECRET=4ba6c12caa5ad485b997d68336cadffd9a221c79
+```
+To make Django see them, one must set them as environment variables. For now, they can be added as temporary (**after the shell is closed, they disappear**) shell environment variables. As an example, in PowerShell (but still inside the poetry virtual environment!) it can be done via `$env:NAME="val"`. Do so for the provided credentials.
+
+After server restart (step 7.), one should be able to log into the [backend](http://127.0.0.1:8000/admin/) (using their GitHub account).
 
 #### Registering a GitHub App for repository synchronisation
 To enable the synchronisation functionality of repositories and project(team)s, a GitHub App must be registered and installed in an organization. This GitHub App needs the following permissions:
