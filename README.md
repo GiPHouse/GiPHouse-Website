@@ -178,6 +178,8 @@ Follow the following steps to setup your own personal development environment.
 7. Run `python website/manage.py runserver` to start the local testing server.
 8. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
 
+Command 6. will create a database file which is configured to be not commited via .gitignore. Hence, the changes you make to a database are local, and will persist after you pull.
+
 #### Logging into the Backend
 Because the authentication is based on Github OAuth authentication, some setup is required for users to be able to login in their own development environment.
 
@@ -191,7 +193,7 @@ When the `createsuperuser` management command is ran:
 ```Bash
 $ python website/manage.py createsuperuser --github_id=<your_github_id> --github_username=<your_github_username> --no-input
 ```
-, the added superuser should in theory persist in the current files we share, i.e. the account should remain a superuser for everyone working in our GitHub repo.
+, the added superuser will be added as an entry to the database file. Hence, the created superusers are local.  
 One's GitHub account will be used for login; you can find your GitHub id by changing your username in the link and following it: https://api.github.com/users/yourusername.
 
 To make the backend (`http://127.0.0.1:8000/admin/`) work, an existing GitHub App must be present and Django must have access to it. For now, these are the credentials one can use (Valerijs' app):

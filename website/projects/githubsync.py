@@ -3,6 +3,7 @@ import threading
 from datetime import datetime, timedelta
 
 from django.conf import settings
+from django.template.context_processors import static
 from django.urls import reverse
 
 from github import Auth, Github, GithubException, GithubIntegration, UnknownObjectException
@@ -17,6 +18,22 @@ from tasks.models import Task
 class GitHubAPITalker:
     """Communicate with GitHub API v3."""
 
+    @staticmethod
+    def helper():
+        """
+        With development settings, there is no attribute settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY,
+        nor the _BASE64 is checked. This method sets the missing attribute based on the present and
+        more convenient _BASE64 encoded one, preventing further code from crashing in development mode.
+        """
+
+        import os, base64
+        if "dev" in os.environ.get("DJANGO_SETTINGS_MODULE", ""): # the second argument here is fallback to not crash
+            setattr(settings, "DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY", b"")
+            if settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 == "":
+                return
+
+            settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY = base64.b64decode(settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64)
+
     def __init__(self):
         """Initialize the GitHub API talker."""
         self._access_token = None  # token to use when talking to github
@@ -26,6 +43,7 @@ class GitHubAPITalker:
 
         self._github = Github()  # used to talk to GitHub as our own app
 
+        GitHubAPITalker.helper()
         if (
             settings.DJANGO_GITHUB_SYNC_APP_ID != ""
             and settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY.decode("utf_8") != ""
