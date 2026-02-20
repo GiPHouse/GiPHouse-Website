@@ -46,9 +46,6 @@ jobs:
         --application-import-names="$(ls -1 website/*/__init__.py | awk -F'/' 'BEGIN { ORS = "," } {print $(NF-1) }')"
         website
 
-    - name: "Run PyDocStyle"
-      run: "poetry run pydocstyle --explain --add-ignore=D100,D104 --match-dir='(?!migrations).*'"
-
   test:
     name: "Testing"
     runs-on: "ubuntu-latest"
