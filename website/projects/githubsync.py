@@ -21,14 +21,12 @@ class GitHubAPITalker:
 
     @staticmethod
     def helper():
-        """
-        With development settings, there is no attribute
-        settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY,
-        nor the _BASE64 is checked.
-         This method sets the missing attribute based on the present and
-        more convenient _BASE64 encoded one,
-         preventing further code from crashing in development mode.
-        """
+        """ With development settings, there is no attribute
+            settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY,
+            nor the _BASE64 is checked.
+            This method sets the missing attribute based on the present and
+            more convenient _BASE64 encoded one,
+            preventing further code from crashing in development mode."""
 
         import os
         import base64
