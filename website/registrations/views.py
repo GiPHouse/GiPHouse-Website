@@ -85,7 +85,7 @@ class Step2View(FormView):
         if form.warnings and not form.cleaned_data.get("ignore_warnings"):
             form.add_error(None, form.warnings[0])
             return self.form_invalid(form)
-        
+
         """Register new user if the form is valid."""
         with transaction.atomic():
             user, _ = User.objects.get_or_create(github_id=self.request.session["github_id"])

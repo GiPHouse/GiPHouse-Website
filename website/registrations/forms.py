@@ -36,7 +36,7 @@ class Step2Form(forms.Form):
             semester=Semester.objects.get_first_semester_with_open_registration()
         )
         self.warnings = []
-    
+
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
         required=False,
@@ -288,10 +288,7 @@ class Step2Form(forms.Form):
         if len(set(filter(None, (project1, project2, project3)))) != 3:
             raise ValidationError("You should fill in all preferences with unique values.")
 
-        available_slots = sum(
-            bool(cleaned_data.get(f"available_during_scheduled_timeslot_{i}"))
-            for i in range(1, 11)
-        )
+        available_slots = sum(bool(cleaned_data.get(f"available_during_scheduled_timeslot_{i}")) for i in range(1, 11))
 
         if available_slots < 4 and not cleaned_data.get("available_during_scheduled_timeslot_10"):
             warning = (

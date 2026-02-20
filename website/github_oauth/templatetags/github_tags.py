@@ -5,7 +5,6 @@ from django.shortcuts import reverse
 
 from github_oauth.links import URL_GITHUB_LOGIN
 
-
 register = template.Library()
 
 

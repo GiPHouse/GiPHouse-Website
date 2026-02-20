@@ -27,12 +27,15 @@ class GitHubAPITalker:
         """
 
         import os, base64
-        if "dev" in os.environ.get("DJANGO_SETTINGS_MODULE", ""): # the second argument here is fallback to not crash
+
+        if "dev" in os.environ.get("DJANGO_SETTINGS_MODULE", ""):  # the second argument here is fallback to not crash
             setattr(settings, "DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY", b"")
             if settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 == "":
                 return
 
-            settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY = base64.b64decode(settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64)
+            settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY = base64.b64decode(
+                settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64
+            )
 
     def __init__(self):
         """Initialize the GitHub API talker."""

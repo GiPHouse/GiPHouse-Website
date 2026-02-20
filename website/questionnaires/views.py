@@ -40,9 +40,13 @@ class OverviewView(LoginRequiredMessageMixin, TemplateView):
                     )
                 )
             except QuestionnaireSubmission.DoesNotExist:
-                context["questionnaires_in_progress"].append(questionnaire) if QuestionnaireSubmission.objects.filter(
-                    questionnaire=questionnaire, participant=self.request.user, submitted=False
-                ).exists() else context["open_questionnaires"].append(questionnaire)
+                (
+                    context["questionnaires_in_progress"].append(questionnaire)
+                    if QuestionnaireSubmission.objects.filter(
+                        questionnaire=questionnaire, participant=self.request.user, submitted=False
+                    ).exists()
+                    else context["open_questionnaires"].append(questionnaire)
+                )
 
         return context
 

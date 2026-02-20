@@ -1,4 +1,5 @@
 """Provides a template handler that renders the menu."""
+
 from django import template
 
 from giphousewebsite.menus import MAIN_MENU

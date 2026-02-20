@@ -410,9 +410,9 @@ class TeamAssignmentGenerator:
                     engineer_together_in_project_with_engineer[(e1, e2, p)] = self.model.NewBoolVar(
                         f"engineer_{e1}_together_in_project_{p}_with_engineer_{e2}"
                     )
-                    engineer_together_in_project_with_engineer[
-                        (e2, e1, p)
-                    ] = engineer_together_in_project_with_engineer[(e1, e2, p)]
+                    engineer_together_in_project_with_engineer[(e2, e1, p)] = (
+                        engineer_together_in_project_with_engineer[(e1, e2, p)]
+                    )
                     self.model.AddMultiplicationEquality(
                         engineer_together_in_project_with_engineer[(e1, e2, p)],
                         [self.assigned_engineers[(e1, p)], self.assigned_engineers[(e2, p)]],

@@ -6,6 +6,7 @@ having the default implementation.
 In addition, it's good to have the str methods overridden because instance names will look weird in the admin without
 the user friendly name.
 """
+
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
