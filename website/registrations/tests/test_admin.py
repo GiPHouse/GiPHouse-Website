@@ -23,24 +23,40 @@ class RegistrationAdminTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin_password = "hunter2"
-        cls.admin = User.objects.create_superuser(github_id=0, github_username="super")
+        cls.admin = User.objects.create_superuser(
+            github_id=0, github_username="super"
+        )
 
         cls.course = Course.objects.sdm()
 
         cls.semester = Semester.objects.get_or_create_current_semester()
-        cls.semester.registration_start = timezone.now() - timezone.timedelta(days=30)
-        cls.semester.registration_end = timezone.now() + timezone.timedelta(days=30)
+        cls.semester.registration_start = timezone.now() - timezone.timedelta(
+            days=30
+        )
+        cls.semester.registration_end = timezone.now() + timezone.timedelta(
+            days=30
+        )
         cls.semester.save()
 
         cls.project = Project.objects.create(
-            name="GiPHouse1234", slug="giphouse1234", description="Test", semester=cls.semester
+            name="GiPHouse1234",
+            slug="giphouse1234",
+            description="Test",
+            semester=cls.semester,
         )
         cls.project2 = Project.objects.create(
-            name="4321aProject", slug="4321aproject", description="Test", semester=cls.semester
+            name="4321aProject",
+            slug="4321aproject",
+            description="Test",
+            semester=cls.semester,
         )
 
         cls.manager = User.objects.create(
-            github_id=1, github_username="manager", first_name="Man", last_name="Ager", student_number="s1234567"
+            github_id=1,
+            github_username="manager",
+            first_name="Man",
+            last_name="Ager",
+            student_number="s1234567",
         )
 
         cls.registration = Registration.objects.create(
@@ -56,7 +72,11 @@ class RegistrationAdminTest(TestCase):
         cls.registration.project = cls.project
 
         cls.user = User.objects.create(
-            github_id=2, github_username="lol", first_name="First", last_name="Last", student_number="s1234568"
+            github_id=2,
+            github_username="lol",
+            first_name="First",
+            last_name="Last",
+            student_number="s1234568",
         )
 
         cls.registration2 = Registration.objects.create(
@@ -96,29 +116,52 @@ class RegistrationAdminTest(TestCase):
         self.client.force_login(self.admin)
 
     def test_get_changelist(self):
-        response = self.client.get(reverse("admin:registrations_employee_changelist"), follow=True)
+        response = self.client.get(
+            reverse("admin:registrations_employee_changelist"), follow=True
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_get_form(self):
-        response = self.client.get(reverse("admin:registrations_employee_change", args=[self.manager.id]), follow=True)
+        response = self.client.get(
+            reverse(
+                "admin:registrations_employee_change", args=[self.manager.id]
+            ),
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_form_save(self):
-        response = self.client.post(reverse("admin:registrations_employee_add"), self.message, follow=True)
+        response = self.client.post(
+            reverse("admin:registrations_employee_add"),
+            self.message,
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(User.objects.get(student_number="s0000000"))
 
     def test_place_in_first_project_preference(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
-            {ACTION_CHECKBOX_NAME: [self.manager.pk], "action": "place_in_first_project_preference", "index": 0},
+            {
+                ACTION_CHECKBOX_NAME: [self.manager.pk],
+                "action": "place_in_first_project_preference",
+                "index": 0,
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(self.registration.preference1, Project.objects.filter(registration__user=self.manager))
+        self.assertIn(
+            self.registration.preference1,
+            Project.objects.filter(registration__user=self.manager),
+        )
 
     def test_student_change_list_without_registration(self):
-        response = self.client.get(reverse("admin:registrations_employee_change", args=[self.user.pk]), follow=True)
+        response = self.client.get(
+            reverse(
+                "admin:registrations_employee_change", args=[self.user.pk]
+            ),
+            follow=True,
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_get_user_changelist_semesterfilter(self):
@@ -134,7 +177,9 @@ class RegistrationAdminTest(TestCase):
     def test_get_user_changelist_projectfilter(self):
         response = self.client.get(
             reverse("admin:registrations_employee_changelist"),
-            data={f"{UserAdminProjectFilter.field_name}__{UserAdminProjectFilter.field_pk}__exact": self.project.id},
+            data={
+                f"{UserAdminProjectFilter.field_name}__{UserAdminProjectFilter.field_pk}__exact": self.project.id
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -142,17 +187,30 @@ class RegistrationAdminTest(TestCase):
     def test_student_number_csv_export(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
-            {ACTION_CHECKBOX_NAME: [self.user.pk], "action": "export_student_numbers", "index": 0},
+            {
+                ACTION_CHECKBOX_NAME: [self.user.pk],
+                "action": "export_student_numbers",
+                "index": 0,
+            },
         )
 
-        self.assertContains(response, '"First name","Last name","Student number"')
-        self.assertContains(response, f'"{self.user.first_name}","{self.user.last_name}","{self.user.student_number}"')
+        self.assertContains(
+            response, '"First name","Last name","Student number"'
+        )
+        self.assertContains(
+            response,
+            f'"{self.user.first_name}","{self.user.last_name}","{self.user.student_number}"',
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_registration_csv_export(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
-            {ACTION_CHECKBOX_NAME: [self.manager.pk], "action": "export_registrations", "index": 0},
+            {
+                ACTION_CHECKBOX_NAME: [self.manager.pk],
+                "action": "export_registrations",
+                "index": 0,
+            },
         )
         self.assertContains(
             response,
@@ -207,7 +265,11 @@ class RegistrationAdminTest(TestCase):
     def test_unassign_project(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
-            {ACTION_CHECKBOX_NAME: [self.manager.pk, self.user.pk], "action": "unassign_from_project", "index": 0},
+            {
+                ACTION_CHECKBOX_NAME: [self.manager.pk, self.user.pk],
+                "action": "unassign_from_project",
+                "index": 0,
+            },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
@@ -222,9 +284,13 @@ class RegistrationAdminTest(TestCase):
 
     @patch("registrations.admin.ImportAssignmentAdminView.handle_csv")
     def test_import_csv__post(self, mock_handle_csv):
-        test_csv_file = SimpleUploadedFile("csv_file.csv", b"123456,test,abcdef", content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.csv", b"123456,test,abcdef", content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         self.assertEqual(response.status_code, 200)
         mock_handle_csv.assert_called_once()
@@ -232,9 +298,13 @@ class RegistrationAdminTest(TestCase):
     @patch("registrations.admin.ImportAssignmentAdminView.handle_csv")
     def test_import_csv__post_no_csv_file(self, mock_handle_csv):
         messages.error = MagicMock()
-        test_csv_file = SimpleUploadedFile("csv_file.png", b"123456,test,abcdef", content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.png", b"123456,test,abcdef", content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         self.assertEqual(response.status_code, 200)
         messages.error.assert_called_once()
@@ -244,9 +314,13 @@ class RegistrationAdminTest(TestCase):
     def test_import_csv__post_file_too_big(self, mock_handle_csv):
         messages.error = MagicMock()
         file_content = 20000000 * b"test"
-        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.csv", file_content, content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         self.assertEqual(response.status_code, 200)
         messages.error.assert_called_once()
@@ -258,9 +332,13 @@ class RegistrationAdminTest(TestCase):
     )
     def test_import_csv__post_file_error_handling(self, mock_handle_csv):
         messages.error = MagicMock()
-        test_csv_file = SimpleUploadedFile("csv_file.csv", b"123456,test,abcdef", content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.csv", b"123456,test,abcdef", content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         self.assertEqual(response.status_code, 200)
         mock_handle_csv.assert_called_once()
@@ -287,9 +365,13 @@ class RegistrationAdminTest(TestCase):
             is_international=False,
         )
 
-        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.csv", file_content, content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         registration.refresh_from_db()
         self.assertEqual(registration.project, self.project)
@@ -317,9 +399,13 @@ class RegistrationAdminTest(TestCase):
         )
         registration.project = self.project2
 
-        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.csv", file_content, content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         registration.refresh_from_db()
         self.assertEqual(registration.project, self.project2)
@@ -343,9 +429,13 @@ class RegistrationAdminTest(TestCase):
             is_international=False,
         )
 
-        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.csv", file_content, content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         registration.refresh_from_db()
         self.assertIsNone(registration.project)
@@ -372,9 +462,13 @@ class RegistrationAdminTest(TestCase):
             is_international=False,
         )
 
-        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.csv", file_content, content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         registration.refresh_from_db()
         self.assertIsNone(registration.project)
@@ -401,9 +495,13 @@ class RegistrationAdminTest(TestCase):
             is_international=False,
         )
 
-        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.csv", file_content, content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         registration.refresh_from_db()
         self.assertIsNone(registration.project)
@@ -430,9 +528,13 @@ class RegistrationAdminTest(TestCase):
             is_international=False,
         )
 
-        test_csv_file = SimpleUploadedFile("csv_file.csv", file_content, content_type="text/csv")
+        test_csv_file = SimpleUploadedFile(
+            "csv_file.csv", file_content, content_type="text/csv"
+        )
         response = self.client.post(
-            reverse("admin:import"), {"csv_file": test_csv_file, "semester": self.semester.pk}, follow=True
+            reverse("admin:import"),
+            {"csv_file": test_csv_file, "semester": self.semester.pk},
+            follow=True,
         )
         registration.refresh_from_db()
         self.assertIsNone(registration.project)
@@ -455,7 +557,11 @@ class RegistrationAdminTest(TestCase):
 
     def test_download_csv__post_no_registration(self):
         user_without_registration = User.objects.create(
-            github_id=1001, github_username="noreg", first_name="No", last_name="Reg", student_number="s1231001"
+            github_id=1001,
+            github_username="noreg",
+            first_name="No",
+            last_name="Reg",
+            student_number="s1231001",
         )
 
         response = self.client.post(
@@ -472,10 +578,16 @@ class RegistrationAdminTest(TestCase):
 
     def test_download_csv__post_different_semesters(self):
         user_different_semester = User.objects.create(
-            github_id=1001, github_username="noreg", first_name="No", last_name="Reg", student_number="s1231001"
+            github_id=1001,
+            github_username="noreg",
+            first_name="No",
+            last_name="Reg",
+            student_number="s1231001",
         )
 
-        old_semester = Semester.objects.create(year=2000, season=Semester.SPRING)
+        old_semester = Semester.objects.create(
+            year=2000, season=Semester.SPRING
+        )
 
         reg = Registration.objects.create(
             user=user_different_semester,
@@ -491,11 +603,17 @@ class RegistrationAdminTest(TestCase):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
             {
-                ACTION_CHECKBOX_NAME: [self.manager.id, user_different_semester.id],
+                ACTION_CHECKBOX_NAME: [
+                    self.manager.id,
+                    user_different_semester.id,
+                ],
                 "action": "generate_project_assignment_proposal",
                 "index": 0,
             },
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "All users should have a registration in the same semester.")
+        self.assertContains(
+            response,
+            "All users should have a registration in the same semester.",
+        )

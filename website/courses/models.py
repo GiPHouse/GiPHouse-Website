@@ -49,8 +49,10 @@ class SemesterManager(models.Manager):
 
     def get_first_semester_with_open_registration(self):
         """Get the first semester with an open registration."""
-        return self.filter(registration_start__lte=timezone.now(),
-                           registration_end__gte=timezone.now()).first()
+        return self.filter(
+            registration_start__lte=timezone.now(),
+            registration_end__gte=timezone.now(),
+        ).first()
 
     def get_or_create_current_semester(self):
         """
@@ -68,26 +70,40 @@ class SemesterManager(models.Manager):
         August is considered spring semester for simplicity.
         """
         jan31 = timezone.now().replace(
-            year=timezone.now().year, month=1, day=31,
-            hour=0, minute=0, second=0, microsecond=0
+            year=timezone.now().year,
+            month=1,
+            day=31,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
         )
 
-        spring_semester_start = (jan31
-                                 - timezone.timedelta(days=jan31.weekday())
-                                 - timezone.timedelta(days=14))
+        spring_semester_start = (
+            jan31
+            - timezone.timedelta(days=jan31.weekday())
+            - timezone.timedelta(days=14)
+        )
 
         fall_semester_start = timezone.now().replace(
-            year=timezone.now().year, month=9, day=1,
-            hour=0, minute=0, second=0, microsecond=0
+            year=timezone.now().year,
+            month=9,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
         )
 
         if timezone.now() < spring_semester_start:
-            return self.get_or_create(year=timezone.now().year - 1,
-                                      season=Semester.FALL)[0]
+            return self.get_or_create(
+                year=timezone.now().year - 1, season=Semester.FALL
+            )[0]
 
         elif spring_semester_start <= timezone.now() < fall_semester_start:
-            return self.get_or_create(year=timezone.now().year,
-                                      season=Semester.SPRING)[0]
+            return self.get_or_create(
+                year=timezone.now().year, season=Semester.SPRING
+            )[0]
 
         # In the case fall_semester_start <= timezone.now()
         # In other words, if the start of the fall semester has passed.
@@ -113,17 +129,20 @@ class Semester(models.Model):
     FALL = 1
     CHOICES = ((SPRING, "Spring"), (FALL, "Fall"))
 
-    year = models.IntegerField(validators=[MinValueValidator(2008),
-                                           max_value_current_year])
+    year = models.IntegerField(
+        validators=[MinValueValidator(2008), max_value_current_year]
+    )
     season = models.PositiveSmallIntegerField(choices=CHOICES, default=SPRING)
 
     registration_start = models.DateTimeField(
-        blank=True, null=True,
-        help_text="This must be filled in to open the registration."
+        blank=True,
+        null=True,
+        help_text="This must be filled in to open the registration.",
     )
     registration_end = models.DateTimeField(
-        blank=True, null=True,
-        help_text="This must be filled in to open the registration."
+        blank=True,
+        null=True,
+        help_text="This must be filled in to open the registration.",
     )
 
     objects = SemesterManager()
@@ -187,7 +206,9 @@ class Lecture(models.Model):
 
     slides = models.FileField(
         upload_to=get_slides_filename,
-        validators=[FileExtensionValidator(["pdf"])], blank=True, null=True
+        validators=[FileExtensionValidator(["pdf"])],
+        blank=True,
+        null=True,
     )
 
     capacity = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -197,9 +218,12 @@ class Lecture(models.Model):
     @property
     def can_register(self):
         """Return True if users should be able to (un)register
-          for this lecture at this point in time."""
-        return not (self.registration_required and self.register_until
-                    and timezone.now() > self.register_until)
+        for this lecture at this point in time."""
+        return not (
+            self.registration_required
+            and self.register_until
+            and timezone.now() > self.register_until
+        )
 
     @property
     def registration_required(self):
@@ -209,8 +233,10 @@ class Lecture(models.Model):
     @property
     def capacity_reached(self):
         """Is the registration capacity for this lecture reached."""
-        return (self.capacity is not None and
-                self.lectureregistration_set.count() >= self.capacity)
+        return (
+            self.capacity is not None
+            and self.lectureregistration_set.count() >= self.capacity
+        )
 
     @property
     def registered_users(self):

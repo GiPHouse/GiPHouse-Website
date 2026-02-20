@@ -47,12 +47,13 @@ Faker = "^40.4.0"
 black = "^26.1.0"
 
 [tool.black]
-line-length = 119
-target-version = ["py313"]
+line-length = 79
+target-version = ["py314"]
 exclude = '''
 /(
   migrations
   | website/giphousewebsite/settings
+  .venv
 )/
 '''
 

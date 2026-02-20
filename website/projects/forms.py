@@ -31,34 +31,48 @@ class ProjectAdminForm(forms.ModelForm):
         )
 
         self.fields["engineers"].queryset = User.objects.filter(
-            Q(registration__course=Course.objects.se()) | Q(registration__course=Course.objects.sde()),
+            Q(registration__course=Course.objects.se())
+            | Q(registration__course=Course.objects.sde()),
             registration__semester=Semester.objects.get_or_create_current_semester(),
         )
 
         if self.instance.pk:
             self.fields["managers"].initial = User.objects.filter(
-                registration__course=Course.objects.sdm(), registration__projects=self.instance
+                registration__course=Course.objects.sdm(),
+                registration__projects=self.instance,
             )
 
             self.fields["engineers"].initial = User.objects.filter(
-                Q(registration__course=Course.objects.se()) | Q(registration__course=Course.objects.sde()),
+                Q(registration__course=Course.objects.se())
+                | Q(registration__course=Course.objects.sde()),
                 registration__projects=self.instance,
             )
 
     managers = forms.ModelMultipleChoiceField(
-        queryset=None, required=False, widget=widgets.FilteredSelectMultiple("Managers", False)
+        queryset=None,
+        required=False,
+        widget=widgets.FilteredSelectMultiple("Managers", False),
     )
 
     engineers = forms.ModelMultipleChoiceField(
-        queryset=None, required=False, widget=widgets.FilteredSelectMultiple("Engineers", False)
+        queryset=None,
+        required=False,
+        widget=widgets.FilteredSelectMultiple("Engineers", False),
     )
 
     def save_m2m(self):
         """Add the users to the Project and remove other users from the Project."""
-        new_users = [*self.cleaned_data["managers"], *self.cleaned_data["engineers"]]
-        for reg in Registration.objects.filter(semester=self.instance.semester, user_id__in=new_users):
+        new_users = [
+            *self.cleaned_data["managers"],
+            *self.cleaned_data["engineers"],
+        ]
+        for reg in Registration.objects.filter(
+            semester=self.instance.semester, user_id__in=new_users
+        ):
             reg.projects.add(self.instance)
-        for reg in Registration.objects.filter(semester=self.instance.semester, user_id__in=new_users):
+        for reg in Registration.objects.filter(
+            semester=self.instance.semester, user_id__in=new_users
+        ):
             reg.projects.set([])
 
     def save(self, *args, **kwargs):
@@ -74,13 +88,18 @@ class RepositoryInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         """Limit the choices of is_archived."""
         super().__init__(*args, **kwargs)
-        if self.instance is not None and self.instance.is_archived == Repository.Archived.CONFIRMED:
+        if (
+            self.instance is not None
+            and self.instance.is_archived == Repository.Archived.CONFIRMED
+        ):
             self.fields["is_archived"].disabled = True
             self.fields["is_archived"].help_text = (
                 "This repository is already archived on GitHub. It is currently not possible to unarchive them."
             )
         else:
-            self.fields["is_archived"].choices = Repository.Archived.choices[:-1]
+            self.fields["is_archived"].choices = Repository.Archived.choices[
+                :-1
+            ]
             self.fields["is_archived"].help_text = (
                 "Setting this to 'To be archived' will archive this repository during the next GitHub sync."
             )

@@ -17,19 +17,20 @@ class GithubTagsTest(TestCase):
         fake_domain = f"http://fake_domain{callback_url}"
         redirect_uri = quote(f"{fake_domain}?next={redirect_path}")
 
-        template_to_render = Template(
-            f"""{{% load github_tags %}}<a href=
-            "{{% url_github_callback '{callback_action}' %}}"></a>"""
-        )
+        template_to_render = Template(f"""{{% load github_tags %}}<a href=
+            "{{% url_github_callback '{callback_action}' %}}"></a>""")
 
         context = Context()
         context["request"] = mock.MagicMock()
         context["request"].build_absolute_uri = mock.MagicMock(
-            return_value=fake_domain)
+            return_value=fake_domain
+        )
         context["request"].path = redirect_path
 
         rendered_template = template_to_render.render(context)
 
-        self.assertInHTML(f"""<a href="{URL_GITHUB_LOGIN}
+        self.assertInHTML(
+            f"""<a href="{URL_GITHUB_LOGIN}
                           &redirect_uri={redirect_uri}"></a>""",
-                          rendered_template)
+            rendered_template,
+        )

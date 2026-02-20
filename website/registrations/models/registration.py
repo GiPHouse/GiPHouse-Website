@@ -38,17 +38,47 @@ class Registration(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
-    preference1 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
-    preference2 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
-    preference3 = models.ForeignKey(Project, null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    preference1 = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    preference2 = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    preference3 = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
 
-    partner_preference1 = models.CharField(null=True, blank=True, max_length=50)
-    partner_preference2 = models.CharField(null=True, blank=True, max_length=50)
-    partner_preference3 = models.CharField(null=True, blank=True, max_length=50)
+    partner_preference1 = models.CharField(
+        null=True, blank=True, max_length=50
+    )
+    partner_preference2 = models.CharField(
+        null=True, blank=True, max_length=50
+    )
+    partner_preference3 = models.CharField(
+        null=True, blank=True, max_length=50
+    )
 
-    dev_experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES)
-    git_experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES, default=EXPERIENCE_BEGINNER)
-    scrum_experience = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES, default=EXPERIENCE_BEGINNER)
+    dev_experience = models.PositiveSmallIntegerField(
+        choices=EXPERIENCE_CHOICES
+    )
+    git_experience = models.PositiveSmallIntegerField(
+        choices=EXPERIENCE_CHOICES, default=EXPERIENCE_BEGINNER
+    )
+    scrum_experience = models.PositiveSmallIntegerField(
+        choices=EXPERIENCE_CHOICES, default=EXPERIENCE_BEGINNER
+    )
 
     management_interest = models.BooleanField(default=False)
 
@@ -95,7 +125,9 @@ class Registration(models.Model):
             return None
 
         ratios = {}
-        for user in User.objects.filter(registration__semester=self.semester).all():
+        for user in User.objects.filter(
+            registration__semester=self.semester
+        ).all():
             ratio = SequenceMatcher(None, name, user.get_full_name()).ratio()
             if ratio > 0.5:
                 ratios[user] = ratio

@@ -56,7 +56,10 @@ class ProjectAdminArchivedFilter(admin.SimpleListFilter):
         """Return the queryset required for the selected value."""
         annotated = queryset.annotate(
             num_unarchived_repos=Count(
-                "repository", filter=Q(repository__is_archived=Repository.Archived.NOT_ARCHIVED)
+                "repository",
+                filter=Q(
+                    repository__is_archived=Repository.Archived.NOT_ARCHIVED
+                ),
             )
         )
         if self.value() == "1":
@@ -96,10 +99,19 @@ class ProjectAdmin(admin.ModelAdmin):
     """Custom admin for projects."""
 
     form = ProjectAdminForm
-    list_filter = [ProjectAdminClientFilter, ProjectAdminSemesterFilter, ProjectAdminArchivedFilter]
+    list_filter = [
+        ProjectAdminClientFilter,
+        ProjectAdminSemesterFilter,
+        ProjectAdminArchivedFilter,
+    ]
     list_display = ["name", "client", "is_archived", "number_of_repos"]
 
-    actions = ["create_mailing_lists", "synchronise_to_GitHub", "archive_all_repositories", "export_project_members"]
+    actions = [
+        "create_mailing_lists",
+        "synchronise_to_GitHub",
+        "archive_all_repositories",
+        "export_project_members",
+    ]
     inlines = [RepositoryInline, MailinglistInline]
 
     search_fields = ("name",)
@@ -162,12 +174,16 @@ class ProjectAdmin(admin.ModelAdmin):
         task = sync.perform_asynchronous_sync()
         return redirect("admin:progress_bar", task=task)
 
-    synchronise_to_GitHub.short_description = "Synchronise selected projects to GitHub"
+    synchronise_to_GitHub.short_description = (
+        "Synchronise selected projects to GitHub"
+    )
 
     def export_project_members(self, request, queryset):
         """Export project members to a CSV file."""
         content = StringIO()
-        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer = csv.writer(
+            content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
+        )
         writer.writerow(
             [
                 "Project",
@@ -193,8 +209,12 @@ class ProjectAdmin(admin.ModelAdmin):
                     ]
                 )
 
-        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
-        response["Content-Disposition"] = "attachment; filename=project-members.csv"
+        response = HttpResponse(
+            content.getvalue(), content_type="application/x-zip-compressed"
+        )
+        response["Content-Disposition"] = (
+            "attachment; filename=project-members.csv"
+        )
         return response
 
     export_project_members.short_description = "Export project members to CSV"
@@ -205,7 +225,9 @@ class ProjectAdmin(admin.ModelAdmin):
             request,
             [
                 p
-                for p in Project.objects.filter(semester=Semester.objects.get_or_create_current_semester())
+                for p in Project.objects.filter(
+                    semester=Semester.objects.get_or_create_current_semester()
+                )
                 if p.is_archived != Repository.Archived.CONFIRMED
             ],
         )
@@ -216,7 +238,9 @@ class ProjectAdmin(admin.ModelAdmin):
         custom_urls = [
             path(
                 "sync-to-github/",
-                self.admin_site.admin_view(self.synchronise_current_projects_to_GitHub),
+                self.admin_site.admin_view(
+                    self.synchronise_current_projects_to_GitHub
+                ),
                 name="synchronise_to_github",
             ),
         ]

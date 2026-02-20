@@ -5,7 +5,12 @@ from django.test import TestCase
 from courses.models import Course, Semester
 
 from projects import githubsync
-from projects.models import Project, ProjectToBeDeleted, Repository, RepositoryToBeDeleted
+from projects.models import (
+    Project,
+    ProjectToBeDeleted,
+    Repository,
+    RepositoryToBeDeleted,
+)
 
 from registrations.models import Employee, Registration
 
@@ -14,19 +19,42 @@ class EmployeeQueryTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Sets up one semester, four projects and three employees"""
-        cls.semester = Semester.objects.create(year=2020, season=Semester.SPRING)
-        cls.project1 = Project.objects.create(name="test1", slug="test1", semester=cls.semester)
-        cls.project2 = Project.objects.create(name="test2", slug="test2", semester=cls.semester)
-        cls.project3 = Project.objects.create(name="test3", slug="test3", semester=cls.semester)
-        cls.project4 = Project.objects.create(
-            name="test4", slug="test4", semester=cls.semester, github_team_id=12345678
+        cls.semester = Semester.objects.create(
+            year=2020, season=Semester.SPRING
         )
-        cls.repo1 = Repository.objects.create(name="testrepo1", project=cls.project3)
-        cls.repo2 = Repository.objects.create(name="testrepo2", project=cls.project3, github_repo_id=87654321)
-        cls.repo3 = Repository.objects.create(name="testrepo3", project=cls.project2)
-        cls.employee1 = Employee.objects.create(github_id=0, github_username="user1")
-        cls.employee2 = Employee.objects.create(github_id=1, github_username="user2")
-        cls.employee3 = Employee.objects.create(github_id=2, github_username="user3")
+        cls.project1 = Project.objects.create(
+            name="test1", slug="test1", semester=cls.semester
+        )
+        cls.project2 = Project.objects.create(
+            name="test2", slug="test2", semester=cls.semester
+        )
+        cls.project3 = Project.objects.create(
+            name="test3", slug="test3", semester=cls.semester
+        )
+        cls.project4 = Project.objects.create(
+            name="test4",
+            slug="test4",
+            semester=cls.semester,
+            github_team_id=12345678,
+        )
+        cls.repo1 = Repository.objects.create(
+            name="testrepo1", project=cls.project3
+        )
+        cls.repo2 = Repository.objects.create(
+            name="testrepo2", project=cls.project3, github_repo_id=87654321
+        )
+        cls.repo3 = Repository.objects.create(
+            name="testrepo3", project=cls.project2
+        )
+        cls.employee1 = Employee.objects.create(
+            github_id=0, github_username="user1"
+        )
+        cls.employee2 = Employee.objects.create(
+            github_id=1, github_username="user2"
+        )
+        cls.employee3 = Employee.objects.create(
+            github_id=2, github_username="user3"
+        )
 
     @classmethod
     def addManagerToProject(cls, employee, project):
@@ -83,12 +111,16 @@ class EmployeeQueryTest(TestCase):
 
         self.project3.delete()
         self.assertEqual(ProjectToBeDeleted.objects.all().count(), 0)
-        self.assertTrue(RepositoryToBeDeleted.objects.get(github_repo_id=87654321))
+        self.assertTrue(
+            RepositoryToBeDeleted.objects.get(github_repo_id=87654321)
+        )
         self.assertEqual(len(Repository.objects.filter(name="testrepo1")), 0)
         self.assertEqual(len(Repository.objects.filter(name="testrepo2")), 0)
 
         self.project4.delete()
-        self.assertTrue(ProjectToBeDeleted.objects.get(github_team_id=12345678))
+        self.assertTrue(
+            ProjectToBeDeleted.objects.get(github_team_id=12345678)
+        )
 
     def test_delete_repository(self):
         """Test if deleted repos are added to delete-list."""
@@ -98,16 +130,24 @@ class EmployeeQueryTest(TestCase):
         self.assertEqual(RepositoryToBeDeleted.objects.all().count(), 0)
 
         self.repo2.delete()
-        self.assertTrue(RepositoryToBeDeleted.objects.get(github_repo_id=87654321))
+        self.assertTrue(
+            RepositoryToBeDeleted.objects.get(github_repo_id=87654321)
+        )
 
     def test_is_archived(self):
-        self.assertEqual(self.project2.is_archived, Repository.Archived.NOT_ARCHIVED)
+        self.assertEqual(
+            self.project2.is_archived, Repository.Archived.NOT_ARCHIVED
+        )
 
     def test_is_archived__no_repos(self):
-        self.assertEqual(self.project1.is_archived, Repository.Archived.CONFIRMED)
+        self.assertEqual(
+            self.project1.is_archived, Repository.Archived.CONFIRMED
+        )
 
     def test_number_of_repos(self):
-        project = Project.objects.create(name="testproject", semester=self.semester)
+        project = Project.objects.create(
+            name="testproject", semester=self.semester
+        )
         self.assertEqual(project.number_of_repos, 0)
         Repository.objects.create(name="testrepository1", project=project)
         Repository.objects.create(name="testrepository2", project=project)

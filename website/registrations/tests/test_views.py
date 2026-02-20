@@ -19,7 +19,11 @@ class RedirectTest(TestCase):
     def test_base_url_redirects_to_step_1(self):
         response = self.client.get("/register/")
 
-        self.assertRedirects(response, reverse("registrations:step1"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response,
+            reverse("registrations:step1"),
+            fetch_redirect_response=False,
+        )
 
 
 class Step1Test(TestCase):
@@ -69,7 +73,9 @@ class Step1Test(TestCase):
 
     def test_step1_current_semester_closed_registration(self):
         semester = Semester.objects.get_or_create_current_semester()
-        semester.registration_start = timezone.now() - timezone.timedelta(days=2)
+        semester.registration_start = timezone.now() - timezone.timedelta(
+            days=2
+        )
         semester.registration_end = timezone.now() - timezone.timedelta(days=1)
         semester.save()
 
@@ -96,7 +102,9 @@ class Step2Test(TestCase):
     def setUpTestData(cls):
         cls.semester = Semester.objects.get_or_create_current_semester()
         cls.semester.registration_start = timezone.now()
-        cls.semester.registration_end = timezone.now() + timezone.timedelta(days=1)
+        cls.semester.registration_end = timezone.now() + timezone.timedelta(
+            days=1
+        )
         cls.semester.save()
 
         cls.first_name = "FirstTest"
@@ -108,15 +116,24 @@ class Step2Test(TestCase):
         cls.dev_experience = Registration.EXPERIENCE_BEGINNER
 
         cls.project_preference1 = Project.objects.create(
-            semester=cls.semester, name="project1", slug="project1", description="Test Project 1"
+            semester=cls.semester,
+            name="project1",
+            slug="project1",
+            description="Test Project 1",
         )
 
         cls.project_preference2 = Project.objects.create(
-            semester=cls.semester, name="project2", slug="project2", description="Test Project 2"
+            semester=cls.semester,
+            name="project2",
+            slug="project2",
+            description="Test Project 2",
         )
 
         cls.project_preference3 = Project.objects.create(
-            semester=cls.semester, name="project3", slug="project3", description="Test Project 3"
+            semester=cls.semester,
+            name="project3",
+            slug="project3",
+            description="Test Project 3",
         )
 
         cls.project_partner_preference1 = "Piet Janssen"
@@ -240,10 +257,14 @@ class Step2Test(TestCase):
             },
             follow=True,
         )
-        self.assertContains(response, "You should fill in all preferences with unique values")
+        self.assertContains(
+            response, "You should fill in all preferences with unique values"
+        )
 
     def test_post_step2_existing_user(self):
-        existing_user = User.objects.create_user(github_id=self.github_id, student_number=self.student_number)
+        existing_user = User.objects.create_user(
+            github_id=self.github_id, student_number=self.student_number
+        )
         Registration.objects.create(
             user=existing_user,
             dev_experience=self.dev_experience,
@@ -277,12 +298,18 @@ class Step2Test(TestCase):
                 "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
             },
         )
-        self.assertContains(response, "User already registered for this semester.")
+        self.assertContains(
+            response, "User already registered for this semester."
+        )
 
     def test_post_step2_existing_user_different_semester(self):
-        existing_user = User.objects.create_user(github_id=self.github_id, student_number=self.student_number)
+        existing_user = User.objects.create_user(
+            github_id=self.github_id, student_number=self.student_number
+        )
 
-        older_semester = Semester.objects.create(year=timezone.now().year - 2, season=Semester.FALL)
+        older_semester = Semester.objects.create(
+            year=timezone.now().year - 2, season=Semester.FALL
+        )
 
         Registration.objects.create(
             user=existing_user,
@@ -329,7 +356,9 @@ class Step2Test(TestCase):
 
     def test_post_step2_existing_email(self):
         existing_user = User.objects.create_user(
-            github_id=self.github_id, student_number=self.student_number, email=self.email
+            github_id=self.github_id,
+            student_number=self.student_number,
+            email=self.email,
         )
         Registration.objects.create(
             user=existing_user,
@@ -375,7 +404,9 @@ class Step2Test(TestCase):
 
     def test_post_step2_existing_student_number(self):
         existing_user = User.objects.create_user(
-            github_id=self.github_id, student_number=self.student_number, email="non-existent@test.invalid"
+            github_id=self.github_id,
+            student_number=self.student_number,
+            email="non-existent@test.invalid",
         )
         Registration.objects.create(
             user=existing_user,

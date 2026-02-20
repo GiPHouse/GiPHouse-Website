@@ -40,7 +40,9 @@ def render_main_menu(context):
     menu = [
         item
         for item in MAIN_MENU
-        if "visible" not in item or "visible" in item and item["visible"](context.get("request"))
+        if "visible" not in item
+        or "visible" in item
+        and item["visible"](context.get("request"))
     ]
 
     return {"menu": menu, "request": context.get("request", None)}

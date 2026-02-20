@@ -16,7 +16,10 @@ from courses.models import Semester
 from projects.models import Project
 
 from registrations.models import Employee, Registration
-from registrations.team_assignment import CSV_STRUCTURE, TeamAssignmentGenerator
+from registrations.team_assignment import (
+    CSV_STRUCTURE,
+    TeamAssignmentGenerator,
+)
 
 User: Employee = get_user_model()
 
@@ -71,15 +74,30 @@ class UserAdmin(admin.ModelAdmin):
     )
 
     fieldsets = (
-        ("Personal", {"fields": ("first_name", "last_name", "email", "student_number")}),
+        (
+            "Personal",
+            {"fields": ("first_name", "last_name", "email", "student_number")},
+        ),
         (
             "Administration",
             {
-                "fields": ("date_joined", "is_staff", "is_active", "is_superuser", "user_permissions"),
+                "fields": (
+                    "date_joined",
+                    "is_staff",
+                    "is_active",
+                    "is_superuser",
+                    "user_permissions",
+                ),
                 "classes": ("collapse",),
             },
         ),
-        ("GitHub", {"fields": ("github_id", "github_username"), "classes": ("collapse",)}),
+        (
+            "GitHub",
+            {
+                "fields": ("github_id", "github_username"),
+                "classes": ("collapse",),
+            },
+        ),
         ("Private comments", {"fields": ("comments",)}),
     )
 
@@ -107,7 +125,12 @@ class UserAdmin(admin.ModelAdmin):
     )
 
     # Necessary for the autocomplete filter
-    search_fields = ("first_name", "last_name", "student_number", "github_username")
+    search_fields = (
+        "first_name",
+        "last_name",
+        "student_number",
+        "github_username",
+    )
 
     def get_current_project(self, obj):
         """Return current project."""
@@ -126,21 +149,33 @@ class UserAdmin(admin.ModelAdmin):
     def export_student_numbers(self, request, queryset):
         """Export the first name, last name and student number of the selected users to a CSV file."""
         content = StringIO()
-        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer = csv.writer(
+            content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
+        )
         writer.writerow(["First name", "Last name", "Student number"])
         for user in queryset:
-            writer.writerow([user.first_name, user.last_name, user.student_number])
+            writer.writerow(
+                [user.first_name, user.last_name, user.student_number]
+            )
 
-        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
-        response["Content-Disposition"] = "attachment; filename=student-numbers.csv"
+        response = HttpResponse(
+            content.getvalue(), content_type="application/x-zip-compressed"
+        )
+        response["Content-Disposition"] = (
+            "attachment; filename=student-numbers.csv"
+        )
         return response
 
-    export_student_numbers.short_description = "Export names and student numbers"
+    export_student_numbers.short_description = (
+        "Export names and student numbers"
+    )
 
     def export_registrations(self, request, queryset):
         """Export the registration information of the most recent registration of the selected users to a CSV file."""
         content = StringIO()
-        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
+        writer = csv.writer(
+            content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
+        )
         writer.writerow(
             [
                 "First name",
@@ -208,8 +243,12 @@ class UserAdmin(admin.ModelAdmin):
                 ]
             )
 
-        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
-        response["Content-Disposition"] = "attachment; filename=registrations.csv"
+        response = HttpResponse(
+            content.getvalue(), content_type="application/x-zip-compressed"
+        )
+        response["Content-Disposition"] = (
+            "attachment; filename=registrations.csv"
+        )
         return response
 
     def unassign_from_project(self, request, queryset):
@@ -234,8 +273,14 @@ class UserAdmin(admin.ModelAdmin):
             messages.warning(request, "All users should have a registration.")
             return
 
-        if len(set(registration.semester for registration in registrations)) > 1:
-            messages.warning(request, "All users should have a registration in the same semester.")
+        if (
+            len(set(registration.semester for registration in registrations))
+            > 1
+        ):
+            messages.warning(
+                request,
+                "All users should have a registration in the same semester.",
+            )
             return
 
         task = TeamAssignmentGenerator(registrations).start_solve_task()
@@ -247,7 +292,9 @@ class UserAdmin(admin.ModelAdmin):
         custom_urls = [
             path(
                 "import/",
-                self.admin_site.admin_view(ImportAssignmentAdminView.as_view()),
+                self.admin_site.admin_view(
+                    ImportAssignmentAdminView.as_view()
+                ),
                 name="import",
             ),
         ]
@@ -258,7 +305,9 @@ class CsvImportForm(forms.Form):
     """Form used when importing a csv group assignment."""
 
     csv_file = forms.FileField(required=True)
-    semester = forms.ModelChoiceField(queryset=Semester.objects.all(), required=True)
+    semester = forms.ModelChoiceField(
+        queryset=Semester.objects.all(), required=True
+    )
 
 
 class ImportAssignmentAdminView(View):
@@ -267,7 +316,11 @@ class ImportAssignmentAdminView(View):
     def get(self, request):
         """Get a form to select the semester to import for."""
         form = CsvImportForm()
-        payload = {"form": form, "header": CSV_STRUCTURE[:5], "title": "Import"}
+        payload = {
+            "form": form,
+            "header": CSV_STRUCTURE[:5],
+            "title": "Import",
+        }
 
         return render(request, "admin/registrations/import-csv.html", payload)
 
@@ -296,9 +349,13 @@ class ImportAssignmentAdminView(View):
             csv_project = row[4]
 
             try:
-                project = Project.objects.get(name=csv_project, semester=semester)
+                project = Project.objects.get(
+                    name=csv_project, semester=semester
+                )
             except Project.DoesNotExist:
-                raise ValueError(f"No project was found for {csv_project} in semester {semester}.")
+                raise ValueError(
+                    f"No project was found for {csv_project} in semester {semester}."
+                )
 
             try:
                 registration = Registration.objects.get(
@@ -330,7 +387,11 @@ class ImportAssignmentAdminView(View):
         if not csv_file.name.endswith(".csv"):
             messages.error(request, "File is not CSV type")
         elif csv_file.multiple_chunks():
-            messages.error(request, "Uploaded file is too big (%.2f MB)." % (csv_file.size / (1000 * 1000),))
+            messages.error(
+                request,
+                "Uploaded file is too big (%.2f MB)."
+                % (csv_file.size / (1000 * 1000),),
+            )
         else:
             try:
                 num_assigned, num_ignored = self.handle_csv(csv_file, semester)
@@ -347,4 +408,6 @@ class ImportAssignmentAdminView(View):
 class DownloadAssignmentForm(forms.Form):
     """Form used when generating and downloading a team assignment."""
 
-    semester = forms.ModelChoiceField(queryset=Semester.objects.all(), required=True)
+    semester = forms.ModelChoiceField(
+        queryset=Semester.objects.all(), required=True
+    )
