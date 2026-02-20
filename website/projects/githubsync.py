@@ -27,7 +27,6 @@ class GitHubAPITalker:
         This method sets the missing attribute based on the present and
         more convenient _BASE64 encoded one,
         preventing further code from crashing in development mode."""
-
         import os
         import base64
 
