@@ -3,7 +3,6 @@ import threading
 from datetime import datetime, timedelta
 
 from django.conf import settings
-from django.template.context_processors import static
 from django.urls import reverse
 
 from github import Auth, Github, GithubException, GithubIntegration
