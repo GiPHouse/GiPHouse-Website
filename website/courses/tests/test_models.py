@@ -59,7 +59,7 @@ class ModelTest(TestCase):
     def test_get_slides_filename(self):
         self.assertEqual(
             get_slides_filename(self.lecture, None),
-            f'courses/slides/{self.course}-{self.title}-{self.date.strftime("%d-%b-%Y")}.pdf',
+            f"courses/slides/{self.course}-{self.title}-{self.date.strftime('%d-%b-%Y')}.pdf",
         )
 
     def test_lecture_string(self):

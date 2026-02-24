@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('questionnaires', '0004_questionnairesubmission_submitted'),
+        ("questionnaires", "0004_questionnairesubmission_submitted"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='agreementanswerdata',
-            name='comments',
+            model_name="agreementanswerdata",
+            name="comments",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='qualityanswerdata',
-            name='comments',
+            model_name="qualityanswerdata",
+            name="comments",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='question',
-            name='with_comments',
+            model_name="question",
+            name="with_comments",
             field=models.BooleanField(default=False),
         ),
     ]

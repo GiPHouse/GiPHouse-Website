@@ -437,8 +437,9 @@ class GSuiteSyncService:
         )
         insert_list = list(
             filter(
-                lambda x: x not in existing_members
-                and x not in existing_managers,
+                lambda x: (
+                    x not in existing_members and x not in existing_managers
+                ),
                 new_members,
             )
         )

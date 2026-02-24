@@ -5,36 +5,70 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('courses', '0001_initial'),
+        ("courses", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Client',
+            name="Client",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50)),
-                ('logo', models.ImageField(blank=True, null=True, upload_to='projects/images/')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=50)),
+                (
+                    "logo",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="projects/images/"
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Project',
+            name="Project",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, verbose_name='name')),
-                ('email', models.EmailField(blank=True, max_length=254)),
-                ('description', models.TextField()),
-                ('comments', models.TextField(blank=True, null=True)),
-                ('client', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='projects.Client')),
-                ('semester', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='courses.Semester')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=50, verbose_name="name")),
+                ("email", models.EmailField(blank=True, max_length=254)),
+                ("description", models.TextField()),
+                ("comments", models.TextField(blank=True, null=True)),
+                (
+                    "client",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="projects.Client",
+                    ),
+                ),
+                (
+                    "semester",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="courses.Semester",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['semester', 'name'],
-                'unique_together': {('name', 'semester')},
+                "ordering": ["semester", "name"],
+                "unique_together": {("name", "semester")},
             },
         ),
     ]

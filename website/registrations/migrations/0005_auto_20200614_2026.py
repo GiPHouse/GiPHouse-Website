@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registrations', '0004_auto_20200614_1943'),
+        ("registrations", "0004_auto_20200614_1943"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='registration',
-            name='is_international',
+            model_name="registration",
+            name="is_international",
             field=models.BooleanField(default=False),
         ),
     ]

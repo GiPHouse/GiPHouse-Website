@@ -93,13 +93,13 @@ class RepositoryInlineForm(forms.ModelForm):
             and self.instance.is_archived == Repository.Archived.CONFIRMED
         ):
             self.fields["is_archived"].disabled = True
-            self.fields["is_archived"].help_text = (
-                "This repository is already archived on GitHub. It is currently not possible to unarchive them."
-            )
+            self.fields[
+                "is_archived"
+            ].help_text = "This repository is already archived on GitHub. It is currently not possible to unarchive them."
         else:
             self.fields["is_archived"].choices = Repository.Archived.choices[
                 :-1
             ]
-            self.fields["is_archived"].help_text = (
-                "Setting this to 'To be archived' will archive this repository during the next GitHub sync."
-            )
+            self.fields[
+                "is_archived"
+            ].help_text = "Setting this to 'To be archived' will archive this repository during the next GitHub sync."

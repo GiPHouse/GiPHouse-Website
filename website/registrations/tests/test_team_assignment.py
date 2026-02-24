@@ -15,7 +15,6 @@ User: Employee = get_user_model()
 
 
 class TeamAssignmentTest(TestCase):
-
     maxDiff = None
 
     @classmethod

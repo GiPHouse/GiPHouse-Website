@@ -173,7 +173,7 @@ def get_slides_filename(instance, filename):
         f"courses/slides/"
         f"{instance.course}-"
         f"{instance.title}-"
-        f'{instance.date.strftime("%d-%b-%Y")}'
+        f"{instance.date.strftime('%d-%b-%Y')}"
         f".pdf"
     )
 

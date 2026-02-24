@@ -256,7 +256,6 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
 
         for submission in queryset:
             for answer in submission.answer_set.all():
-
                 writer.writerow(
                     [
                         answer.submission.questionnaire,
@@ -402,7 +401,6 @@ class AnswerAdmin(ModelAdminTotals):
         )
 
         for answer in queryset:
-
             writer.writerow(
                 [
                     answer.submission.questionnaire,

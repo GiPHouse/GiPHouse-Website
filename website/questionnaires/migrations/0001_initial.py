@@ -5,74 +5,179 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='AgreementAnswerData',
+            name="AgreementAnswerData",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.PositiveSmallIntegerField(choices=[(1, 'Strongly Disagree'), (2, 'Disagree'), (3, 'Neutral'), (4, 'Agree'), (5, 'Strongly Agree')])),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "value",
+                    models.PositiveSmallIntegerField(
+                        choices=[
+                            (1, "Strongly Disagree"),
+                            (2, "Disagree"),
+                            (3, "Neutral"),
+                            (4, "Agree"),
+                            (5, "Strongly Agree"),
+                        ]
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Answer',
+            name="Answer",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='OpenAnswerData',
+            name="OpenAnswerData",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.TextField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("value", models.TextField()),
             ],
         ),
         migrations.CreateModel(
-            name='QualityAnswerData',
+            name="QualityAnswerData",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.PositiveSmallIntegerField(choices=[(1, 'Very Poor'), (2, 'Poor'), (3, 'Average'), (4, 'Good'), (5, 'Very Good')])),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "value",
+                    models.PositiveSmallIntegerField(
+                        choices=[
+                            (1, "Very Poor"),
+                            (2, "Poor"),
+                            (3, "Average"),
+                            (4, "Good"),
+                            (5, "Very Good"),
+                        ]
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Question',
+            name="Question",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('question', models.CharField(max_length=200)),
-                ('question_type', models.PositiveSmallIntegerField(choices=[(0, 'Open question'), (1, 'Poor/good Likert scale'), (2, 'Disagree/agree Likert scale')])),
-                ('about_team_member', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("question", models.CharField(max_length=200)),
+                (
+                    "question_type",
+                    models.PositiveSmallIntegerField(
+                        choices=[
+                            (0, "Open question"),
+                            (1, "Poor/good Likert scale"),
+                            (2, "Disagree/agree Likert scale"),
+                        ]
+                    ),
+                ),
+                ("about_team_member", models.BooleanField(default=False)),
             ],
         ),
         migrations.CreateModel(
-            name='Questionnaire',
+            name="Questionnaire",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('available_from', models.DateTimeField(default=django.utils.timezone.now, help_text='The moment from which the questionnaire is available.')),
-                ('available_until_soft', models.DateTimeField(help_text='Soft deadline to submit the questionnaire, after this the submission is marked as late.')),
-                ('available_until_hard', models.DateTimeField(help_text='Hard deadline to submit the questionnaire. No submissions possible after this date.')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                (
+                    "available_from",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now,
+                        help_text="The moment from which the questionnaire is available.",
+                    ),
+                ),
+                (
+                    "available_until_soft",
+                    models.DateTimeField(
+                        help_text="Soft deadline to submit the questionnaire, after this the submission is marked as late."
+                    ),
+                ),
+                (
+                    "available_until_hard",
+                    models.DateTimeField(
+                        help_text="Hard deadline to submit the questionnaire. No submissions possible after this date."
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-available_until_hard', '-available_until_soft', '-available_from'],
+                "ordering": [
+                    "-available_until_hard",
+                    "-available_until_soft",
+                    "-available_from",
+                ],
             },
         ),
         migrations.CreateModel(
-            name='QuestionnaireSubmission',
+            name="QuestionnaireSubmission",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('late', models.BooleanField()),
-                ('created', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("late", models.BooleanField()),
+                ("created", models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]

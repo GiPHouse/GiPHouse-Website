@@ -17,7 +17,7 @@ authors = [
     { name = " yhogewind" },
     { name = "lukovdm" },
 ]
-requires-python = ">=3.14,<3.15"
+requires-python = ">=3.14"
 license = "AGPL-3.0-only"
 dependencies = [
     "Django>=6.0",
@@ -57,6 +57,7 @@ dev = [
     "freezegun>=1.5.5",
     "Faker>=40.4.0",
     "black>=26.1.0",
+    "ruff>=0.15.2",
 ]
 
 [tool.uv]
@@ -89,4 +90,8 @@ fail_under = 100.0
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.ruff]
+# Set the maximum line length to 79.
+line-length = 79
 

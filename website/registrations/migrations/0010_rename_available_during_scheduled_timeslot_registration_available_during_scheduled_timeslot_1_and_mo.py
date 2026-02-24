@@ -4,9 +4,11 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ("registrations", "0009_registration_has_problems_with_signing_an_nda"),
+        (
+            "registrations",
+            "0009_registration_has_problems_with_signing_an_nda",
+        ),
     ]
 
     operations = [

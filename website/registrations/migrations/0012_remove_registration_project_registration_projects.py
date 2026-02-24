@@ -10,11 +10,14 @@ def migrate_projects(apps, schema_editor):
         if registration.project is not None:
             registration.projects.add(registration.project)
 
-class Migration(migrations.Migration):
 
+class Migration(migrations.Migration):
     dependencies = [
         ("projects", "0007_alter_project_description"),
-        ("registrations", "0011_rename_experience_registration_dev_experience_and_more"),
+        (
+            "registrations",
+            "0011_rename_experience_registration_dev_experience_and_more",
+        ),
     ]
 
     operations = [

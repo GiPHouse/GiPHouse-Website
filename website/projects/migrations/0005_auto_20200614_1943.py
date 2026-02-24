@@ -7,47 +7,115 @@ import re
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0004_auto_20200131_1350'),
+        ("projects", "0004_auto_20200131_1350"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ProjectToBeDeleted',
+            name="ProjectToBeDeleted",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('github_team_id', models.IntegerField(unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("github_team_id", models.IntegerField(unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='RepositoryToBeDeleted',
+            name="RepositoryToBeDeleted",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('github_repo_id', models.IntegerField(unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("github_repo_id", models.IntegerField(unique=True)),
             ],
         ),
         migrations.RemoveField(
-            model_name='project',
-            name='email',
+            model_name="project",
+            name="email",
         ),
         migrations.AddField(
-            model_name='project',
-            name='github_team_id',
-            field=models.IntegerField(blank=True, help_text='This is the id of the team in the GitHub organization. ', null=True, unique=True),
+            model_name="project",
+            name="github_team_id",
+            field=models.IntegerField(
+                blank=True,
+                help_text="This is the id of the team in the GitHub organization. ",
+                null=True,
+                unique=True,
+            ),
         ),
         migrations.CreateModel(
-            name='Repository',
+            name="Repository",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=55, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[-a-zA-Z0-9_]+\\Z'), 'Enter a valid “slug” consisting of letters, numbers, underscores or hyphens.', 'invalid')], verbose_name='name')),
-                ('github_repo_id', models.IntegerField(blank=True, help_text='This is the id of the GitHub repository.', null=True, unique=True)),
-                ('is_archived', models.IntegerField(choices=[(0, 'Not archived'), (1, 'To be archived'), (2, 'Archived')], default=0)),
-                ('private', models.BooleanField(default=True)),
-                ('project', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='projects.Project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=55,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                re.compile("^[-a-zA-Z0-9_]+\\Z"),
+                                "Enter a valid “slug” consisting of letters, numbers, underscores or hyphens.",
+                                "invalid",
+                            )
+                        ],
+                        verbose_name="name",
+                    ),
+                ),
+                (
+                    "github_repo_id",
+                    models.IntegerField(
+                        blank=True,
+                        help_text="This is the id of the GitHub repository.",
+                        null=True,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "is_archived",
+                    models.IntegerField(
+                        choices=[
+                            (0, "Not archived"),
+                            (1, "To be archived"),
+                            (2, "Archived"),
+                        ],
+                        default=0,
+                    ),
+                ),
+                ("private", models.BooleanField(default=True)),
+                (
+                    "project",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="projects.Project",
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'Repositories',
+                "verbose_name_plural": "Repositories",
             },
         ),
     ]

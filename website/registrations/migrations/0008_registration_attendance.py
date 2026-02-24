@@ -4,15 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registrations', '0007_registration_available_during_scheduled_timeslot'),
+        (
+            "registrations",
+            "0007_registration_available_during_scheduled_timeslot",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='registration',
-            name='attendance',
-            field=models.PositiveSmallIntegerField(choices=[(1, 'Attending offline'), (2, 'Only online'), (3, 'Preferably online')], default=1),
+            model_name="registration",
+            name="attendance",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (1, "Attending offline"),
+                    (2, "Only online"),
+                    (3, "Preferably online"),
+                ],
+                default=1,
+            ),
         ),
     ]

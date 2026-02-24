@@ -5,9 +5,11 @@ import tinymce.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ("projects", "0006_alter_project_unique_together_project_slug_and_more"),
+        (
+            "projects",
+            "0006_alter_project_unique_together_project_slug_and_more",
+        ),
     ]
 
     operations = [

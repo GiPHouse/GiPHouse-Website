@@ -200,7 +200,6 @@ class GitHubSync:
         :return: True if a the employee is newly invited
         """
         if employee in project.get_employees():
-
             github_team = self.github.get_team(project.github_team_id)
 
             github_employee = self.github.get_user(employee.github_id)
@@ -392,7 +391,7 @@ class GitHubSync:
         if github_repo.private != repo.private:
             github_repo.edit(private=repo.private)
             self.info(f"""Changed privacy of repository {github_repo.name} to
-                       {'private' if repo.private else 'public'}""")
+                       {"private" if repo.private else "public"}""")
 
     def create_or_update_repos(self, project_team):
         """

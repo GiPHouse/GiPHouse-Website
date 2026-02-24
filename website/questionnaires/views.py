@@ -36,7 +36,6 @@ class OverviewView(LoginRequiredMessageMixin, TemplateView):
         context["open_questionnaires"] = []
         context["questionnaires_in_progress"] = []
         for questionnaire in Questionnaire.objects.current_questionnaires():
-
             try:
                 context["submissions"].append(
                     QuestionnaireSubmission.objects.get(
@@ -122,7 +121,6 @@ class QuestionnaireView(LoginRequiredMessageMixin, FormView):
             submission.save()
 
         for question in form.questions:
-
             if question.about_team_member:
                 peers = form.peers
             else:

@@ -11,8 +11,8 @@ def populate_slug(apps, schema_editor):
         project.slug = slugify(project.name)
         project.save()
 
-class Migration(migrations.Migration):
 
+class Migration(migrations.Migration):
     dependencies = [
         ("courses", "0004_auto_20220204_1357"),
         ("projects", "0005_auto_20200614_1943"),
