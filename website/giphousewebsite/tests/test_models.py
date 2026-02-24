@@ -6,6 +6,7 @@ having the default implementation.
 In addition, it's good to have the str methods overridden because instance names will look weird in the admin without
 the user friendly name.
 """
+
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
@@ -34,9 +35,11 @@ def create_models_test_class(classname):
             try:
                 # the implemented __str__ method should be different from the __str__ function in the
                 # parent class (Model)
-                self.assertNotEqual(str(instance), models.Model.__str__(instance))
+                self.assertNotEqual(
+                    str(instance), models.Model.__str__(instance)
+                )
                 self.assertIs(type(str(instance)), str)
-            except (ObjectDoesNotExist, AttributeError):
+            except ObjectDoesNotExist, AttributeError:
                 # if the __str__ method relies on any fields which were not instantiated, it throws a derivative of
                 # ObjectDoesNotExist which means it is different from the parent class implementation
                 pass

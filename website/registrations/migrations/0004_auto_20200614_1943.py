@@ -5,55 +5,77 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0005_auto_20200614_1943'),
-        ('registrations', '0003_registration_education_background'),
+        ("projects", "0005_auto_20200614_1943"),
+        ("registrations", "0003_registration_education_background"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='registration',
-            name='education_background',
+            model_name="registration",
+            name="education_background",
         ),
         migrations.AddField(
-            model_name='registration',
-            name='is_international',
+            model_name="registration",
+            name="is_international",
             field=models.BooleanField(blank=True, default=False, null=True),
         ),
         migrations.AddField(
-            model_name='registration',
-            name='partner_preference1',
+            model_name="registration",
+            name="partner_preference1",
             field=models.CharField(blank=True, max_length=50, null=True),
         ),
         migrations.AddField(
-            model_name='registration',
-            name='partner_preference2',
+            model_name="registration",
+            name="partner_preference2",
             field=models.CharField(blank=True, max_length=50, null=True),
         ),
         migrations.AddField(
-            model_name='registration',
-            name='partner_preference3',
+            model_name="registration",
+            name="partner_preference3",
             field=models.CharField(blank=True, max_length=50, null=True),
         ),
         migrations.AlterField(
-            model_name='registration',
-            name='preference1',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='projects.Project'),
+            model_name="registration",
+            name="preference1",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="projects.Project",
+            ),
         ),
         migrations.AlterField(
-            model_name='registration',
-            name='preference2',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='projects.Project'),
+            model_name="registration",
+            name="preference2",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="projects.Project",
+            ),
         ),
         migrations.AlterField(
-            model_name='registration',
-            name='preference3',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='projects.Project'),
+            model_name="registration",
+            name="preference3",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="projects.Project",
+            ),
         ),
         migrations.AlterField(
-            model_name='registration',
-            name='project',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='projects.Project'),
+            model_name="registration",
+            name="project",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="projects.Project",
+            ),
         ),
     ]

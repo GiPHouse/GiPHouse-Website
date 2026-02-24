@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("questionnaires", "0005_auto_20211019_1657"),
     ]
@@ -15,14 +14,18 @@ class Migration(migrations.Migration):
             model_name="agreementanswerdata",
             name="answer",
             field=models.OneToOneField(
-                on_delete=django.db.models.deletion.CASCADE, related_name="%(class)s", to="questionnaires.answer"
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(class)s",
+                to="questionnaires.answer",
             ),
         ),
         migrations.AlterField(
             model_name="qualityanswerdata",
             name="answer",
             field=models.OneToOneField(
-                on_delete=django.db.models.deletion.CASCADE, related_name="%(class)s", to="questionnaires.answer"
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(class)s",
+                to="questionnaires.answer",
             ),
         ),
     ]

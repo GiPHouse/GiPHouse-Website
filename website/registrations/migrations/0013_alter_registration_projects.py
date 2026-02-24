@@ -4,10 +4,12 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("projects", "0007_alter_project_description"),
-        ("registrations", "0012_remove_registration_project_registration_projects"),
+        (
+            "registrations",
+            "0012_remove_registration_project_registration_projects",
+        ),
     ]
 
     operations = [

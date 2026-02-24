@@ -20,9 +20,14 @@ class ProjectsView(TemplateView):
         context = super(ProjectsView, self).get_context_data(**kwargs)
 
         context["projects_semester"] = get_object_or_404(
-            Semester, year=self.kwargs["year"], season=Semester.slug_to_season(self.kwargs["season_slug"])
+            Semester,
+            year=self.kwargs["year"],
+            season=Semester.slug_to_season(self.kwargs["season_slug"]),
         )
         context["projects"] = Project.objects.filter(
-            semester__year=self.kwargs["year"], semester__season=Semester.slug_to_season(self.kwargs["season_slug"])
+            semester__year=self.kwargs["year"],
+            semester__season=Semester.slug_to_season(
+                self.kwargs["season_slug"]
+            ),
         )
         return context

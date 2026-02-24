@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         (
             "registrations",
@@ -22,7 +21,12 @@ class Migration(migrations.Migration):
             model_name="registration",
             name="git_experience",
             field=models.PositiveSmallIntegerField(
-                choices=[(1, "Beginner"), (2, "Intermediate"), (3, "Advanced")], default=1
+                choices=[
+                    (1, "Beginner"),
+                    (2, "Intermediate"),
+                    (3, "Advanced"),
+                ],
+                default=1,
             ),
         ),
         migrations.AddField(
@@ -34,7 +38,12 @@ class Migration(migrations.Migration):
             model_name="registration",
             name="scrum_experience",
             field=models.PositiveSmallIntegerField(
-                choices=[(1, "Beginner"), (2, "Intermediate"), (3, "Advanced")], default=1
+                choices=[
+                    (1, "Beginner"),
+                    (2, "Intermediate"),
+                    (3, "Advanced"),
+                ],
+                default=1,
             ),
         ),
     ]

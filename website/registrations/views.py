@@ -22,13 +22,18 @@ class Step1View(TemplateView):
     def get_context_data(self, *args, **kwargs):
         """Add semester to register form."""
         return super().get_context_data(
-            registration_semester=Semester.objects.get_first_semester_with_open_registration(), **kwargs
+            registration_semester=Semester.objects.get_first_semester_with_open_registration(),
+            **kwargs,
         )
 
     def dispatch(self, request, *args, **kwargs):
         """Check whether user is authenticated and if registration is possible."""
         if not Semester.objects.get_first_semester_with_open_registration():
-            messages.warning(request, "Registrations are currently not open", extra_tags="danger")
+            messages.warning(
+                request,
+                "Registrations are currently not open",
+                extra_tags="danger",
+            )
             return redirect("home")
 
         if request.user.is_authenticated:
@@ -54,7 +59,8 @@ class Step2View(FormView):
     def get_context_data(self, *args, **kwargs):
         """Add semester to register form."""
         return super().get_context_data(
-            registration_semester=Semester.objects.get_first_semester_with_open_registration(), **kwargs
+            registration_semester=Semester.objects.get_first_semester_with_open_registration(),
+            **kwargs,
         )
 
     def get_initial(self):
@@ -62,8 +68,10 @@ class Step2View(FormView):
         initial = super(Step2View, self).get_initial()
 
         try:
-            first_name, last_name = self.request.session["github_name"].rsplit(" ", 1)
-        except (KeyError, AttributeError):
+            first_name, last_name = self.request.session["github_name"].rsplit(
+                " ", 1
+            )
+        except KeyError, AttributeError:
             first_name, last_name = "", ""
         except ValueError:
             first_name, last_name = self.request.session["github_name"], ""
@@ -72,7 +80,8 @@ class Step2View(FormView):
             {
                 "email": self.request.session.get("github_email") or "",
                 "github_id": self.request.session.get("github_id") or "",
-                "github_username": self.request.session.get("github_username") or "",
+                "github_username": self.request.session.get("github_username")
+                or "",
                 "first_name": first_name,
                 "last_name": last_name,
             }
@@ -85,10 +94,12 @@ class Step2View(FormView):
         if form.warnings and not form.cleaned_data.get("ignore_warnings"):
             form.add_error(None, form.warnings[0])
             return self.form_invalid(form)
-        
+
         """Register new user if the form is valid."""
         with transaction.atomic():
-            user, _ = User.objects.get_or_create(github_id=self.request.session["github_id"])
+            user, _ = User.objects.get_or_create(
+                github_id=self.request.session["github_id"]
+            )
 
             user.first_name = form.cleaned_data["first_name"]
             user.last_name = form.cleaned_data["last_name"]
@@ -112,17 +123,39 @@ class Step2View(FormView):
                 partner_preference3=form.cleaned_data["partner3"],
                 comments=form.cleaned_data["comments"],
                 is_international=form.cleaned_data["international"],
-                available_during_scheduled_timeslot_1=form.cleaned_data["available_during_scheduled_timeslot_1"],
-                available_during_scheduled_timeslot_2=form.cleaned_data["available_during_scheduled_timeslot_2"],
-                available_during_scheduled_timeslot_3=form.cleaned_data["available_during_scheduled_timeslot_3"],
-                available_during_scheduled_timeslot_4=form.cleaned_data["available_during_scheduled_timeslot_4"],
-                available_during_scheduled_timeslot_5=form.cleaned_data["available_during_scheduled_timeslot_5"],
-                available_during_scheduled_timeslot_6=form.cleaned_data["available_during_scheduled_timeslot_6"],
-                available_during_scheduled_timeslot_7=form.cleaned_data["available_during_scheduled_timeslot_7"],
-                available_during_scheduled_timeslot_8=form.cleaned_data["available_during_scheduled_timeslot_8"],
-                available_during_scheduled_timeslot_9=form.cleaned_data["available_during_scheduled_timeslot_9"],
-                available_during_scheduled_timeslot_10=form.cleaned_data["available_during_scheduled_timeslot_10"],
-                has_problems_with_signing_an_nda=form.cleaned_data["has_problems_with_signing_an_nda"],
+                available_during_scheduled_timeslot_1=form.cleaned_data[
+                    "available_during_scheduled_timeslot_1"
+                ],
+                available_during_scheduled_timeslot_2=form.cleaned_data[
+                    "available_during_scheduled_timeslot_2"
+                ],
+                available_during_scheduled_timeslot_3=form.cleaned_data[
+                    "available_during_scheduled_timeslot_3"
+                ],
+                available_during_scheduled_timeslot_4=form.cleaned_data[
+                    "available_during_scheduled_timeslot_4"
+                ],
+                available_during_scheduled_timeslot_5=form.cleaned_data[
+                    "available_during_scheduled_timeslot_5"
+                ],
+                available_during_scheduled_timeslot_6=form.cleaned_data[
+                    "available_during_scheduled_timeslot_6"
+                ],
+                available_during_scheduled_timeslot_7=form.cleaned_data[
+                    "available_during_scheduled_timeslot_7"
+                ],
+                available_during_scheduled_timeslot_8=form.cleaned_data[
+                    "available_during_scheduled_timeslot_8"
+                ],
+                available_during_scheduled_timeslot_9=form.cleaned_data[
+                    "available_during_scheduled_timeslot_9"
+                ],
+                available_during_scheduled_timeslot_10=form.cleaned_data[
+                    "available_during_scheduled_timeslot_10"
+                ],
+                has_problems_with_signing_an_nda=form.cleaned_data[
+                    "has_problems_with_signing_an_nda"
+                ],
             )
 
         del self.request.session["github_id"]
@@ -130,8 +163,16 @@ class Step2View(FormView):
         del self.request.session["github_name"]
         del self.request.session["github_email"]
 
-        messages.success(self.request, "Registration created successfully", extra_tags="success")
+        messages.success(
+            self.request,
+            "Registration created successfully",
+            extra_tags="success",
+        )
 
-        login(self.request, user, backend="github_oauth.backends.GithubOAuthBackend")
+        login(
+            self.request,
+            user,
+            backend="github_oauth.backends.GithubOAuthBackend",
+        )
 
         return redirect("home")

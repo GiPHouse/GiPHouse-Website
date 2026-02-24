@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registrations', '0006_auto_20200804_1325'),
+        ("registrations", "0006_auto_20200804_1325"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='registration',
-            name='available_during_scheduled_timeslot',
+            model_name="registration",
+            name="available_during_scheduled_timeslot",
             field=models.BooleanField(default=True),
         ),
     ]

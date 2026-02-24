@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registrations', '0002_employee_comments'),
+        ("registrations", "0002_employee_comments"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='registration',
-            name='education_background',
-            field=models.TextField(default='', max_length=200),
+            model_name="registration",
+            name="education_background",
+            field=models.TextField(default="", max_length=200),
             preserve_default=False,
         ),
     ]

@@ -36,7 +36,7 @@ class Step2Form(forms.Form):
             semester=Semester.objects.get_first_semester_with_open_registration()
         )
         self.warnings = []
-    
+
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
         required=False,
@@ -50,7 +50,8 @@ class Step2Form(forms.Form):
     last_name = forms.CharField(label="Last Name")
 
     student_number = forms.CharField(
-        label="Student Number", widget=widgets.TextInput(attrs={"placeholder": "s1234567"})
+        label="Student Number",
+        widget=widgets.TextInput(attrs={"placeholder": "s1234567"}),
     )
 
     course = forms.ModelChoiceField(queryset=None, empty_label=None)
@@ -106,11 +107,17 @@ class Step2Form(forms.Form):
         help_text="If you check this box, you might get a more management oriented role.",
     )
 
-    project1 = forms.ModelChoiceField(label="First project preference", queryset=None, required=False)
+    project1 = forms.ModelChoiceField(
+        label="First project preference", queryset=None, required=False
+    )
 
-    project2 = forms.ModelChoiceField(label="Second project preference", queryset=None, required=False)
+    project2 = forms.ModelChoiceField(
+        label="Second project preference", queryset=None, required=False
+    )
 
-    project3 = forms.ModelChoiceField(label="Third project preference", queryset=None, required=False)
+    project3 = forms.ModelChoiceField(
+        label="Third project preference", queryset=None, required=False
+    )
 
     partner1 = forms.CharField(
         label="Project partner preference",
@@ -136,7 +143,9 @@ class Step2Form(forms.Form):
         help_text="Optional",
     )
 
-    international = forms.BooleanField(label="I don't speak Dutch", required=False)
+    international = forms.BooleanField(
+        label="I don't speak Dutch", required=False
+    )
 
     available_during_scheduled_timeslot_1 = forms.BooleanField(
         label="I am available during scheduled timeslot 1 for the course",
@@ -216,7 +225,9 @@ class Step2Form(forms.Form):
     )
 
     comments = forms.CharField(
-        widget=forms.Textarea(attrs={"placeholder": "Do you have any comments?"}),
+        widget=forms.Textarea(
+            attrs={"placeholder": "Do you have any comments?"}
+        ),
         required=False,
         help_text="Optional",
     )
@@ -236,11 +247,15 @@ class Step2Form(forms.Form):
             .filter(email=self.cleaned_data["email"])
             .exists()
         ):
-            raise ValidationError("Email address already in use.", code="exists")
+            raise ValidationError(
+                "Email address already in use.", code="exists"
+            )
 
         match = wrong_email_regex.match(self.cleaned_data["email"])
         if match is not None:
-            raise ValidationError("Non-existent email address.", code="invalid")
+            raise ValidationError(
+                "Non-existent email address.", code="invalid"
+            )
 
         return self.cleaned_data["email"]
 
@@ -264,7 +279,9 @@ class Step2Form(forms.Form):
             .filter(student_number=student_number)
             .exists()
         ):
-            raise ValidationError("Student Number already in use.", code="exists")
+            raise ValidationError(
+                "Student Number already in use.", code="exists"
+            )
         return student_number
 
     def clean(self):
@@ -279,21 +296,27 @@ class Step2Form(forms.Form):
             github_id=cleaned_data["github_id"],
             registration__semester=Semester.objects.get_first_semester_with_open_registration(),
         ).exists():
-            raise ValidationError("User already registered for this semester.", code="exists")
+            raise ValidationError(
+                "User already registered for this semester.", code="exists"
+            )
 
         project1 = cleaned_data.get("project1")
         project2 = cleaned_data.get("project2")
         project3 = cleaned_data.get("project3")
 
         if len(set(filter(None, (project1, project2, project3)))) != 3:
-            raise ValidationError("You should fill in all preferences with unique values.")
+            raise ValidationError(
+                "You should fill in all preferences with unique values."
+            )
 
         available_slots = sum(
             bool(cleaned_data.get(f"available_during_scheduled_timeslot_{i}"))
             for i in range(1, 11)
         )
 
-        if available_slots < 4 and not cleaned_data.get("available_during_scheduled_timeslot_10"):
+        if available_slots < 4 and not cleaned_data.get(
+            "available_during_scheduled_timeslot_10"
+        ):
             warning = (
                 "You are only available for less than 4 scheduled timeslots and "
                 "not available for the last timeslot on Friday afternoon. "

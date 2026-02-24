@@ -7,58 +7,129 @@ import django.db.models.deletion
 
 
 def create_courses(apps, schema_editor):
-    course_model = apps.get_model('courses', 'Course')
+    course_model = apps.get_model("courses", "Course")
 
-    course_model.objects.create(name='Software Engineering')
-    course_model.objects.create(name='System Development Management')
-    course_model.objects.create(name='Software Development Entrepreneurship')
+    course_model.objects.create(name="Software Engineering")
+    course_model.objects.create(name="System Development Management")
+    course_model.objects.create(name="Software Development Entrepreneurship")
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Course',
+            name="Course",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=50)),
             ],
         ),
         migrations.CreateModel(
-            name='Semester',
+            name="Semester",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('year', models.IntegerField(validators=[django.core.validators.MinValueValidator(2008), courses.models.max_value_current_year])),
-                ('season', models.PositiveSmallIntegerField(choices=[(0, 'Spring'), (1, 'Fall')], default=0)),
-                ('registration_start', models.DateTimeField(blank=True, null=True)),
-                ('registration_end', models.DateTimeField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "year",
+                    models.IntegerField(
+                        validators=[
+                            django.core.validators.MinValueValidator(2008),
+                            courses.models.max_value_current_year,
+                        ]
+                    ),
+                ),
+                (
+                    "season",
+                    models.PositiveSmallIntegerField(
+                        choices=[(0, "Spring"), (1, "Fall")], default=0
+                    ),
+                ),
+                (
+                    "registration_start",
+                    models.DateTimeField(blank=True, null=True),
+                ),
+                (
+                    "registration_end",
+                    models.DateTimeField(blank=True, null=True),
+                ),
             ],
             options={
-                'ordering': ['-year', '-season'],
-                'unique_together': {('year', 'season')},
+                "ordering": ["-year", "-season"],
+                "unique_together": {("year", "season")},
             },
         ),
         migrations.CreateModel(
-            name='Lecture',
+            name="Lecture",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('title', models.CharField(max_length=50)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('teacher', models.CharField(blank=True, max_length=50, null=True)),
-                ('location', models.CharField(blank=True, max_length=50, null=True)),
-                ('slides', models.FileField(blank=True, null=True, upload_to=courses.models.get_slides_filename, validators=[django.core.validators.FileExtensionValidator(['pdf'])])),
-                ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='courses.Course')),
-                ('semester', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='courses.Semester')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("title", models.CharField(max_length=50)),
+                ("description", models.TextField(blank=True, null=True)),
+                (
+                    "teacher",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
+                (
+                    "location",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
+                (
+                    "slides",
+                    models.FileField(
+                        blank=True,
+                        null=True,
+                        upload_to=courses.models.get_slides_filename,
+                        validators=[
+                            django.core.validators.FileExtensionValidator(
+                                ["pdf"]
+                            )
+                        ],
+                    ),
+                ),
+                (
+                    "course",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="courses.Course",
+                    ),
+                ),
+                (
+                    "semester",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="courses.Semester",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('course', 'title')},
+                "unique_together": {("course", "title")},
             },
         ),
-        migrations.RunPython(create_courses)
+        migrations.RunPython(create_courses),
     ]

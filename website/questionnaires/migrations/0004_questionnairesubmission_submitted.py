@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('questionnaires', '0003_auto_20200525_2158'),
+        ("questionnaires", "0003_auto_20200525_2158"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='questionnairesubmission',
-            name='submitted',
+            model_name="questionnairesubmission",
+            name="submitted",
             field=models.BooleanField(default=True),
         ),
     ]

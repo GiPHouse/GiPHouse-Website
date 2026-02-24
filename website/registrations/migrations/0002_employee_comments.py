@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registrations', '0001_initial'),
+        ("registrations", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='employee',
-            name='comments',
-            field=models.TextField(blank=True, help_text='This is for private comments that are only available here.', null=True),
+            model_name="employee",
+            name="comments",
+            field=models.TextField(
+                blank=True,
+                help_text="This is for private comments that are only available here.",
+                null=True,
+            ),
         ),
     ]
