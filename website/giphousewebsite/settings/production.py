@@ -1,7 +1,7 @@
 import json
 import base64
 
-from giphousewebsite.settings.base import *
+from giphousewebsite.settings.base import os
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")

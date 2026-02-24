@@ -7,6 +7,7 @@ __pycache__/
 db.sqlite3
 .envrc
 .env
+.venv/
 *.DS_Store
 .coverage
 *.pem
