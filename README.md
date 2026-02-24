@@ -168,15 +168,16 @@ The website has multiple settings. By default, the development settings are used
 ### Getting Started
 Follow the following steps to setup your own personal development environment.
 1. Install Python 3.14.
-2. Install [poetry](https://python-poetry.org/docs/#installing-with-the-official-installer), make sure it uses the intended python version for installation.
-	1. In the output of the install script, poetry's installation directory will be stated. Add it to system PATH so poetry can be used from anywhere.
+2. Install [uv](https://docs.astral.sh/uv/#installation), make sure it uses the intended python version for installation.
 3. Clone this repository.
 	1. Open a terminal in the project root.
-4. Run `poetry install` to install all dependencies into virtual environment.
-5. Refer to this [guide](https://python-poetry.org/docs/managing-environments/#powershell) to enter the virtual environment. **All commands from this point on must be ran inside the virtual environment**.
-6. Run `python website/manage.py migrate` to initialize the database.
-7. Run `python website/manage.py runserver` to start the local testing server.
-8. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
+4. Run `uv venv --clear` to create and enter a virtual environment.
+5. Run `.venv/Scripts\activate` to activate the virtual environment.
+6. Run `uv sync` to install all dependencies into virtual environment.
+**All commands from this point on must be ran inside the virtual environment**.
+7. Run `python website/manage.py migrate` to initialize the database.
+8. Run `python website/manage.py runserver` to start the local testing server.
+9. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
 
 Command 6. will create a database file which is configured to be not commited via .gitignore. Hence, the changes you make to a database are local, and will persist after you pull.
 
@@ -236,7 +237,7 @@ To enable the synchronisation feature of mailing lists to G Suite, a project and
 The credentials and admin user can then be setup in Github secrets. The email of the G Suite user used to manage to the G Suite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
 
 ### Dependency Management
-The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
+The Python dependencies are managed using a tool called [uv](https://docs.astral.sh/uv/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies.
 
 ### Fixtures
 To make testing in your development environment easier, the management command `createfixtures` exists. This management command creates dummy data in your local database.
@@ -292,7 +293,7 @@ The following services are created by `docker-compose`.
 Runs a Postgres Database.
 
 ##### `web`
-[`giphouse/giphousewebsite`](https://hub.docker.com/r/giphouse/giphousewebsite) is the Docker image that runs the actual website using `uWSGI` as server.
+[`giphouse/giphousewebsite`](https://hub.docker.com/r/giphouse/giphousewebsite) is the Docker image that runs the actual website using `gunicorn` as server.
 
 ### Deployment Pipeline
 #### `deploy.yaml` workflow
@@ -345,5 +346,5 @@ All moving parts should be regularly updated to make sure all code is up to date
 The following 
 
 1. The Ubuntu server should be updated.
-2. The Python dependencies should be updated (through `poetry`).
+2. The Python dependencies should be updated (through `uv`).
 3. The JavaScript, font and [S]CSS files should be updated by replacing the current files with new ones.
