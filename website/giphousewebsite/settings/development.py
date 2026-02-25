@@ -5,6 +5,7 @@ import os
 import github
 
 from giphousewebsite.settings.base import BASE_DIR
+from .base import *
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "fnm1xg4jbokf^=x9m6covu2o5)qc0txurb6@k*u3$u9u$@v)7-"

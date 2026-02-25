@@ -28,13 +28,13 @@ class Step1View(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         """Check whether user is authenticated and if registration is possible."""
-        if not Semester.objects.get_first_semester_with_open_registration():
-            messages.warning(
-                request,
-                "Registrations are currently not open",
-                extra_tags="danger",
-            )
-            return redirect("home")
+        # if not Semester.objects.get_first_semester_with_open_registration():
+        #     messages.warning(
+        #         request,
+        #         "Registrations are currently not open",
+        #         extra_tags="danger",
+        #     )
+        #     return redirect("home")
 
         if request.user.is_authenticated:
             logout(request)
