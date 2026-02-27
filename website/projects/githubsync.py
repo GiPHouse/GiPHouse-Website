@@ -1,6 +1,6 @@
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from django.conf import settings
 from django.urls import reverse
@@ -96,7 +96,7 @@ class GitHubAPITalker:
         """
         if self._access_token is None or (
             self._access_token.expires_at
-            < datetime.now() + timedelta(seconds=60)
+            < datetime.now(timezone.utc) + timedelta(seconds=60)
         ):
             self._access_token = self._gi.get_access_token(
                 self.installation_id
@@ -478,6 +478,11 @@ class GitHubSync:
 
     def sync_project(self, project):
         """Sync one project to GitHub."""
+
+        for name, value in vars(project).items():  # vars(obj) gives instance attributes
+            if not name.startswith("_"):  # filter out private/protected
+                print(f"{name} = {value}")
+
         if project.is_archived == Repository.Archived.NOT_ARCHIVED:
             self.create_or_update_team(project)
             self.create_or_update_repos(project)
