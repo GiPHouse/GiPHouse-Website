@@ -169,15 +169,16 @@ The website has multiple settings. By default, the development settings are used
 Follow the following steps to setup your own personal development environment.
 1. Install Python 3.14.
 2. Install [uv](https://docs.astral.sh/uv/#installation), make sure it uses the intended python version for installation.
-3. Clone this repository.
+3. Add `uv` to PATH as an environment variable.
+4. Clone this repository.
 	1. Open a terminal in the project root.
-4. Run `uv venv --clear` to create and enter a virtual environment.
-5. Run `.venv/Scripts\activate` to activate the virtual environment.
-6. Run `uv sync` to install all dependencies into virtual environment.
+5. Run `uv venv --clear` to create and enter a virtual environment.
+6. Run `.venv/Scripts\activate` to activate the virtual environment.
+7. Run `uv sync` to install all dependencies into virtual environment.
 **All commands from this point on must be ran inside the virtual environment**.
-7. Run `python website/manage.py migrate` to initialize the database.
-8. Run `python website/manage.py runserver` to start the local testing server.
-9. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
+8. Run `python website/manage.py migrate` to initialize the database.
+9. Run `python website/manage.py runserver` to start the local testing server.
+10. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
 
 Command 6. will create a database file which is configured to be not commited via .gitignore. Hence, the changes you make to a database are local, and will persist after you pull.
 
