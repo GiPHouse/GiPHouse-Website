@@ -4,8 +4,12 @@ import os
 
 import github
 
+<<<<<<< HEAD
 from giphousewebsite.settings.base import BASE_DIR
 from .base import *
+=======
+from giphousewebsite.settings.base import *
+>>>>>>> ead1a74 (Reverted an edit in development.py from commit 750da40.)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "fnm1xg4jbokf^=x9m6covu2o5)qc0txurb6@k*u3$u9u$@v)7-"
