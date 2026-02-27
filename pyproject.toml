@@ -16,6 +16,14 @@ authors = [
     { name = "JobDoesburg" },
     { name = " yhogewind" },
     { name = "lukovdm" },
+    { name = "daanwintjes" },
+    { name = "oli4-004" },
+    { name = "Sverre7567" },
+    { name = "Daniel-Chou24" },
+    { name = "vinti17" },
+    { name = "durned" },
+    { name = "Sjensie" },
+    { name = "HallowedByMyName" },
 ]
 requires-python = ">=3.14"
 license = "AGPL-3.0-only"
