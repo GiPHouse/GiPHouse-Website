@@ -6,9 +6,9 @@ class RegistrationManager(models.Manager):
     """Manager for the Registration model."""
 
     def current_Registrations(self):
-        """Get all Registrations of the current semester."""
+        """Get first Registration of the current semester."""
         return self.filter(
-            semester=Semester.objects.get_or_create_current_semester()
+            semester=Semester.objects.get_or_create_current_semester().first()
         )
 
 
@@ -53,12 +53,13 @@ class Question(models.Model):
     ]
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
+    label = models.CharField(max_length=255)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     optional = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.question
+        return self.label
 
 
 class Answer(models.Model):
@@ -66,7 +67,7 @@ class Answer(models.Model):
     submission = models.ForeignKey(
         RegistrationSubmission, on_delete=models.CASCADE
     )
-
+    
     @property
     def answer(self):
         """Return the correct answer data object depending on question type."""

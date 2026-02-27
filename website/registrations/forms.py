@@ -22,7 +22,7 @@ class Step2Form(forms.Form):
 
     def __init__(self, *args, **kwargs):
         """Set querysets dynamically."""
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs) 
 
         self.fields["course"].queryset = Course.objects.all()
 
