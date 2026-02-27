@@ -1,6 +1,6 @@
 [project]
 name = "giphousewebsite"
-version = "1.0.0"
+version = "2.0.1-alpha.1"
 description = "GiPHouse website based on Django Framework"
 authors = [
     { name = "joren485" },
@@ -65,7 +65,7 @@ default-groups = "all"
 django-admin-autocomplete-filter = { git = "https://github.com/farhan0581/django-admin-autocomplete-filter.git", branch = "pre_release" }
 
 [tool.black]
-line-length = 49
+line-length = 79
 target-version = ["py314"]
 exclude = '''
 /(
