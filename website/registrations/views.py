@@ -8,8 +8,8 @@ from django.views.generic import FormView, TemplateView
 from courses.models import Semester
 
 
-from registrations.forms import Step2Form
-from registrations.models import Employee, Registration
+from registrations.forms import Step2FormNew, Step2Form
+from registrations.models import Employee, Registration, questions
 
 User: Employee = get_user_model()
 
@@ -107,6 +107,7 @@ class Step2View(FormView):
             user.github_username = form.cleaned_data["github_username"]
             user.student_number = form.cleaned_data["student_number"]
             user.save()
+
             Registration.objects.create(
                 user=user,
                 semester=Semester.objects.get_first_semester_with_open_registration(),
@@ -176,3 +177,24 @@ class Step2View(FormView):
         )
 
         return redirect("home")
+
+    def form_valid2(self, form):
+        """Check for warnings before registering."""
+        if form.warnings and not form.cleaned_data.get("ignore_warnings"):
+            form.add_error(None, form.warnings[0])
+            return self.form_invalid(form)
+
+        """Register new user if the form is valid."""
+        with transaction.atomic():
+            user, _ = User.objects.get_or_create(
+                github_id=self.request.session["github_id"]
+            )
+            user.github_username = form.cleaned_data["github_username"]
+            
+            
+def register(request):
+    if request.method == "POST":
+        form = Step2FormNew(request.POST)
+        form.is_valid2()
+            
+            

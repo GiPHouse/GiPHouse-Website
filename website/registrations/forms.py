@@ -9,7 +9,7 @@ from courses.models import Course, Semester
 
 from projects.models import Project
 
-from registrations.models import Employee, Registration
+from registrations.models import Employee, Registration, questions
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
@@ -22,7 +22,7 @@ class Step2Form(forms.Form):
 
     def __init__(self, *args, **kwargs):
         """Set querysets dynamically."""
-        super().__init__(*args, **kwargs) 
+        super().__init__(*args, **kwargs)
 
         self.fields["course"].queryset = Course.objects.all()
 
@@ -325,3 +325,29 @@ class Step2Form(forms.Form):
             self.warnings.append(warning)
 
         return cleaned_data
+
+
+class Step2FormNew(forms.Form):
+    """Form to get user information for registration."""
+
+    def __init__(self, *args, **kwargs):
+        current_semester = questions.RegistrationManager.current_Registrations()
+        
+        for q in questions.Registrations.objects.filter(current_semester).first():
+            if q.question_type == questions.Question.TEXT:
+                self.fields[q.label] = forms.CharField(label=q.question, required=not q.optional)
+            elif q.question_type == questions.Question.CHOICE:
+                self.fields[q.label] = forms.ChoiceField(
+                    label=q.question,
+                    choices=questions.ChoiceData.objects.filter(question=q).values_list("value", "value"),
+                    required=not q.optional,
+                )
+            elif q.question_type == questions.Question.MULTI:
+                self.fields[q.label] = forms.MultipleChoiceField(
+                    label=q.question,
+                    choices=questions.ChoiceData.objects.filter(question=q).values_list("value", "value"),
+                    required=not q.optional,
+                )
+            else :
+                raise ValueError(f"Unknown question type: {q.question_type}")
+
