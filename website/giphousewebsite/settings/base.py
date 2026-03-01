@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "mailing_lists.apps.MailingListsConfig",
     "tasks.apps.TasksConfig",
     "lecture_registrations.apps.LectureRegistrationsConfig",
+    "django_components",
 ]
 
 MIDDLEWARE = [
@@ -60,7 +61,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [os.path.join(BASE_DIR, "templates")],
-        "APP_DIRS": True,
+        # "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "giphousewebsite.context_processors.source_commit",
@@ -70,6 +71,16 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "giphousewebsite.context_processors.add_menu_objects_to_context",
             ],
+            'loaders':[(
+                'django.template.loaders.cached.Loader', [
+                    # Default Django loader
+                    'django.template.loaders.filesystem.Loader',
+                    # Including this is the same as APP_DIRS=True
+                    'django.template.loaders.app_directories.Loader',
+                    # Components loader
+                    'django_components.template_loader.Loader',
+                ]
+            )],
         },
     },
 ]
@@ -126,6 +137,8 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
     "sass_processor.finders.CssFinder",
+    # Django components
+    "django_components.finders.ComponentsFileSystemFinder",
 ]
 
 AUTHENTICATION_BACKENDS = [
