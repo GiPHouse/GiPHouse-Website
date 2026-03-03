@@ -1,6 +1,6 @@
 [project]
 name = "giphousewebsite"
-version = "2.0.1-alpha.1"
+version = "2.0.1-alpha.2"
 description = "GiPHouse website based on Django Framework"
 authors = [
     { name = "joren485" },
@@ -34,7 +34,7 @@ dependencies = [
     "django-compressor>=4.6",
     "django-sass-processor>=1.4.2",
     "Pillow>=12.0.0",
-    "django-admin-autocomplete-filter",
+    "django-admin-autocomplete-filter>=0.7.1",
     "google-api-python-client>=2.190.0",
     "google-auth-httplib2>=0.3.0",
     "google-auth-oauthlib>=1.2.4",
