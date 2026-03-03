@@ -49,7 +49,7 @@ class ModelTest(TestCase):
             title=self.lecture.title,
         )
 
-        self.assertEqual(
+        self.assertEquals(
             2,
             Lecture.objects.filter(
                 title=self.lecture.title, course=self.lecture.course
