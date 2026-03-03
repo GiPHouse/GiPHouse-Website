@@ -82,7 +82,7 @@ class EmployeeQueryTest(TestCase):
 
     def test_generate_team_description(self):
         """Tests a correct team description for a project."""
-        self.assertEqual(
+        self.assertEquals(
             self.project1.generate_team_description(),
             "Team for the GiPHouse project 'test1' for the 'Spring 2020' semester.",
         )
