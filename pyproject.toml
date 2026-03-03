@@ -48,6 +48,7 @@ dependencies = [
     "django-tinymce>=5.0.0",
     "django-bleach>=3.1.0",
     "gunicorn",
+    "django-nested-admin>=4.1.6",
 ]
 
 [project.optional-dependencies]
