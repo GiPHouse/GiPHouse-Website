@@ -330,24 +330,38 @@ class Step2Form(forms.Form):
 class Step2FormNew(forms.Form):
     """Form to get user information for registration."""
 
-    def __init__(self, *args, **kwargs):
-        current_semester = questions.RegistrationManager.current_Registrations()
-        
-        for q in questions.Registrations.objects.filter(current_semester).first():
-            if q.question_type == questions.Question.TEXT:
-                self.fields[q.label] = forms.CharField(label=q.question, required=not q.optional)
-            elif q.question_type == questions.Question.CHOICE:
-                self.fields[q.label] = forms.ChoiceField(
-                    label=q.question,
-                    choices=questions.ChoiceData.objects.filter(question=q).values_list("value", "value"),
-                    required=not q.optional,
-                )
-            elif q.question_type == questions.Question.MULTI:
-                self.fields[q.label] = forms.MultipleChoiceField(
-                    label=q.question,
-                    choices=questions.ChoiceData.objects.filter(question=q).values_list("value", "value"),
-                    required=not q.optional,
-                )
-            else :
-                raise ValueError(f"Unknown question type: {q.question_type}")
+    github_id = forms.CharField(disabled=True) 
+    github_username = forms.CharField(disabled=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        current_registration = questions.Registrations.objects.current_registration()
+
+        for q in current_registration.question_set.all():
+            field_name = f"question_{q.id}"
+
+            if q.question_type == questions.Question.TEXT:
+                self.fields[field_name] = forms.CharField(
+                    label=q.question,
+                    required=not q.optional
+                )
+
+            elif q.question_type == questions.Question.CHOICE:
+                self.fields[field_name] = forms.ChoiceField(
+                    label=q.question,
+                    choices=questions.QuestionChoice.objects.filter(
+                        question=q
+                    ).values_list("id", "value"),
+                    required=not q.optional,
+                    widget=forms.RadioSelect,
+                )
+
+            elif q.question_type == questions.Question.MULTI:
+                self.fields[field_name] = forms.MultipleChoiceField(
+                    label=q.question,
+                    choices=questions.QuestionChoice.objects.filter(
+                        question=q
+                    ).values_list("id", "value"),
+                    required=not q.optional,
+                    widget=forms.CheckboxSelectMultiple,
+                )

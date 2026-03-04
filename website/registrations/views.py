@@ -4,6 +4,7 @@ from django.db import transaction
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
+from django import forms
 
 from courses.models import Semester
 
@@ -47,8 +48,9 @@ class Step2View(FormView):
 
     template_name = "registrations/step-2.html"
 
-    form_class = Step2Form
+    form_class = Step2FormNew
     success_url = "/"
+
 
     def dispatch(self, request, *args, **kwargs):
         """Check whether github_id is set in the session."""
@@ -108,56 +110,12 @@ class Step2View(FormView):
             user.student_number = form.cleaned_data["student_number"]
             user.save()
 
-            Registration.objects.create(
-                user=user,
-                semester=Semester.objects.get_first_semester_with_open_registration(),
-                course=form.cleaned_data["course"],
-                git_experience=form.cleaned_data["git_experience"],
-                dev_experience=form.cleaned_data["dev_experience"],
-                scrum_experience=form.cleaned_data["scrum_experience"],
-                management_interest=form.cleaned_data["management_interest"],
-                preference1=form.cleaned_data["project1"],
-                preference2=form.cleaned_data["project2"],
-                preference3=form.cleaned_data["project3"],
-                partner_preference1=form.cleaned_data["partner1"],
-                partner_preference2=form.cleaned_data["partner2"],
-                partner_preference3=form.cleaned_data["partner3"],
-                comments=form.cleaned_data["comments"],
-                is_international=form.cleaned_data["international"],
-                available_during_scheduled_timeslot_1=form.cleaned_data[
-                    "available_during_scheduled_timeslot_1"
-                ],
-                available_during_scheduled_timeslot_2=form.cleaned_data[
-                    "available_during_scheduled_timeslot_2"
-                ],
-                available_during_scheduled_timeslot_3=form.cleaned_data[
-                    "available_during_scheduled_timeslot_3"
-                ],
-                available_during_scheduled_timeslot_4=form.cleaned_data[
-                    "available_during_scheduled_timeslot_4"
-                ],
-                available_during_scheduled_timeslot_5=form.cleaned_data[
-                    "available_during_scheduled_timeslot_5"
-                ],
-                available_during_scheduled_timeslot_6=form.cleaned_data[
-                    "available_during_scheduled_timeslot_6"
-                ],
-                available_during_scheduled_timeslot_7=form.cleaned_data[
-                    "available_during_scheduled_timeslot_7"
-                ],
-                available_during_scheduled_timeslot_8=form.cleaned_data[
-                    "available_during_scheduled_timeslot_8"
-                ],
-                available_during_scheduled_timeslot_9=form.cleaned_data[
-                    "available_during_scheduled_timeslot_9"
-                ],
-                available_during_scheduled_timeslot_10=form.cleaned_data[
-                    "available_during_scheduled_timeslot_10"
-                ],
-                has_problems_with_signing_an_nda=form.cleaned_data[
-                    "has_problems_with_signing_an_nda"
-                ],
+            registration = questions.Registrations.objects.current_registration()
+            submission = questions.RegistrationSubmission.objects.create(
+                registration=registration,
+                participant=user
             )
+            #TO DO: Validate dynamic parts of the form and save the answers to the database
 
         del self.request.session["github_id"]
         del self.request.session["github_username"]
@@ -190,11 +148,5 @@ class Step2View(FormView):
                 github_id=self.request.session["github_id"]
             )
             user.github_username = form.cleaned_data["github_username"]
-            
-            
-def register(request):
-    if request.method == "POST":
-        form = Step2FormNew(request.POST)
-        form.is_valid2()
             
             

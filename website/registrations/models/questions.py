@@ -5,11 +5,11 @@ from registrations.models import Employee
 class RegistrationManager(models.Manager):
     """Manager for the Registration model."""
 
-    def current_Registrations(self):
-        """Get first Registration of the current semester."""
+    def current_registration(self):
+        """Get first registration of the current semester."""
         return self.filter(
-            semester=Semester.objects.get_or_create_current_semester().first()
-        )
+            semester=Semester.objects.get_or_create_current_semester()
+        ).first()
 
 
 "Change name to Registration after removing registration.py and its dependencies."
@@ -53,13 +53,12 @@ class Question(models.Model):
     ]
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
-    label = models.CharField(max_length=255)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     optional = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.label
+        return self.question
 
 
 class Answer(models.Model):

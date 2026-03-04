@@ -29,12 +29,12 @@ User: Employee = get_user_model()
 "interface for Registrationss with the proper inlines."
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
-    extra = 1
+    extra = 0
 
 
 class QuestionInline(NestedTabularInline):
     model = Question
-    extra = 1
+    extra = 0
     inlines = [QuestionChoiceInline]
 
 
