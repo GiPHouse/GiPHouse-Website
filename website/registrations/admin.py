@@ -17,7 +17,13 @@ from projects.models import Project
 
 from nested_admin import NestedModelAdmin, NestedTabularInline
 
-from registrations.models import Employee, Registration, Registrations, Question, QuestionChoice
+from registrations.models import (
+    Employee,
+    Registration,
+    Registrations,
+    Question,
+    QuestionChoice,
+)
 from registrations.team_assignment import (
     CSV_STRUCTURE,
     TeamAssignmentGenerator,
@@ -27,6 +33,8 @@ User: Employee = get_user_model()
 
 "The following four classes provide the logic behind the admin"
 "interface for Registrationss with the proper inlines."
+
+
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 1
