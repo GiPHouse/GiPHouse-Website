@@ -36,7 +36,7 @@ class Step2Form(forms.Form):
             semester=Semester.objects.get_first_semester_with_open_registration()
         )
         self.warnings = []
-    
+
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
         required=False,
@@ -231,11 +231,8 @@ class Step2Form(forms.Form):
         Some students will register with the non-existent address snumber@[student.]ru.nl.
         To save everyone a little bit of work, we block these addresses here.
         """
-        if (
-            User.objects.exclude(github_id=self.cleaned_data["github_id"])
-            .filter(email=self.cleaned_data["email"])
-            .exists()
-        ):
+        github_id = self.cleaned_data.get("github_id")
+        if github_id and (User.objects.exclude(github_id=github_id).filter(email=self.cleaned_data["email"]).exists()):
             raise ValidationError("Email address already in use.", code="exists")
 
         match = wrong_email_regex.match(self.cleaned_data["email"])
@@ -259,11 +256,8 @@ class Step2Form(forms.Form):
 
         student_number = "s" + m.group(1)
 
-        if (
-            User.objects.exclude(github_id=self.cleaned_data["github_id"])
-            .filter(student_number=student_number)
-            .exists()
-        ):
+        github_id = self.cleaned_data.get("github_id")
+        if github_id and (User.objects.exclude(github_id=github_id).filter(student_number=student_number).exists()):
             raise ValidationError("Student Number already in use.", code="exists")
         return student_number
 
@@ -288,10 +282,7 @@ class Step2Form(forms.Form):
         if len(set(filter(None, (project1, project2, project3)))) != 3:
             raise ValidationError("You should fill in all preferences with unique values.")
 
-        available_slots = sum(
-            bool(cleaned_data.get(f"available_during_scheduled_timeslot_{i}"))
-            for i in range(1, 11)
-        )
+        available_slots = sum(bool(cleaned_data.get(f"available_during_scheduled_timeslot_{i}")) for i in range(1, 11))
 
         if available_slots < 4 and not cleaned_data.get("available_during_scheduled_timeslot_10"):
             warning = (

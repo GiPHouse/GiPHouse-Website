@@ -85,7 +85,7 @@ class Step2View(FormView):
         if form.warnings and not form.cleaned_data.get("ignore_warnings"):
             form.add_error(None, form.warnings[0])
             return self.form_invalid(form)
-        
+
         """Register new user if the form is valid."""
         with transaction.atomic():
             user, _ = User.objects.get_or_create(github_id=self.request.session["github_id"])
@@ -107,22 +107,42 @@ class Step2View(FormView):
                 preference1=form.cleaned_data["project1"],
                 preference2=form.cleaned_data["project2"],
                 preference3=form.cleaned_data["project3"],
-                partner_preference1=form.cleaned_data["partner1"],
-                partner_preference2=form.cleaned_data["partner2"],
-                partner_preference3=form.cleaned_data["partner3"],
-                comments=form.cleaned_data["comments"],
+                partner_preference1=form.cleaned_data.get("partner1", ""),
+                partner_preference2=form.cleaned_data.get("partner2", ""),
+                partner_preference3=form.cleaned_data.get("partner3", ""),
+                comments=form.cleaned_data.get("comments", ""),
                 is_international=form.cleaned_data["international"],
-                available_during_scheduled_timeslot_1=form.cleaned_data["available_during_scheduled_timeslot_1"],
-                available_during_scheduled_timeslot_2=form.cleaned_data["available_during_scheduled_timeslot_2"],
-                available_during_scheduled_timeslot_3=form.cleaned_data["available_during_scheduled_timeslot_3"],
-                available_during_scheduled_timeslot_4=form.cleaned_data["available_during_scheduled_timeslot_4"],
-                available_during_scheduled_timeslot_5=form.cleaned_data["available_during_scheduled_timeslot_5"],
-                available_during_scheduled_timeslot_6=form.cleaned_data["available_during_scheduled_timeslot_6"],
-                available_during_scheduled_timeslot_7=form.cleaned_data["available_during_scheduled_timeslot_7"],
-                available_during_scheduled_timeslot_8=form.cleaned_data["available_during_scheduled_timeslot_8"],
-                available_during_scheduled_timeslot_9=form.cleaned_data["available_during_scheduled_timeslot_9"],
-                available_during_scheduled_timeslot_10=form.cleaned_data["available_during_scheduled_timeslot_10"],
-                has_problems_with_signing_an_nda=form.cleaned_data["has_problems_with_signing_an_nda"],
+                available_during_scheduled_timeslot_1=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_1", False
+                ),
+                available_during_scheduled_timeslot_2=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_2", False
+                ),
+                available_during_scheduled_timeslot_3=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_3", False
+                ),
+                available_during_scheduled_timeslot_4=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_4", False
+                ),
+                available_during_scheduled_timeslot_5=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_5", False
+                ),
+                available_during_scheduled_timeslot_6=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_6", False
+                ),
+                available_during_scheduled_timeslot_7=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_7", False
+                ),
+                available_during_scheduled_timeslot_8=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_8", False
+                ),
+                available_during_scheduled_timeslot_9=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_9", False
+                ),
+                available_during_scheduled_timeslot_10=form.cleaned_data.get(
+                    "available_during_scheduled_timeslot_10", False
+                ),
+                has_problems_with_signing_an_nda=form.cleaned_data.get("has_problems_with_signing_an_nda", False),
             )
 
         del self.request.session["github_id"]
