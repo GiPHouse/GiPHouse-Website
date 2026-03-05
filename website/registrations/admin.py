@@ -136,7 +136,7 @@ class UserAdmin(admin.ModelAdmin):
     def get_current_project(self, obj):
         """Return current project."""
         registration = obj.registration_set.first()
-        return mark_safe("<br>".join(str(p) for p in registration.projects_user)) if registration else None
+        return mark_safe("<br>".join(str(p) for p in registration.projects_user())) if registration else None
 
     get_current_project.short_description = "Project"
 
@@ -144,8 +144,9 @@ class UserAdmin(admin.ModelAdmin):
         """Place the selected users in their first project preference."""
         for user in queryset:
             registration = user.registration_set.first()
-            registration.project = registration.preference1
-            registration.save()
+            if registration:
+                registration.add_project(registration.preference1)
+                registration.save()
 
     def export_student_numbers(self, request, queryset):
         """Export the first name, last name and student number of the selected users to a CSV file."""
@@ -257,8 +258,8 @@ class UserAdmin(admin.ModelAdmin):
         num_unassigned = 0
         for user in queryset:
             reg = user.registration_set.first()
-            if reg is not None and reg.project is not None:
-                reg.project = None
+            if reg is not None and reg.projects_user() is not None:
+                reg.projects.set([])
                 reg.save()
                 num_unassigned += 1
         messages.success(
@@ -372,10 +373,10 @@ class ImportAssignmentAdminView(View):
                     f"{csv_student_number} in semester {semester} for course {csv_course}. "
                 )
 
-            if registration.project:
+            if registration.projects_user().count() == 0:
                 num_ignored += 1
             else:
-                registration.project = project
+                registration.add_project(project)
                 registration.save()
                 num_assigned += 1
 
