@@ -98,8 +98,13 @@ class Registration(models.Model):
 
     @property
     def project(self):
-        """Get the project of a registration."""
+        """Get the first project of a registration."""
         return self.projects.first()
+    
+    @property
+    def projects_user(self):
+        """Get all the projects of a registration."""
+        return self.projects.all()
 
     @project.setter
     def project(self, value):
