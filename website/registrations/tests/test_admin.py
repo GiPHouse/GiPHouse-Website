@@ -29,6 +29,8 @@ class RegistrationAdminTest(TestCase):
 
         cls.course = Course.objects.sdm()
 
+        cls.courseSE = Course.objects.se()
+
         cls.semester = Semester.objects.get_or_create_current_semester()
         cls.semester.registration_start = timezone.now() - timezone.timedelta(
             days=30
@@ -70,6 +72,7 @@ class RegistrationAdminTest(TestCase):
             is_international=False,
         )
         cls.registration.project = cls.project
+        #cls.registration.add_project(cls.project)
 
         cls.user = User.objects.create(
             github_id=2,
@@ -87,6 +90,39 @@ class RegistrationAdminTest(TestCase):
             course=cls.course,
             is_international=False,
         )
+
+        cls.manager2 = User.objects.create(
+            github_id=3,
+            github_username="lmao",
+            first_name="Mr",
+            last_name="Bond",
+            student_number="s007",
+        )
+
+        cls.registration3 = Registration.objects.create(
+            user=cls.manager2,
+            semester=cls.semester,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
+            preference1=cls.project,
+            course=cls.course,
+            is_international=False,
+        )
+
+        cls.registration3.add_project(cls.project)
+        cls.registration3.add_project(cls.project2)
+
+        #cls.registration3.project = cls.project
+        #cls.registration3.project = cls.project2
+        #cls.registration3.project = None
+
+        cls.userNoReg = User.objects.create(
+            github_id=9,
+            github_username="hahaha",
+            first_name="No",
+            last_name="Preference",
+            student_number="s009",
+        )
+
 
         cls.message = {
             "date_joined_0": "2000-12-01",
@@ -139,11 +175,13 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(User.objects.get(student_number="s0000000"))
 
+
+
     def test_place_in_first_project_preference(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
             {
-                ACTION_CHECKBOX_NAME: [self.manager.pk],
+                ACTION_CHECKBOX_NAME: [self.manager.pk], #self.userNoReg.pk 
                 "action": "place_in_first_project_preference",
                 "index": 0,
             },
@@ -154,6 +192,8 @@ class RegistrationAdminTest(TestCase):
             self.registration.preference1,
             Project.objects.filter(registration__user=self.manager),
         )
+
+
 
     def test_student_change_list_without_registration(self):
         response = self.client.get(
@@ -262,11 +302,12 @@ class RegistrationAdminTest(TestCase):
             ),
         )
 
+
     def test_unassign_project(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
             {
-                ACTION_CHECKBOX_NAME: [self.manager.pk, self.user.pk],
+                ACTION_CHECKBOX_NAME: [self.manager.pk, self.user.pk, self.manager2.pk],
                 "action": "unassign_from_project",
                 "index": 0,
             },
@@ -275,8 +316,11 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.registration.refresh_from_db()
         self.registration2.refresh_from_db()
+        self.registration3.refresh_from_db()
         self.assertIsNone(self.registration.project)
         self.assertIsNone(self.registration2.project)
+        self.assertIsNone(self.registration3.project)
+
 
     def test_import_csv__get(self):
         response = self.client.get(reverse("admin:import"), follow=True)
