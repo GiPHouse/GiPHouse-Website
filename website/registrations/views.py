@@ -131,9 +131,8 @@ class Step2View(FormView):
             user.student_number = form.cleaned_data["student_number"]
             user.save()
 
-            current_sem = Semester.objects.get_first_semester_with_open_registration()
+            reg = questions.Registrations.objects.current_registration()
 
-            reg = questions.Registrations.objects.filter(semester=current_sem).first()
             if not reg:
                 form.add_error(None, "No registration form found for this semester.")
                 return self.form_invalid(form)
