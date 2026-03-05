@@ -197,10 +197,14 @@ wheels = [
 
 [[package]]
 name = "django-admin-autocomplete-filter"
-version = "0.5"
-source = { git = "https://github.com/farhan0581/django-admin-autocomplete-filter.git?branch=pre_release#0464340f7a8917afce37e80f5078e3c93a68e942" }
+version = "0.7.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a2/ab/869ce1c7cf2ba6773d065320d627b73a38b3ada2d91d697fae009101b834/django-admin-autocomplete-filter-0.7.1.tar.gz", hash = "sha256:5a8c9a7016e03104627b80b40811dcc567f26759971e4407f933951546367ba0", size = 23287, upload-time = "2021-09-11T09:43:34.046Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/92/b1/c979485857fe9bbca7ecf51567891d2bdf3e5ff17276d58df5e8f1454250/django_admin_autocomplete_filter-0.7.1-py3-none-any.whl", hash = "sha256:b2a71be2c4a68f828289eb51f71316dbdfac00a1843f53df1fbe4767aad2e3c0", size = 21791, upload-time = "2021-09-11T09:43:31.874Z" },
 ]
 
 [[package]]
@@ -371,7 +375,7 @@ requires-dist = [
     { name = "admin-totals", specifier = ">=1.0.1" },
     { name = "cryptography", specifier = ">=38.0.3" },
     { name = "django", specifier = ">=6.0" },
-    { name = "django-admin-autocomplete-filter", git = "https://github.com/farhan0581/django-admin-autocomplete-filter.git?branch=pre_release" },
+    { name = "django-admin-autocomplete-filter", specifier = ">=0.7.1" },
     { name = "django-bleach", specifier = ">=3.1.0" },
     { name = "django-bootstrap5", specifier = ">=26.2" },
     { name = "django-compressor", specifier = ">=4.6" },

@@ -70,8 +70,6 @@ dev = [
 package = false
 default-groups = "all"
 
-[tool.uv.sources]
-django-admin-autocomplete-filter = { git = "https://github.com/farhan0581/django-admin-autocomplete-filter.git", branch = "pre_release" }
 
 [tool.black]
 line-length = 79
