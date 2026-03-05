@@ -57,7 +57,7 @@ class GetProjectsTest(TestCase):
             preference1=cls.project,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
-        reg.project = cls.project
+        reg.add_project(cls.project)
         reg.projects.add(cls.project)
 
         cls.repo1 = Repository.objects.create(
@@ -242,7 +242,7 @@ class GetProjectsTest(TestCase):
         for mailing_list in lists:
             reg = Registration.objects.all()
             for r in reg:
-                if mailing_list.address == r.project.generate_email():
+                if mailing_list.address == r.first_project.generate_email():
                     user_list.append(r.user.github_id)
 
         self.assertIn(test_user1.github_id, user_list)

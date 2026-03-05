@@ -284,7 +284,7 @@ class GitHubSyncTest(TestCase):
 
     def test_sync_team_member__not_in_project(self):
         reg = Registration.objects.get(user=self.employee1)
-        reg.project = None
+        reg.first_project = None
         reg.save()
         return_value = self.sync.sync_team_member(
             self.employee1, self.project1

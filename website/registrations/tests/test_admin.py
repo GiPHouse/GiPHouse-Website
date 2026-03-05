@@ -71,8 +71,7 @@ class RegistrationAdminTest(TestCase):
             comments="comment",
             is_international=False,
         )
-        cls.registration.project = cls.project
-        #cls.registration.add_project(cls.project)
+        cls.registration.add_project(cls.project)
 
         cls.user = User.objects.create(
             github_id=2,
@@ -107,13 +106,8 @@ class RegistrationAdminTest(TestCase):
             course=cls.course,
             is_international=False,
         )
-
         cls.registration3.add_project(cls.project)
         cls.registration3.add_project(cls.project2)
-
-        #cls.registration3.project = cls.project
-        #cls.registration3.project = cls.project2
-        #cls.registration3.project = None
 
         cls.userNoReg = User.objects.create(
             github_id=9,
@@ -181,7 +175,7 @@ class RegistrationAdminTest(TestCase):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
             {
-                ACTION_CHECKBOX_NAME: [self.manager.pk], #self.userNoReg.pk 
+                ACTION_CHECKBOX_NAME: [self.manager.pk, self.userNoReg.pk],
                 "action": "place_in_first_project_preference",
                 "index": 0,
             },
@@ -317,9 +311,9 @@ class RegistrationAdminTest(TestCase):
         self.registration.refresh_from_db()
         self.registration2.refresh_from_db()
         self.registration3.refresh_from_db()
-        self.assertIsNone(self.registration.project)
-        self.assertIsNone(self.registration2.project)
-        self.assertIsNone(self.registration3.project)
+        self.assertEqual(self.registration.projects.all().count(), 0)
+        self.assertEqual(self.registration2.projects.all().count(), 0)
+        self.assertEqual(self.registration3.projects.all().count(), 0)
 
 
     def test_import_csv__get(self):
@@ -418,7 +412,8 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertEqual(registration.project, self.project)
+        #self.assertEqual(registration.project, self.project)
+        self.assertIn(self.project, registration.projects.all())
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__already_assigned(self):
@@ -441,7 +436,7 @@ class RegistrationAdminTest(TestCase):
             course=self.course,
             is_international=False,
         )
-        registration.project = self.project2
+        registration.add_project(self.project2)
 
         test_csv_file = SimpleUploadedFile(
             "csv_file.csv", file_content, content_type="text/csv"
@@ -452,7 +447,8 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertEqual(registration.project, self.project2)
+        #self.assertEqual(registration.project, self.project2)
+        self.assertIn(self.project2, registration.projects.all())
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__invalid_header(self):
@@ -482,7 +478,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertIsNone(registration.project)
+        self.assertEqual(registration.projects.all().count(), 0)
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__nonexistent_project(self):
@@ -515,7 +511,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertIsNone(registration.project)
+        self.assertEqual(registration.projects.all().count(), 0)
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__no_project(self):
@@ -548,7 +544,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertIsNone(registration.project)
+        self.assertEqual(registration.projects.all().count(), 0)
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__nonexistent_user(self):
@@ -581,7 +577,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertIsNone(registration.project)
+        self.assertEqual(registration.projects.all().count(), 0)
         self.assertEqual(response.status_code, 200)
 
     @patch("threading.Thread")
@@ -642,7 +638,7 @@ class RegistrationAdminTest(TestCase):
             comments="comment",
             is_international=False,
         )
-        reg.project = self.project
+        reg.add_project(self.project)
 
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
