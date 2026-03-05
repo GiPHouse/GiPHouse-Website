@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path
 from django.views import View
+from django.utils.safestring import mark_safe
 
 from courses.models import Semester
 
@@ -135,7 +136,7 @@ class UserAdmin(admin.ModelAdmin):
     def get_current_project(self, obj):
         """Return current project."""
         registration = obj.registration_set.first()
-        return registration.project if registration else None
+        return mark_safe("<br>".join(str(p) for p in registration.projects_user)) if registration else None
 
     get_current_project.short_description = "Project"
 
