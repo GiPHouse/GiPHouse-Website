@@ -12,8 +12,21 @@ from courses.models import Semester
 from registrations.forms import Step2FormNew, Step2Form
 from registrations.models import Employee, Registration, questions
 
-User: Employee = get_user_model()
+def dev_login(request): 
+    """ Simulate GitHub OAuth login for local development. This sets the session variables that Step2FormNew expects. """ 
 
+    employee = Employee.objects.get(github_username="devuser") 
+    login(request, employee) 
+
+    request.session["github_id"] = 123456 
+    request.session["github_username"] = "devuser" 
+    request.session["github_name"] = "Dev User" 
+    request.session["github_email"] = "devuser@example.com" 
+
+    # Redirect to Step2View where the form is return redirect("registrations:step2")
+    return redirect("registrations:step2")
+
+User: Employee = get_user_model()
 
 class Step1View(TemplateView):
     """View showing GitHub link."""
@@ -51,6 +64,10 @@ class Step2View(FormView):
     form_class = Step2FormNew
     success_url = "/"
 
+    def get_form_kwargs(self): 
+        kwargs = super().get_form_kwargs() 
+        kwargs["session"] = self.request.session 
+        return kwargs
 
     def dispatch(self, request, *args, **kwargs):
         """Check whether github_id is set in the session."""
@@ -111,6 +128,11 @@ class Step2View(FormView):
             user.save()
 
             registration = questions.Registrations.objects.current_registration()
+
+            if not registration:
+                form.add_error(None, "No registration form found for this semester.") 
+                return self.form_invalid(form)
+            
             submission = questions.RegistrationSubmission.objects.create(
                 registration=registration,
                 participant=user
