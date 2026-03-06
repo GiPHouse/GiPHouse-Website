@@ -23,7 +23,6 @@ jobs:
 
     - name: "Run Django tests using Coverage"
       run: "uv run coverage run website/manage.py test website/"
-      -
 
     - name: "Check Coverage report"
       run: "uv run coverage report"
