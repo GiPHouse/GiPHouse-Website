@@ -2,6 +2,7 @@ from django.db import models
 from courses.models import Semester
 from registrations.models import Employee
 
+
 class RegistrationManager(models.Manager):
     """Manager for the Registration model."""
 
@@ -13,8 +14,11 @@ class RegistrationManager(models.Manager):
 
 
 "Change name to Registration after removing registration.py and its dependencies."
+
+
 class Registrations(models.Model):
     """A group of questions."""
+
     title = models.CharField(max_length=200)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
@@ -23,8 +27,8 @@ class Registrations(models.Model):
     def __str__(self):
         """Return title."""
         return f"{self.title} ({self.semester})"
-    
-    
+
+
 class RegistrationSubmission(models.Model):
     """Submission of a Registration by a user."""
 
@@ -42,6 +46,7 @@ class RegistrationSubmission(models.Model):
 
 class Question(models.Model):
     "Question for the registration form."
+
     TEXT = "text"
     CHOICE = "choice"
     MULTI = "multi"
@@ -122,18 +127,21 @@ class Answer(models.Model):
         return f"{self.submission.participant} answers #{self.question.id}"
 
 
-
 class QuestionChoice(models.Model):
     "Model for ChoiceData and MultiData."
-    question = models.ForeignKey(Question, related_name="choices", on_delete=models.CASCADE)
+
+    question = models.ForeignKey(
+        Question, related_name="choices", on_delete=models.CASCADE
+    )
     value = models.CharField(max_length=255)
 
     def __str__(self):
         return self.value
-    
-    
+
+
 class TextData(models.Model):
     "Model storing value of an open question."
+
     answer = models.OneToOneField(Answer, on_delete=models.CASCADE)
     value = models.TextField(blank=True, null=True)
 
@@ -143,13 +151,13 @@ class TextData(models.Model):
 
 class ChoiceData(models.Model):
     "Model storing choice answer for a closed question."
+
     answer = models.OneToOneField(Answer, on_delete=models.CASCADE)
     choice = models.ForeignKey(QuestionChoice, on_delete=models.CASCADE)
 
 
 class MultiData(models.Model):
     "Model storing multiple choice answers for a closed question."
+
     answer = models.OneToOneField(Answer, on_delete=models.CASCADE)
     choices = models.ManyToManyField(QuestionChoice)
-
-

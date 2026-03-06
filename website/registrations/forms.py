@@ -242,8 +242,9 @@ class Step2Form(forms.Form):
         Some students will register with the non-existent address snumber@[student.]ru.nl.
         To save everyone a little bit of work, we block these addresses here.
         """
-        if (
-            User.objects.exclude(github_id=self.cleaned_data["github_id"])
+        github_id = self.cleaned_data.get("github_id")
+        if github_id and (
+            User.objects.exclude(github_id=github_id)
             .filter(email=self.cleaned_data["email"])
             .exists()
         ):
@@ -274,8 +275,9 @@ class Step2Form(forms.Form):
 
         student_number = "s" + m.group(1)
 
-        if (
-            User.objects.exclude(github_id=self.cleaned_data["github_id"])
+        github_id = self.cleaned_data.get("github_id")
+        if github_id and (
+            User.objects.exclude(github_id=github_id)
             .filter(student_number=student_number)
             .exists()
         ):
@@ -313,7 +315,6 @@ class Step2Form(forms.Form):
             bool(cleaned_data.get(f"available_during_scheduled_timeslot_{i}"))
             for i in range(1, 11)
         )
-
         if available_slots < 4 and not cleaned_data.get(
             "available_during_scheduled_timeslot_10"
         ):
