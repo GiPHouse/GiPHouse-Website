@@ -266,7 +266,7 @@ class Step2FormNew(forms.Form):
         current_registration = questions.Registrations.objects.current_registration()
         
         if not current_registration:
-            raise ValueError("No registration found for the current semester.")
+            raise ValueError("No registration found for the current semester")
 
         for q in current_registration.question_set.all():
             field_name = f"question_{q.id}"
