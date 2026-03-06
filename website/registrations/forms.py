@@ -1,3 +1,4 @@
+from os import name
 import re
 
 from django import forms
@@ -268,15 +269,32 @@ class Step2FormNew(forms.Form):
             raise ValueError("No registration found for the current semester.")
 
         for q in current_registration.question_set.all():
-            name = f"question-{q.pk}"
+            field_name = f"question_{q.id}"
+
             if q.question_type == questions.Question.TEXT:
-                self.fields[name] = forms.CharField(label=q.question, required=not q.optional)
+                self.fields[field_name] = forms.CharField(
+                    label=q.question,
+                    required=not q.optional)
+
             elif q.question_type == questions.Question.CHOICE:
-                choices = q.choices.values_list("id", "value")
-                self.fields[name] = forms.ChoiceField(label=q.question, choices=choices, required=not q.optional)
+                choices=questions.QuestionChoice.objects.filter(
+                        question=q
+                    ).values_list("id", "value")
+                self.fields[field_name] = forms.ChoiceField(
+                    label=q.question,
+                    choices=choices,
+                    required=not q.optional,
+                    widget=forms.RadioSelect)
+                
             elif q.question_type == questions.Question.MULTI:
-                choices = q.choices.values_list("id", "value")
-                self.fields[name] = forms.MultipleChoiceField(label=q.question, choices=choices, required=not q.optional)
+                choices=questions.QuestionChoice.objects.filter(
+                        question=q
+                    ).values_list("id", "value")
+                self.fields[field_name] = forms.MultipleChoiceField(
+                    label=q.question,
+                    choices=choices,
+                    required=not q.optional,
+                    widget=forms.CheckboxSelectMultiple)
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
     
@@ -320,8 +338,8 @@ class Step2FormNew(forms.Form):
         cleaned_data = super().clean()
 
         for field_name in self.fields:
-            if field_name.startswith("question-"):
-                question_id = int(field_name.split("-")[1])
+            if field_name.startswith("question_"):
+                question_id = int(field_name.split("_")[1])
                 question = questions.Question.objects.get(pk=question_id)
                 answer = cleaned_data.get(field_name)
 
