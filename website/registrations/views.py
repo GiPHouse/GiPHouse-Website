@@ -4,14 +4,14 @@ from django.db import transaction
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
-from django import forms
 
 from courses.models import Semester
 
 
-from registrations.forms import Step2FormNew, Step2Form
-from registrations.models import Employee, Registration, questions
+from registrations.forms import Step2FormNew
+from registrations.models import Employee, questions
 
+# Only for testing
 def dev_login(request): 
     """ Simulate GitHub OAuth login for local development. This sets the session variables that Step2FormNew expects. """ 
 
@@ -164,8 +164,7 @@ class Step2View(FormView):
                 participant=user
             )
             #TO DO: Validate dynamic parts of the form and save the answers to the database
-
-        self.save_answers(submission, form.cleaned_data)
+            self.save_answers(submission, form.cleaned_data)
 
         # Clean up session
         for key in ["github_id", "github_username", "github_name", "github_email"]:
