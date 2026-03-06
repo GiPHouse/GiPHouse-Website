@@ -262,13 +262,12 @@ class Step2FormNew(forms.Form):
         self.github_username = github_username
         self.warnings = []
 
-        current_sem = Semester.objects.get_first_semester_with_open_registration()
-        reg = questions.Registrations.objects.filter(semester=current_sem).first()
+        current_registration = questions.Registrations.objects.current_registration()
         
-        if not reg:
+        if not current_registration:
             raise ValueError("No registration found for the current semester.")
 
-        for q in reg.question_set.all():
+        for q in current_registration.question_set.all():
             name = f"question-{q.pk}"
             if q.question_type == questions.Question.TEXT:
                 self.fields[name] = forms.CharField(label=q.question, required=not q.optional)
