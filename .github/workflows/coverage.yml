@@ -6,7 +6,6 @@ jobs:
   test:
     name: "Coverage"
     runs-on: "ubuntu-latest"
-    continue-on-error: true
 
     steps:
 
@@ -23,6 +22,7 @@ jobs:
 
     - name: "Run Django tests using Coverage"
       run: "uv run coverage run website/manage.py test website/"
+      continue-on-error: true
 
     - name: "Check Coverage report"
       run: "uv run coverage report"
