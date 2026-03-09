@@ -4,13 +4,13 @@
 
 # __GiPHouse website__
 
-![Static Badge](https://img.shields.io/badge/License-AGPL--3.0-purple?style=flat)
-[![Python](https://img.shields.io/badge/Python_3.14-3776AB?logo=python&logoColor=fff)](#)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![Bootstrap](https://img.shields.io/badge/Bootstrap_5-7952B3?logo=bootstrap&logoColor=fff)](#)
-[![Django](https://img.shields.io/badge/Django_6.0-%23092E20.svg?logo=django&logoColor=white)](#)
-[![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000000.svg)](https://github.com/psf/black)\
+[![Static Badge](https://img.shields.io/badge/License-AGPL--3.0-742e68?style=flat)](https://www.gnu.org/licenses/agpl-3.0)
+[![Python](https://img.shields.io/badge/Python-3.14-ffdd54?logo=python&logoColor=ffdd54&labelColor=3776AB)](https://docs.python.org/3.14/)
+[![Ruff](https://img.shields.io/badge/Ruff-261230?logo=Ruff&logoColor=D7FF64)](https://docs.astral.sh/ruff/)
+[![uv](https://img.shields.io/badge/uv-261230?logo=uv&logoColor=DE5FE9)](https://docs.astral.sh/uv/)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.2-e5e1ea?logo=bootstrap&logoColor=f9f9f9&labelColor=7952B3)](https://getbootstrap.com/docs/5.2)
+[![Django](https://img.shields.io/badge/Django-6.0-44B78B?logo=django&logoColor=white&labelColor=092E20)](https://docs.djangoproject.com/en/6.0/)
+[![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000000.svg)](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html)\
 [![Linting](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml/badge.svg?branch=CI-test)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml)
 [![Testing](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml)
 [![Coverage](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml)
