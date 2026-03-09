@@ -1,6 +1,8 @@
 <div align="center">
-	
+
+<a href="https://giphouse.nl/">
 <img src="website/giphousewebsite/static/img/favicon/android-chrome-512x512.png" height=150>
+</a>
 
 # __GiPHouse website__
 
