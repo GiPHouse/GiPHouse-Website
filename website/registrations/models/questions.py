@@ -126,6 +126,26 @@ class Answer(models.Model):
             data.choices.set(value)
             data.save()
 
+    @property
+    def answer_value(self):
+        """Return the human-readable answer depending on question type."""
+        qtype = self.question.question_type
+
+        if qtype == Question.TEXT:
+            return getattr(self.textdata, "value", "")
+
+        elif qtype == Question.CHOICE:
+            return getattr(self.choicedata.choice, "value", "")
+
+        elif qtype == Question.MULTI:
+            try:
+                return ", ".join(c.value for c in self.multidata.choices.all())
+            except MultiData.DoesNotExist:
+                return ""
+
+        return ""
+    
+
     def __str__(self):
         return f"{self.submission.participant} answers #{self.question.id}"
 

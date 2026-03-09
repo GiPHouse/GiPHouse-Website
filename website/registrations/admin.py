@@ -17,7 +17,7 @@ from projects.models import Project
 
 from nested_admin import NestedModelAdmin, NestedTabularInline
 
-from registrations.models import Employee, Registration, Registrations, Question, QuestionChoice
+from registrations.models import *
 from registrations.team_assignment import (
     CSV_STRUCTURE,
     TeamAssignmentGenerator,
@@ -86,6 +86,26 @@ class QuestionAdmin(NestedModelAdmin):
     form = QuestionAdminForm
     list_display = ("question", "registration", "question_type", "optional")
     inlines = [QuestionChoiceInline]
+
+class AnswerInline(admin.TabularInline):
+    model = Answer
+    extra = 0
+    readonly_fields = ("question_text", "answer_value")
+    exclude = ("question",)
+
+    def question_text(self, obj):
+        return obj.question.question
+    question_text.short_description = "Question"
+
+    def answer_value(self, obj):
+        return obj.answer_value
+    answer_value.short_description = "Answer"
+
+
+@admin.register(RegistrationSubmission)
+class RegistrationSubmissionAdmin(admin.ModelAdmin):
+    list_display = ("registration", "participant", "submitted", "created")
+    inlines = [AnswerInline]
 
 
 class UserAdminSemesterFilter(AutocompleteFilter):

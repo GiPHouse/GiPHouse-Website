@@ -344,5 +344,21 @@ class Step2FormNew(forms.Form):
 
                 if not question.optional and not answer:
                     raise ValidationError(f"Question '{question.question}' is required.")
+
+                if question.question_type == questions.Question.MULTI and answer:
+                    selected_count = len(answer)
+
+                    if question.min_choices is not None and selected_count < question.min_choices:
+                        self.warnings.append(
+                            f"'{question.question}': At least {question.min_choices} choices are required (you selected {selected_count})."
+                        )
+
+                    if question.max_choices is not None and selected_count > question.max_choices:
+                        self.warnings.append(
+                            f"'{question.question}': No more than {question.max_choices} choices are allowed (you selected {selected_count})."
+                        )
+
+                    if question.warnings:
+                            self.warnings.append(question.warnings.strip())
         
         return cleaned_data
