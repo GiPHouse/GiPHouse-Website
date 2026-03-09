@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/Python-3.14-ffdd54?logo=python&logoColor=ffdd54&labelColor=3776AB)](https://docs.python.org/3.14/)
 [![Ruff](https://img.shields.io/badge/Ruff-261230?logo=Ruff&logoColor=D7FF64)](https://docs.astral.sh/ruff/)
 [![uv](https://img.shields.io/badge/uv-261230?logo=uv&logoColor=DE5FE9)](https://docs.astral.sh/uv/)
-[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.2-e5e1ea?logo=bootstrap&logoColor=f9f9f9&labelColor=7952B3)](https://getbootstrap.com/docs/5.2)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-e5e1ea?logo=bootstrap&logoColor=f9f9f9&labelColor=7952B3)](https://getbootstrap.com/docs/5.3)
 [![Django](https://img.shields.io/badge/Django-6.0-44B78B?logo=django&logoColor=white&labelColor=092E20)](https://docs.djangoproject.com/en/6.0/)
 [![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000000.svg)](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html)\
 [![Linting](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml/badge.svg?branch=CI-test)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml)
