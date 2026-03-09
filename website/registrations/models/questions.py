@@ -57,6 +57,14 @@ class Question(models.Model):
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     optional = models.BooleanField(default=False)
 
+    min_choices = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Minimum number of choices for MULTI questions"
+    )
+    max_choices = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Maximum number of choices for MULTI questions"
+    )
+    warnings = models.TextField(blank=True, null=True, help_text="Warnings to show if validation fails")
+
     def __str__(self):
         return self.question
 

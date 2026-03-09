@@ -27,6 +27,40 @@ User: Employee = get_user_model()
 
 "The following four classes provide the logic behind the admin"
 "interface for Registrationss with the proper inlines."
+
+class QuestionAdminForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        question_type = cleaned_data.get("question_type")
+        min_choices = cleaned_data.get("min_choices")
+        max_choices = cleaned_data.get("max_choices")
+
+        errors = []
+
+        if question_type == Question.MULTI:
+            if min_choices is not None and min_choices < 0:
+                errors.append("min_choices cannot be negative.")
+            if max_choices is not None and max_choices < 0:
+                errors.append("max_choices cannot be negative.")
+            if min_choices is not None and max_choices is not None and min_choices > max_choices:
+                errors.append("min_choices cannot be greater than max_choices.")
+
+            if self.instance and self.instance.pk:
+                choice_count = self.instance.choices.count()
+                if min_choices is not None and min_choices > choice_count:
+                    errors.append(f"min_choices ({min_choices}) cannot exceed the number of choices ({choice_count}).")
+                if max_choices is not None and max_choices > choice_count:
+                    errors.append(f"max_choices ({max_choices}) cannot exceed the number of choices ({choice_count}).")
+
+        if errors:
+            raise forms.ValidationError(errors)
+
+        return cleaned_data
+
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 0
@@ -34,8 +68,11 @@ class QuestionChoiceInline(NestedTabularInline):
 
 class QuestionInline(NestedTabularInline):
     model = Question
+    form = QuestionAdminForm
     extra = 0
     inlines = [QuestionChoiceInline]
+    class Media:
+        js = ("js/question_type_toggle.js",)
 
 
 @admin.register(Registrations)
@@ -46,6 +83,7 @@ class RegistrationsAdmin(NestedModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(NestedModelAdmin):
+    form = QuestionAdminForm
     list_display = ("question", "registration", "question_type", "optional")
     inlines = [QuestionChoiceInline]
 
