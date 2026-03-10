@@ -90,7 +90,7 @@ class Step2View(FormView):
             first_name, last_name = self.request.session["github_name"].rsplit(
                 " ", 1
             )
-        except KeyError, AttributeError:
+        except (KeyError, AttributeError):
             first_name, last_name = "", ""
         except ValueError:
             first_name, last_name = self.request.session["github_name"], ""
@@ -137,7 +137,8 @@ class Step2View(FormView):
     def form_valid(self, form):
         """Check for warnings before registering."""
         if form.warnings and not form.cleaned_data.get("ignore_warnings"):
-            form.add_error(None, form.warnings[0])
+            for warning in form.warnings:
+                form.add_error(None, warning)
             return self.form_invalid(form)
 
         """Register new user if the form is valid."""
