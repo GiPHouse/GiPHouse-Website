@@ -62,6 +62,14 @@ class Question(models.Model):
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     optional = models.BooleanField(default=False)
 
+    min_choices = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Minimum number of choices for MULTI questions"
+    )
+    max_choices = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Maximum number of choices for MULTI questions"
+    )
+    warnings = models.TextField(blank=True, null=True, help_text="Warnings to show if validation fails")
+
     def __str__(self):
         return self.question
 
@@ -122,6 +130,26 @@ class Answer(models.Model):
 
             data.choices.set(value)
             data.save()
+
+    @property
+    def answer_value(self):
+        """Return the human-readable answer depending on question type."""
+        qtype = self.question.question_type
+
+        if qtype == Question.TEXT:
+            return getattr(self.textdata, "value", "")
+
+        elif qtype == Question.CHOICE:
+            return getattr(self.choicedata.choice, "value", "")
+
+        elif qtype == Question.MULTI:
+            try:
+                return ", ".join(c.value for c in self.multidata.choices.all())
+            except MultiData.DoesNotExist:
+                return ""
+
+        return ""
+    
 
     def __str__(self):
         return f"{self.submission.participant} answers #{self.question.id}"
