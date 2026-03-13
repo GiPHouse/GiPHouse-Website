@@ -282,7 +282,7 @@ class Command(BaseCommand):
             comments=random.choice([fake.sentence(), ""]),
             dev_experience=Registration.EXPERIENCE_INTERMEDIATE,
         )
-        reg.project = project
+        reg.add_project(project)
 
     def create_questionnaire(self):
         """Create one fake questionnaire."""

@@ -92,7 +92,7 @@ class ModelsTest(TestCase):
             dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
-        reg.projects.add(self.test_project)
+        reg.add_project(self.test_project)
 
         self.assertFalse(reg.is_director)
 
@@ -117,7 +117,7 @@ class ModelsTest(TestCase):
             dev_experience=Registration.EXPERIENCE_ADVANCED,
             is_international=False,
         )
-        reg.projects.add(self.test_project)
+        reg.add_project(self.test_project)
 
         self.assertFalse(reg.is_director)
 
@@ -204,4 +204,63 @@ class ModelsTest(TestCase):
         )
         self.assertEqual(
             self.test_registration.partner_preference3_user, self.test_user
+        )
+
+    def test_has_projects__no_projects(self):
+        self.assertFalse(self.test_registration.has_projects())
+
+    def test_has_projects__one_project(self):
+        self.test_registration.add_project(self.test_project)
+        self.assertTrue(self.test_registration.has_projects())
+
+    def test_has_projects__multiple_projects(self):
+        self.test_registration.add_project(self.test_project)
+        self.test_registration.add_project(self.test_project2)
+
+        self.assertTrue(self.test_registration.has_projects())
+
+    def test_get_projects__no_projects(self):
+        self.assertEqual(self.test_registration.get_projects().count(), 0)
+
+    def test_get_projects__one_project(self):
+        self.test_registration.add_project(self.test_project)
+
+        self.assertEqual(self.test_registration.get_projects().count(), 1)
+        self.assertIn(self.test_project, self.test_registration.get_projects())
+
+    def test_get_projects__multiple_projects(self):
+        self.test_registration.add_project(self.test_project)
+        self.test_registration.add_project(self.test_project2)
+
+        self.assertEqual(self.test_registration.get_projects().count(), 2)
+        self.assertIn(self.test_project, self.test_registration.get_projects())
+        self.assertIn(
+            self.test_project2, self.test_registration.get_projects()
+        )
+
+    def test_remove_projects__no_projects(self):
+        self.test_registration.remove_projects()
+
+        self.assertFalse(self.test_registration.has_projects())
+
+    def test_remove_projects__one_project(self):
+        self.test_registration.add_project(self.test_project)
+        self.test_registration.remove_projects()
+
+        self.assertFalse(self.test_registration.has_projects())
+        self.assertNotIn(
+            self.test_project, self.test_registration.get_projects()
+        )
+
+    def test_remove_projects__multiple_projects(self):
+        self.test_registration.add_project(self.test_project)
+        self.test_registration.add_project(self.test_project2)
+        self.test_registration.remove_projects()
+
+        self.assertFalse(self.test_registration.has_projects())
+        self.assertNotIn(
+            self.test_project, self.test_registration.get_projects()
+        )
+        self.assertNotIn(
+            self.test_project2, self.test_registration.get_projects()
         )

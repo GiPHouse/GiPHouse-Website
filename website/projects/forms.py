@@ -69,11 +69,11 @@ class ProjectAdminForm(forms.ModelForm):
         for reg in Registration.objects.filter(
             semester=self.instance.semester, user_id__in=new_users
         ):
-            reg.projects.add(self.instance)
+            reg.add_project(self.instance)
         for reg in Registration.objects.filter(
             semester=self.instance.semester, user_id__in=new_users
         ):
-            reg.projects.set([])
+            reg.remove_projects()
 
     def save(self, *args, **kwargs):
         """Save the form data, including many-to-many data."""

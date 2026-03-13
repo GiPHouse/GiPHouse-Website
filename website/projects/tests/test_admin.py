@@ -57,8 +57,7 @@ class GetProjectsTest(TestCase):
             preference1=cls.project,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
-        reg.project = cls.project
-        reg.projects.add(cls.project)
+        reg.add_project(cls.project)
 
         cls.repo1 = Repository.objects.create(
             name="testrepo1", project=cls.project
@@ -211,7 +210,7 @@ class GetProjectsTest(TestCase):
             dev_experience=1,
             is_international=False,
         )
-        reg1.projects.add(test_project)
+        reg1.add_project(test_project)
         reg2 = Registration.objects.create(
             user=test_user2,
             semester=sem2,
@@ -220,7 +219,7 @@ class GetProjectsTest(TestCase):
             dev_experience=1,
             is_international=False,
         )
-        reg2.projects.add(test_project)
+        reg2.add_project(test_project)
 
         reg3 = Registration.objects.create(
             user=test_user3,
@@ -230,7 +229,7 @@ class GetProjectsTest(TestCase):
             dev_experience=1,
             is_international=False,
         )
-        reg3.projects.add(test_project)
+        reg3.add_project(test_project)
 
         pa.create_mailing_lists(self.request, [test_project, test_project2])
 
@@ -242,7 +241,7 @@ class GetProjectsTest(TestCase):
         for mailing_list in lists:
             reg = Registration.objects.all()
             for r in reg:
-                if mailing_list.address == r.project.generate_email():
+                if mailing_list.address == r.first_project.generate_email():
                     user_list.append(r.user.github_id)
 
         self.assertIn(test_user1.github_id, user_list)

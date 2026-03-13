@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path
 from django.views import View
+from django.utils.safestring import mark_safe
 
 from courses.models import Semester
 
@@ -26,7 +27,7 @@ from registrations.models import (
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    TeamAssignmentGenerator,
+    #TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
@@ -100,11 +101,9 @@ class UserAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
 
     actions = (
-        "place_in_first_project_preference",
         "unassign_from_project",
         "export_student_numbers",
         "export_registrations",
-        "generate_project_assignment_proposal",
     )
 
     fieldsets = (
@@ -169,16 +168,13 @@ class UserAdmin(admin.ModelAdmin):
     def get_current_project(self, obj):
         """Return current project."""
         registration = obj.registration_set.first()
-        return registration.project if registration else None
+        return (
+            mark_safe("<br>".join(str(p) for p in registration.get_projects()))
+            if registration
+            else None
+        )
 
     get_current_project.short_description = "Project"
-
-    def place_in_first_project_preference(self, request, queryset):
-        """Place the selected users in their first project preference."""
-        for user in queryset:
-            registration = user.registration_set.first()
-            registration.project = registration.preference1
-            registration.save()
 
     def export_student_numbers(self, request, queryset):
         """Export the first name, last name and student number of the selected users to a CSV file."""
@@ -290,35 +286,14 @@ class UserAdmin(admin.ModelAdmin):
         num_unassigned = 0
         for user in queryset:
             reg = user.registration_set.first()
-            if reg is not None and reg.project is not None:
-                reg.project = None
+            if reg is not None and reg.get_projects() is not None:
+                reg.remove_projects()
                 reg.save()
                 num_unassigned += 1
         messages.success(
             request,
             f"Succesfully unassigned {num_unassigned} registrations.",
         )
-
-    def generate_project_assignment_proposal(self, request, queryset):
-        """Create task to compute project assignment."""
-        registrations = [user.registration_set.first() for user in queryset]
-
-        if None in registrations:
-            messages.warning(request, "All users should have a registration.")
-            return
-
-        if (
-            len(set(registration.semester for registration in registrations))
-            > 1
-        ):
-            messages.warning(
-                request,
-                "All users should have a registration in the same semester.",
-            )
-            return
-
-        task = TeamAssignmentGenerator(registrations).start_solve_task()
-        return redirect("admin:progress_bar", task=task.id)
 
     def get_urls(self):
         """Get admin urls."""
@@ -405,10 +380,10 @@ class ImportAssignmentAdminView(View):
                     f"{csv_student_number} in semester {semester} for course {csv_course}. "
                 )
 
-            if registration.project:
+            if registration.get_projects().count() != 0:
                 num_ignored += 1
             else:
-                registration.project = project
+                registration.add_project(project)
                 registration.save()
                 num_assigned += 1
 
