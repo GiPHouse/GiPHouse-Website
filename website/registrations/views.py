@@ -8,12 +8,12 @@ from django.views.generic import FormView, TemplateView
 from courses.models import Semester
 
 
-from registrations.forms import Step2FormNew
+from registrations.forms import Step2Form
 from registrations.models import Employee, questions
 
 # Only for testing
 def dev_login(request): 
-    """ Simulate GitHub OAuth login for local development. This sets the session variables that Step2FormNew expects. """ 
+    """ Simulate GitHub OAuth login for local development. This sets the session variables that Step2Form expects. """ 
 
     employee = Employee.objects.get(github_username="devuser") 
     login(request, employee) 
@@ -61,7 +61,7 @@ class Step2View(FormView):
 
     template_name = "registrations/step-2.html"
 
-    form_class = Step2FormNew
+    form_class = Step2Form
     success_url = "/"
 
     def get_form_kwargs(self): 
@@ -185,18 +185,4 @@ class Step2View(FormView):
         )
 
         return redirect("home")
-
-    def form_valid2(self, form):
-        """Check for warnings before registering."""
-        if form.warnings and not form.cleaned_data.get("ignore_warnings"):
-            form.add_error(None, form.warnings[0])
-            return self.form_invalid(form)
-
-        """Register new user if the form is valid."""
-        with transaction.atomic():
-            user, _ = User.objects.get_or_create(
-                github_id=self.request.session["github_id"]
-            )
-            user.github_username = form.cleaned_data["github_username"]
-            
-            
+    
