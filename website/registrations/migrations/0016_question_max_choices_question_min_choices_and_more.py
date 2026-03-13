@@ -4,25 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registrations', '0015_question_answer_questionchoice_multidata_choicedata_and_more'),
+        (
+            "registrations",
+            "0015_question_answer_questionchoice_multidata_choicedata_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='question',
-            name='max_choices',
-            field=models.PositiveIntegerField(blank=True, help_text='Maximum number of choices for MULTI questions', null=True),
+            model_name="question",
+            name="max_choices",
+            field=models.PositiveIntegerField(
+                blank=True,
+                help_text="Maximum number of choices for MULTI questions",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='question',
-            name='min_choices',
-            field=models.PositiveIntegerField(blank=True, help_text='Minimum number of choices for MULTI questions', null=True),
+            model_name="question",
+            name="min_choices",
+            field=models.PositiveIntegerField(
+                blank=True,
+                help_text="Minimum number of choices for MULTI questions",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='question',
-            name='warnings',
-            field=models.TextField(blank=True, help_text='Warnings to show if validation fails', null=True),
+            model_name="question",
+            name="warnings",
+            field=models.TextField(
+                blank=True,
+                help_text="Warnings to show if validation fails",
+                null=True,
+            ),
         ),
     ]

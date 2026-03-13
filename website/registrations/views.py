@@ -8,25 +8,28 @@ from django.views.generic import FormView, TemplateView
 from courses.models import Semester
 
 
-from registrations.forms import Step2FormNew
+from registrations.forms import Step2Form
 from registrations.models import Employee, questions
 
+
 # Only for testing
-def dev_login(request): 
-    """ Simulate GitHub OAuth login for local development. This sets the session variables that Step2FormNew expects. """ 
+def dev_login(request):
+    """Simulate GitHub OAuth login for local development. This sets the session variables that Step2Form expects."""
 
-    employee = Employee.objects.get(github_username="devuser") 
-    login(request, employee) 
+    employee = Employee.objects.get(github_username="devuser")
+    login(request, employee)
 
-    request.session["github_id"] = 123456 
-    request.session["github_username"] = "devuser" 
-    request.session["github_name"] = "Dev User" 
-    request.session["github_email"] = "devuser@example.com" 
+    request.session["github_id"] = 123456
+    request.session["github_username"] = "devuser"
+    request.session["github_name"] = "Dev User"
+    request.session["github_email"] = "devuser@example.com"
 
     # Redirect to Step2View where the form is return redirect("registrations:step2")
     return redirect("registrations:step2")
 
+
 User: Employee = get_user_model()
+
 
 class Step1View(TemplateView):
     """View showing GitHub link."""
@@ -61,12 +64,12 @@ class Step2View(FormView):
 
     template_name = "registrations/step-2.html"
 
-    form_class = Step2FormNew
+    form_class = Step2Form
     success_url = "/"
 
-    def get_form_kwargs(self): 
-        kwargs = super().get_form_kwargs() 
-        kwargs["session"] = self.request.session 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["session"] = self.request.session
         return kwargs
 
     def dispatch(self, request, *args, **kwargs):
@@ -107,7 +110,7 @@ class Step2View(FormView):
         )
 
         return initial
-    
+
     def save_answers(self, submission, cleaned_data):
         """Save the answers to the database."""
         for key, value in cleaned_data.items():
@@ -116,23 +119,29 @@ class Step2View(FormView):
                 question = questions.Question.objects.get(pk=question_id)
 
                 answer_obj = questions.Answer.objects.create(
-                    submission=submission,
-                    question=question
+                    submission=submission, question=question
                 )
 
                 if question.question_type == questions.Question.TEXT:
-                    questions.TextData.objects.create(answer=answer_obj, value=value)
+                    questions.TextData.objects.create(
+                        answer=answer_obj, value=value
+                    )
 
                 elif question.question_type == questions.Question.CHOICE:
-                    choice_obj = questions.QuestionChoice.objects.get(id=int(value))
-                    questions.ChoiceData.objects.create(answer=answer_obj, choice=choice_obj)
+                    choice_obj = questions.QuestionChoice.objects.get(
+                        id=int(value)
+                    )
+                    questions.ChoiceData.objects.create(
+                        answer=answer_obj, choice=choice_obj
+                    )
 
                 elif question.question_type == questions.Question.MULTI:
                     choice_ids = [int(v) for v in value]
                     choice_objs = question.choices.filter(pk__in=choice_ids)
-                    multi = questions.MultiData.objects.create(answer=answer_obj)
+                    multi = questions.MultiData.objects.create(
+                        answer=answer_obj
+                    )
                     multi.choices.set(choice_objs)
-
 
     def form_valid(self, form):
         """Check for warnings before registering."""
@@ -157,18 +166,24 @@ class Step2View(FormView):
             registration = questions.Registrations.objects.current_registration()
 
             if not registration:
-                form.add_error(None, "No registration form found for this semester.") 
+                form.add_error(
+                    None, "No registration form found for this semester."
+                )
                 return self.form_invalid(form)
-            
+
             submission = questions.RegistrationSubmission.objects.create(
-                registration=registration,
-                participant=user
+                registration=registration, participant=user
             )
-            #TO DO: Validate dynamic parts of the form and save the answers to the database
+            # TO DO: Validate dynamic parts of the form and save the answers to the database
             self.save_answers(submission, form.cleaned_data)
 
         # Clean up session
-        for key in ["github_id", "github_username", "github_name", "github_email"]:
+        for key in [
+            "github_id",
+            "github_username",
+            "github_name",
+            "github_email",
+        ]:
             if key in self.request.session:
                 del self.request.session[key]
 
@@ -185,18 +200,3 @@ class Step2View(FormView):
         )
 
         return redirect("home")
-
-    def form_valid2(self, form):
-        """Check for warnings before registering."""
-        if form.warnings and not form.cleaned_data.get("ignore_warnings"):
-            form.add_error(None, form.warnings[0])
-            return self.form_invalid(form)
-
-        """Register new user if the form is valid."""
-        with transaction.atomic():
-            user, _ = User.objects.get_or_create(
-                github_id=self.request.session["github_id"]
-            )
-            user.github_username = form.cleaned_data["github_username"]
-            
-            
