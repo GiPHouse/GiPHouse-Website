@@ -291,7 +291,6 @@ class RegistrationAdminTest(TestCase):
             ),
         )
 
-
     def test_unassign_project(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
