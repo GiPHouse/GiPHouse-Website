@@ -96,20 +96,17 @@ class Registration(models.Model):
     has_problems_with_signing_an_nda = models.BooleanField(default=False)
     comments = models.TextField(null=True, blank=True)
 
-    @property
-    def project(self):
-        """Get the first project of a registration."""
-        return self.projects.first()
-    
-    #@property --> Should this be property or no?
-    def projects_user(self):
+    def get_projects(self):
         """Get all the projects of a registration."""
         return self.projects.all()
 
-    @project.setter
-    def project(self, value):
-        """Set the project of a registration."""
-        self.projects.set([value])
+    def has_projects(self):
+        """Returns true if there is at least one project."""
+        return self.projects.all().count() != 0
+
+    def remove_projects(self):
+        """Remove all the projects of a registration."""
+        return self.projects.set([])
 
     def add_project(self, value):
         """Set the projects of a registration."""
@@ -118,7 +115,10 @@ class Registration(models.Model):
     @property
     def is_director(self):
         """Check if a registration is a director."""
-        return self.projects.all().count() == 0 and self.course == Course.objects.sdm()
+        return (
+            self.projects.all().count() == 0
+            and self.course == Course.objects.sdm()
+        )
 
     def _match_partner_name_to_user(self, name):
         """

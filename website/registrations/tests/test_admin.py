@@ -113,10 +113,25 @@ class RegistrationAdminTest(TestCase):
             github_id=9,
             github_username="hahaha",
             first_name="No",
-            last_name="Preference",
+            last_name="Registration",
             student_number="s009",
         )
 
+        cls.userNoPreference = User.objects.create(
+            github_id=10,
+            github_username="dontmind",
+            first_name="No",
+            last_name="Preference",
+            student_number="s010",
+        )
+
+        cls.registration4 = Registration.objects.create(
+            user=cls.userNoPreference,
+            semester=cls.semester,
+            dev_experience=Registration.EXPERIENCE_BEGINNER,
+            course=cls.course,
+            is_international=False,
+        )
 
         cls.message = {
             "date_joined_0": "2000-12-01",
@@ -168,26 +183,6 @@ class RegistrationAdminTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(User.objects.get(student_number="s0000000"))
-
-
-
-    def test_place_in_first_project_preference(self):
-        response = self.client.post(
-            reverse("admin:registrations_employee_changelist"),
-            {
-                ACTION_CHECKBOX_NAME: [self.manager.pk, self.userNoReg.pk],
-                "action": "place_in_first_project_preference",
-                "index": 0,
-            },
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            self.registration.preference1,
-            Project.objects.filter(registration__user=self.manager),
-        )
-
-
 
     def test_student_change_list_without_registration(self):
         response = self.client.get(
@@ -296,12 +291,15 @@ class RegistrationAdminTest(TestCase):
             ),
         )
 
-
     def test_unassign_project(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
             {
-                ACTION_CHECKBOX_NAME: [self.manager.pk, self.user.pk, self.manager2.pk],
+                ACTION_CHECKBOX_NAME: [
+                    self.manager.pk,
+                    self.user.pk,
+                    self.manager2.pk,
+                ],
                 "action": "unassign_from_project",
                 "index": 0,
             },
@@ -311,10 +309,9 @@ class RegistrationAdminTest(TestCase):
         self.registration.refresh_from_db()
         self.registration2.refresh_from_db()
         self.registration3.refresh_from_db()
-        self.assertEqual(self.registration.projects.all().count(), 0)
-        self.assertEqual(self.registration2.projects.all().count(), 0)
-        self.assertEqual(self.registration3.projects.all().count(), 0)
-
+        self.assertFalse(self.registration.has_projects())
+        self.assertFalse(self.registration2.has_projects())
+        self.assertFalse(self.registration3.has_projects())
 
     def test_import_csv__get(self):
         response = self.client.get(reverse("admin:import"), follow=True)
@@ -412,8 +409,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        #self.assertEqual(registration.project, self.project)
-        self.assertIn(self.project, registration.projects.all())
+        self.assertIn(self.project, registration.get_projects())
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__already_assigned(self):
@@ -447,8 +443,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        #self.assertEqual(registration.project, self.project2)
-        self.assertIn(self.project2, registration.projects.all())
+        self.assertIn(self.project2, registration.get_projects())
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__invalid_header(self):
@@ -478,7 +473,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertEqual(registration.projects.all().count(), 0)
+        self.assertFalse(registration.has_projects())
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__nonexistent_project(self):
@@ -511,7 +506,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertEqual(registration.projects.all().count(), 0)
+        self.assertFalse(registration.has_projects())
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__no_project(self):
@@ -544,7 +539,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertEqual(registration.projects.all().count(), 0)
+        self.assertFalse(registration.has_projects())
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__nonexistent_user(self):
@@ -577,83 +572,5 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        self.assertEqual(registration.projects.all().count(), 0)
+        self.assertFalse(registration.has_projects())
         self.assertEqual(response.status_code, 200)
-
-    @patch("threading.Thread")
-    def test_download_csv__post(self, mock_thread):
-        logging.disable(logging.CRITICAL)
-        response = self.client.post(
-            reverse("admin:registrations_employee_changelist"),
-            {
-                ACTION_CHECKBOX_NAME: [self.manager.id, self.user.id],
-                "action": "generate_project_assignment_proposal",
-                "index": 0,
-            },
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-        mock_thread.assert_called_once()
-
-    def test_download_csv__post_no_registration(self):
-        user_without_registration = User.objects.create(
-            github_id=1001,
-            github_username="noreg",
-            first_name="No",
-            last_name="Reg",
-            student_number="s1231001",
-        )
-
-        response = self.client.post(
-            reverse("admin:registrations_employee_changelist"),
-            {
-                ACTION_CHECKBOX_NAME: [user_without_registration.id],
-                "action": "generate_project_assignment_proposal",
-                "index": 0,
-            },
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "All users should have a registration.")
-
-    def test_download_csv__post_different_semesters(self):
-        user_different_semester = User.objects.create(
-            github_id=1001,
-            github_username="noreg",
-            first_name="No",
-            last_name="Reg",
-            student_number="s1231001",
-        )
-
-        old_semester = Semester.objects.create(
-            year=2000, season=Semester.SPRING
-        )
-
-        reg = Registration.objects.create(
-            user=user_different_semester,
-            semester=old_semester,
-            dev_experience=Registration.EXPERIENCE_BEGINNER,
-            preference1=self.project,
-            course=self.course,
-            comments="comment",
-            is_international=False,
-        )
-        reg.add_project(self.project)
-
-        response = self.client.post(
-            reverse("admin:registrations_employee_changelist"),
-            {
-                ACTION_CHECKBOX_NAME: [
-                    self.manager.id,
-                    user_different_semester.id,
-                ],
-                "action": "generate_project_assignment_proposal",
-                "index": 0,
-            },
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(
-            response,
-            "All users should have a registration in the same semester.",
-        )

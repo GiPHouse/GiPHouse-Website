@@ -182,7 +182,7 @@ class GitHubSyncTest(TestCase):
             preference1=cls.project1,
             semester=cls.semester,
         )
-        reg.projects.add(cls.project1)
+        reg.add_project(cls.project1)
         cls.exception = GithubException(
             status=MagicMock(status=404), data="abc", headers={}
         )
