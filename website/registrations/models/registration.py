@@ -115,7 +115,10 @@ class Registration(models.Model):
     @property
     def is_director(self):
         """Check if a registration is a director."""
-        return self.projects.all().count() == 0 and self.course == Course.objects.sdm()
+        return (
+            self.projects.all().count() == 0
+            and self.course == Course.objects.sdm()
+        )
 
     def _match_partner_name_to_user(self, name):
         """
