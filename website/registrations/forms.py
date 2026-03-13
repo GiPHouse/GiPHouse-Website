@@ -236,7 +236,6 @@ class Step2FormNew(forms.Form):
     course = forms.ModelChoiceField(queryset=Course.objects.all(), empty_label=None)
     email = forms.EmailField()
     github_username = forms.CharField(disabled=True)
-    github_id = forms.IntegerField(disabled=True)
     student_number = forms.CharField()
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
@@ -256,7 +255,6 @@ class Step2FormNew(forms.Form):
         if github_id is None or github_username is None:
             raise ValueError("GitHub session info is incomplete")
         
-        self.fields["github_id"].initial = github_id
         self.fields["github_username"].initial = github_username
 
         self.github_id = github_id
@@ -275,6 +273,12 @@ class Step2FormNew(forms.Form):
                 self.fields[field_name] = forms.CharField(
                     label=q.question,
                     required=not q.optional)
+                
+            elif q.question_type == questions.Question.BIGTEXT:
+                self.fields[field_name] = forms.CharField(
+                    label=q.question,
+                    required=not q.optional,
+                    widget=forms.Textarea)
 
             elif q.question_type == questions.Question.CHOICE:
                 choices=questions.QuestionChoice.objects.filter(

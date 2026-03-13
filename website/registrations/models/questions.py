@@ -50,9 +50,11 @@ class Question(models.Model):
     TEXT = "text"
     CHOICE = "choice"
     MULTI = "multi"
+    BIGTEXT = "bigtext"
 
     QUESTION_TYPES = [
         (TEXT, "Text"),
+        (BIGTEXT, "Big text"),
         (CHOICE, "Single choice"),
         (MULTI, "Multiple choice"),
     ]
@@ -85,7 +87,7 @@ class Answer(models.Model):
         """Return the correct answer data object depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT:
+        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
             try:
                 return self.textdata
             except TextData.DoesNotExist:
@@ -108,7 +110,7 @@ class Answer(models.Model):
         """Set the correct answer value depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT:
+        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
             try:
                 self.textdata.value = value
             except TextData.DoesNotExist:
@@ -136,7 +138,7 @@ class Answer(models.Model):
         """Return the human-readable answer depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT:
+        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
             return getattr(self.textdata, "value", "")
 
         elif qtype == Question.CHOICE:
