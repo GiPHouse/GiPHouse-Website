@@ -163,9 +163,7 @@ class Step2View(FormView):
             user.student_number = form.cleaned_data["student_number"]
             user.save()
 
-            registration = (
-                questions.Registration.objects.current_registration()
-            )
+            registration = questions.Registrations.objects.current_registration()
 
             if not registration:
                 form.add_error(

@@ -88,7 +88,7 @@ class QuestionInline(NestedTabularInline):
         js = ("js/question_type_toggle.js",)
 
 
-@admin.register(Registration)
+@admin.register(Registrations)
 class RegistrationsAdmin(NestedModelAdmin):
     list_display = ("title", "semester")
     inlines = [QuestionInline]
