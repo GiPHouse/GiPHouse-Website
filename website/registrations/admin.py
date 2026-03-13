@@ -134,7 +134,7 @@ class QuestionAdmin(NestedModelAdmin):
     list_display = ("question", "registration", "question_type", "optional")
     inlines = [QuestionChoiceInline]
 
-class AnswerInline(admin.TabularInline):
+class AnswerInline(NestedTabularInline):
     model = Answer
     extra = 0
     readonly_fields = ("question_text", "answer_value")
@@ -206,17 +206,23 @@ class UserAdminProjectFilter(AutocompleteFilter):
             return queryset.filter(registration__projects=self.value())
         return queryset
 
-
-class RegistrationInline(admin.StackedInline):
+class RegistrationInline(NestedTabularInline):
     """Inline form for Registration."""
 
-    model = Registration
+    model = Registrations
     extra = 0
-    filter_horizontal = ("projects",)
+
+
+class RegistrationSubmissionInline(NestedTabularInline):
+    """Inline form for Registration."""
+
+    model = RegistrationSubmission
+    extra = 0
+    inlines = [AnswerInline]
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(NestedModelAdmin):
     """Custom admin for Student."""
 
     actions = (
@@ -255,7 +261,7 @@ class UserAdmin(admin.ModelAdmin):
         ("Private comments", {"fields": ("comments",)}),
     )
 
-    inlines = [RegistrationInline]
+    inlines = [RegistrationSubmissionInline]
     list_display = (
         "__str__",
         "get_current_project",

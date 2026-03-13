@@ -122,10 +122,8 @@ class Step2View(FormView):
                     submission=submission, question=question
                 )
 
-                if question.question_type == questions.Question.TEXT:
-                    questions.TextData.objects.create(
-                        answer=answer_obj, value=value
-                    )
+                if question.question_type == questions.Question.TEXT or question.question_type == questions.Question.BIGTEXT:
+                    questions.TextData.objects.create(answer=answer_obj, value=value)
 
                 elif question.question_type == questions.Question.CHOICE:
                     choice_obj = questions.QuestionChoice.objects.get(
