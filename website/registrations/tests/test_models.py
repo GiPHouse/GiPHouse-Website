@@ -206,14 +206,14 @@ class ModelsTest(TestCase):
             self.test_registration.partner_preference3_user, self.test_user
         )
 
-    def test_has_project__no_projects(self):
+    def test_has_projects__no_projects(self):
         self.assertFalse(self.test_registration.has_projects())
 
-    def test_has_project__one_project(self):
+    def test_has_projects__one_project(self):
         self.test_registration.add_project(self.test_project)
         self.assertTrue(self.test_registration.has_projects())
 
-    def test_has_project__multiple_projects(self):
+    def test_has_projects__multiple_projects(self):
         self.test_registration.add_project(self.test_project)
         self.test_registration.add_project(self.test_project2)
 

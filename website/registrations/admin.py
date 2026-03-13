@@ -19,7 +19,7 @@ from projects.models import Project
 from registrations.models import Employee, Registration
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    TeamAssignmentGenerator,
+    #TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
