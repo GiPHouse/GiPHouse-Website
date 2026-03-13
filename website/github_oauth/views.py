@@ -55,7 +55,7 @@ class BaseGithubView(View):
             redirect_path = request.GET["next"]
             resolve(redirect_path)
             return redirect_path
-        except (Resolver404, KeyError):
+        except Resolver404, KeyError:
             return default_url
 
 

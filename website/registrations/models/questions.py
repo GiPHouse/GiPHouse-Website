@@ -12,6 +12,7 @@ class RegistrationManager(models.Manager):
             semester=Semester.objects.get_or_create_current_semester()
         ).first()
 
+
 class Registration(models.Model):
     """A group of questions."""
 
@@ -59,12 +60,18 @@ class Question(models.Model):
     optional = models.BooleanField(default=False)
 
     min_choices = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Minimum number of choices for MULTI questions"
+        null=True,
+        blank=True,
+        help_text="Minimum number of choices for MULTI questions",
     )
     max_choices = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Maximum number of choices for MULTI questions"
+        null=True,
+        blank=True,
+        help_text="Maximum number of choices for MULTI questions",
     )
-    warnings = models.TextField(blank=True, null=True, help_text="Warnings to show if validation fails")
+    warnings = models.TextField(
+        blank=True, null=True, help_text="Warnings to show if validation fails"
+    )
 
     def __str__(self):
         return self.question
@@ -75,7 +82,7 @@ class Answer(models.Model):
     submission = models.ForeignKey(
         RegistrationSubmission, on_delete=models.CASCADE
     )
-    
+
     @property
     def answer(self):
         """Return the correct answer data object depending on question type."""
@@ -145,7 +152,6 @@ class Answer(models.Model):
                 return ""
 
         return ""
-    
 
     def __str__(self):
         return f"{self.submission.participant} answers #{self.question.id}"

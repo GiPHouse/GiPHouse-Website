@@ -13,8 +13,11 @@ student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
 
 User: Employee = get_user_model()
+
+
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
+
     first_name = forms.CharField()
     last_name = forms.CharField()
     github_username = forms.CharField(disabled=True)
@@ -36,7 +39,7 @@ class Step2Form(forms.Form):
 
         if github_id is None or github_username is None:
             raise ValueError("GitHub session info is incomplete")
-        
+
         self.fields["github_id"].initial = github_id
         self.fields["github_username"].initial = github_username
 
@@ -44,8 +47,10 @@ class Step2Form(forms.Form):
         self.github_username = github_username
         self.warnings = []
 
-        current_registration = questions.Registration.objects.current_registration()
-        
+        current_registration = (
+            questions.Registration.objects.current_registration()
+        )
+
         if not current_registration:
             raise ValueError("No registration found for the current semester")
 
@@ -54,31 +59,33 @@ class Step2Form(forms.Form):
 
             if q.question_type == questions.Question.TEXT:
                 self.fields[field_name] = forms.CharField(
-                    label=q.question,
-                    required=not q.optional)
+                    label=q.question, required=not q.optional
+                )
 
             elif q.question_type == questions.Question.CHOICE:
-                choices=questions.QuestionChoice.objects.filter(
-                        question=q
-                    ).values_list("id", "value")
+                choices = questions.QuestionChoice.objects.filter(
+                    question=q
+                ).values_list("id", "value")
                 self.fields[field_name] = forms.ChoiceField(
                     label=q.question,
                     choices=choices,
                     required=not q.optional,
-                    widget=forms.RadioSelect)
-                
+                    widget=forms.RadioSelect,
+                )
+
             elif q.question_type == questions.Question.MULTI:
-                choices=questions.QuestionChoice.objects.filter(
-                        question=q
-                    ).values_list("id", "value")
+                choices = questions.QuestionChoice.objects.filter(
+                    question=q
+                ).values_list("id", "value")
                 self.fields[field_name] = forms.MultipleChoiceField(
                     label=q.question,
                     choices=choices,
                     required=not q.optional,
-                    widget=forms.CheckboxSelectMultiple)
+                    widget=forms.CheckboxSelectMultiple,
+                )
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
-    
+
     def clean_email(self):
         email = self.cleaned_data.get("email")
         github_id = self.cleaned_data.get("github_id")
@@ -89,10 +96,14 @@ class Step2Form(forms.Form):
                 .filter(email=email)
                 .exists()
             ):
-                raise ValidationError("Email address already in use.", code="exists")
+                raise ValidationError(
+                    "Email address already in use.", code="exists"
+                )
 
             if wrong_email_regex.match(email) is not None:
-                raise ValidationError("Non-existent email address.", code="invalid")
+                raise ValidationError(
+                    "Non-existent email address.", code="invalid"
+                )
 
         return email
 
@@ -111,8 +122,10 @@ class Step2Form(forms.Form):
             .filter(student_number=student_number)
             .exists()
         ):
-            raise ValidationError("Student Number already in use.", code="exists")
-        
+            raise ValidationError(
+                "Student Number already in use.", code="exists"
+            )
+
         return student_number
 
     def clean(self):
@@ -125,22 +138,33 @@ class Step2Form(forms.Form):
                 answer = cleaned_data.get(field_name)
 
                 if not question.optional and not answer:
-                    raise ValidationError(f"Question '{question.question}' is required.")
+                    raise ValidationError(
+                        f"Question '{question.question}' is required."
+                    )
 
-                if question.question_type == questions.Question.MULTI and answer:
+                if (
+                    question.question_type == questions.Question.MULTI
+                    and answer
+                ):
                     selected_count = len(answer)
 
-                    if question.min_choices is not None and selected_count < question.min_choices:
+                    if (
+                        question.min_choices is not None
+                        and selected_count < question.min_choices
+                    ):
                         self.warnings.append(
                             f"'{question.question}': At least {question.min_choices} choices are required (you selected {selected_count})."
                         )
 
-                    if question.max_choices is not None and selected_count > question.max_choices:
+                    if (
+                        question.max_choices is not None
+                        and selected_count > question.max_choices
+                    ):
                         self.warnings.append(
                             f"'{question.question}': No more than {question.max_choices} choices are allowed (you selected {selected_count})."
                         )
 
                     if question.warnings:
-                            self.warnings.append(question.warnings.strip())
-        
+                        self.warnings.append(question.warnings.strip())
+
         return cleaned_data
