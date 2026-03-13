@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django_easy_admin_object_actions",
     "tinymce",
     "django_bleach",
+    "nested_admin",
     "questionnaires.apps.QuestionnairesConfig",
     "github_oauth.apps.GithubConfig",
     "registrations.apps.RegistrationsConfig",
