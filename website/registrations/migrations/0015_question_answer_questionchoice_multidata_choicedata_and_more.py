@@ -6,87 +6,227 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('courses', '0004_auto_20220204_1357'),
-        ('registrations', '0014_registration_available_during_scheduled_timeslot_10_and_more'),
+        ("courses", "0004_auto_20220204_1357"),
+        (
+            "registrations",
+            "0014_registration_available_during_scheduled_timeslot_10_and_more",
+        ),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Question',
+            name="Question",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('question', models.CharField(max_length=255)),
-                ('question_type', models.CharField(choices=[('text', 'Text'), ('choice', 'Single choice'), ('multi', 'Multiple choice')], max_length=20)),
-                ('optional', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("question", models.CharField(max_length=255)),
+                (
+                    "question_type",
+                    models.CharField(
+                        choices=[
+                            ("text", "Text"),
+                            ("choice", "Single choice"),
+                            ("multi", "Multiple choice"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("optional", models.BooleanField(default=False)),
             ],
         ),
         migrations.CreateModel(
-            name='Answer',
+            name="Answer",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='registrations.question')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "question",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="registrations.question",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='QuestionChoice',
+            name="QuestionChoice",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.CharField(max_length=255)),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='choices', to='registrations.question')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("value", models.CharField(max_length=255)),
+                (
+                    "question",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="choices",
+                        to="registrations.question",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='MultiData',
+            name="MultiData",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('answer', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='registrations.answer')),
-                ('choices', models.ManyToManyField(to='registrations.questionchoice')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "answer",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="registrations.answer",
+                    ),
+                ),
+                (
+                    "choices",
+                    models.ManyToManyField(to="registrations.questionchoice"),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ChoiceData',
+            name="ChoiceData",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('answer', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='registrations.answer')),
-                ('choice', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='registrations.questionchoice')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "answer",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="registrations.answer",
+                    ),
+                ),
+                (
+                    "choice",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="registrations.questionchoice",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Registrations',
+            name="Registrations",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('semester', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='courses.semester')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                (
+                    "semester",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="courses.semester",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='question',
-            name='registration',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='registrations.registrations'),
+            model_name="question",
+            name="registration",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="registrations.registrations",
+            ),
         ),
         migrations.CreateModel(
-            name='RegistrationSubmission',
+            name="RegistrationSubmission",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('submitted', models.BooleanField(default=True)),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('participant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('registration', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='registrations.registrations')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("submitted", models.BooleanField(default=True)),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                (
+                    "participant",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "registration",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="registrations.registrations",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='answer',
-            name='submission',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='registrations.registrationsubmission'),
+            model_name="answer",
+            name="submission",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="registrations.registrationsubmission",
+            ),
         ),
         migrations.CreateModel(
-            name='TextData',
+            name="TextData",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.TextField(blank=True, null=True)),
-                ('answer', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='registrations.answer')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("value", models.TextField(blank=True, null=True)),
+                (
+                    "answer",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="registrations.answer",
+                    ),
+                ),
             ],
         ),
     ]

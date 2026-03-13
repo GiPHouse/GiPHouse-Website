@@ -326,12 +326,12 @@ class TeamAssignmentTest(TestCase):
                 "registrations.team_assignment.TeamAssignmentGenerator._mixed_programming_experience_objective",
                 return_value=0,
             ) as _:
-                with patch(
-                    "ortools.sat.python.cp_model.CpModel.Add"
+                assignment_generator = TeamAssignmentGenerator(
+                    Registration.objects.all()
+                )
+                with patch.object(
+                    assignment_generator.model, "Add"
                 ) as mock_add:
-                    assignment_generator = TeamAssignmentGenerator(
-                        Registration.objects.all()
-                    )
                     assignment_generator._1_not_international_per_project_constraint()
                     self.assertIsNotNone(
                         assignment_generator.generate_team_assignment()
@@ -344,10 +344,10 @@ class TeamAssignmentTest(TestCase):
         with patch(
             "registrations.team_assignment.TeamAssignmentGenerator._add_constraints"
         ) as _:
-            with patch("ortools.sat.python.cp_model.CpModel.Add") as mock_add:
-                assignment_generator = TeamAssignmentGenerator(
-                    Registration.objects.all()
-                )
+            assignment_generator = TeamAssignmentGenerator(
+                Registration.objects.all()
+            )
+            with patch.object(assignment_generator.model, "Add") as mock_add:
                 assignment_generator._1_not_international_per_project_constraint()
                 self.assertIsNotNone(
                     assignment_generator.generate_team_assignment()

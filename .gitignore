@@ -3,6 +3,7 @@ __pycache__/
 .idea/
 .vscode/
 *.css
+!/website/room_reservation/static/scss/fullcalendar/main.min.css
 *.map
 db.sqlite3
 .envrc

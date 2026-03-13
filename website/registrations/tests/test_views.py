@@ -143,8 +143,9 @@ class Step2Test(TestCase):
         cls.available_during_scheduled_timeslot_1 = True
         cls.available_during_scheduled_timeslot_2 = True
         cls.available_during_scheduled_timeslot_3 = True
+        cls.available_during_scheduled_timeslot_10 = True
 
-        cls.is_international = False
+        cls.international = False
 
         cls.se = Course.objects.se()
 
@@ -195,7 +196,7 @@ class Step2Test(TestCase):
                 "git_experience": self.dev_experience,
                 "scrum_experience": self.dev_experience,
                 "management_interest": False,
-                "is_international": self.is_international,
+                "international": self.international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -205,6 +206,7 @@ class Step2Test(TestCase):
                 "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
                 "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
                 "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
+                "available_during_scheduled_timeslot_10": self.available_during_scheduled_timeslot_10,
             },
             follow=True,
         )
@@ -224,7 +226,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "dev_experience": self.dev_experience,
-                "is_international": self.is_international,
+                "international": self.international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -251,7 +253,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "dev_experience": self.dev_experience,
-                "is_international": self.is_international,
+                "international": self.international,
                 "project1": self.project_preference1.id,
                 "project2": str(self.project_preference1.id),
             },
@@ -286,7 +288,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "dev_experience": self.dev_experience,
-                "is_international": self.is_international,
+                "international": self.international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -322,6 +324,7 @@ class Step2Test(TestCase):
             available_during_scheduled_timeslot_1=self.available_during_scheduled_timeslot_1,
             available_during_scheduled_timeslot_2=self.available_during_scheduled_timeslot_2,
             available_during_scheduled_timeslot_3=self.available_during_scheduled_timeslot_3,
+            available_during_scheduled_timeslot_10=self.available_during_scheduled_timeslot_10,
         )
 
         response = self.client.post(
@@ -338,7 +341,7 @@ class Step2Test(TestCase):
                 "git_experience": self.dev_experience,
                 "scrum_experience": self.dev_experience,
                 "management_interest": False,
-                "is_international": self.is_international,
+                "international": self.international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -385,7 +388,7 @@ class Step2Test(TestCase):
                 "github_id": self.github_id + 1,
                 "github_username": self.github_username,
                 "dev_experience": self.dev_experience,
-                "is_international": self.is_international,
+                "international": self.international,
                 "course": self.se.id,
                 "email": self.email,
                 "project1": self.project_preference1.id,
@@ -436,7 +439,7 @@ class Step2Test(TestCase):
                 "git_experience": self.dev_experience,
                 "scrum_experience": self.dev_experience,
                 "management_interest": False,
-                "is_international": self.is_international,
+                "international": self.international,
                 "course": self.se.id,
                 "email": self.email,
                 "project1": self.project_preference1.id,
@@ -471,7 +474,7 @@ class Step2Test(TestCase):
                 "git_experience": self.dev_experience,
                 "scrum_experience": self.dev_experience,
                 "management_interest": False,
-                "is_international": self.is_international,
+                "international": self.international,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -481,11 +484,46 @@ class Step2Test(TestCase):
                 "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
                 "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
                 "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
+                "available_during_scheduled_timeslot_10": self.available_during_scheduled_timeslot_10,
             },
             follow=True,
         )
         self.assertRedirects(response, "/")
         self.assertContains(response, "Registration created successfully")
+
+    def test_post_step2_with_warning_no_ignore(self):
+        response = self.client.post(
+            "/register/step2",
+            {
+                "first_name": self.first_name,
+                "last_name": self.last_name,
+                "student_number": self.student_number,
+                "github_id": self.github_id,
+                "github_username": self.github_username,
+                "semester": self.semester.id,
+                "course": self.se.id,
+                "email": self.email,
+                "dev_experience": self.dev_experience,
+                "git_experience": self.dev_experience,
+                "scrum_experience": self.dev_experience,
+                "management_interest": False,
+                "international": self.international,
+                "project1": self.project_preference1.id,
+                "project2": self.project_preference2.id,
+                "project3": self.project_preference3.id,
+                "partner1": self.project_partner_preference1,
+                "partner2": self.project_partner_preference2,
+                "partner3": self.project_partner_preference3,
+                "available_during_scheduled_timeslot_1": True,
+                "available_during_scheduled_timeslot_2": True,
+                "available_during_scheduled_timeslot_3": True,
+            },
+            follow=True,
+        )
+        self.assertContains(
+            response,
+            "You are only available for less than 4 scheduled timeslots",
+        )
 
     def test_post_step2_wrong_email(self):
         response = self.client.post(
