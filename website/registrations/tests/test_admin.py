@@ -117,7 +117,6 @@ class RegistrationAdminTest(TestCase):
             student_number="s009",
         )
 
-
         cls.message = {
             "date_joined_0": "2000-12-01",
             "date_joined_1": "12:00:00",
@@ -169,8 +168,6 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(User.objects.get(student_number="s0000000"))
 
-
-
     def test_place_in_first_project_preference(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
@@ -186,8 +183,6 @@ class RegistrationAdminTest(TestCase):
             self.registration.preference1,
             Project.objects.filter(registration__user=self.manager),
         )
-
-
 
     def test_student_change_list_without_registration(self):
         response = self.client.get(
@@ -296,12 +291,15 @@ class RegistrationAdminTest(TestCase):
             ),
         )
 
-
     def test_unassign_project(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
             {
-                ACTION_CHECKBOX_NAME: [self.manager.pk, self.user.pk, self.manager2.pk],
+                ACTION_CHECKBOX_NAME: [
+                    self.manager.pk,
+                    self.user.pk,
+                    self.manager2.pk,
+                ],
                 "action": "unassign_from_project",
                 "index": 0,
             },
@@ -314,7 +312,6 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(self.registration.projects.all().count(), 0)
         self.assertEqual(self.registration2.projects.all().count(), 0)
         self.assertEqual(self.registration3.projects.all().count(), 0)
-
 
     def test_import_csv__get(self):
         response = self.client.get(reverse("admin:import"), follow=True)
@@ -412,7 +409,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        #self.assertEqual(registration.project, self.project)
+        # self.assertEqual(registration.project, self.project)
         self.assertIn(self.project, registration.projects.all())
         self.assertEqual(response.status_code, 200)
 
@@ -447,7 +444,7 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         registration.refresh_from_db()
-        #self.assertEqual(registration.project, self.project2)
+        # self.assertEqual(registration.project, self.project2)
         self.assertIn(self.project2, registration.projects.all())
         self.assertEqual(response.status_code, 200)
 
