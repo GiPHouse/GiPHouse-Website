@@ -78,7 +78,7 @@ class EmployeeQueryTest(TestCase):
             preference1=project,
             semester=cls.semester,
         )
-        reg.projects.add(project)
+        reg.add_project(project)
 
     def test_generate_team_description(self):
         """Tests a correct team description for a project."""
