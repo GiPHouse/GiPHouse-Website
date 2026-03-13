@@ -12,11 +12,7 @@ class RegistrationManager(models.Manager):
             semester=Semester.objects.get_or_create_current_semester()
         ).first()
 
-
-"Change name to Registration after removing registration.py and its dependencies."
-
-
-class Registrations(models.Model):
+class Registration(models.Model):
     """A group of questions."""
 
     title = models.CharField(max_length=200)
@@ -32,7 +28,7 @@ class Registrations(models.Model):
 class RegistrationSubmission(models.Model):
     """Submission of a Registration by a user."""
 
-    registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
+    registration = models.ForeignKey(Registration, on_delete=models.CASCADE)
     participant = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
     submitted = models.BooleanField(default=True)
@@ -57,7 +53,7 @@ class Question(models.Model):
         (MULTI, "Multiple choice"),
     ]
 
-    registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
+    registration = models.ForeignKey(Registration, on_delete=models.CASCADE)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     optional = models.BooleanField(default=False)
