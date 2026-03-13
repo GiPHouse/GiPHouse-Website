@@ -1,8 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
     function validateRow(questionTbody) {
         const questionType = questionTbody.querySelector("select[name$='-question_type']")?.value;
+        const choicesPanel = questionTbody.querySelector("tr.djn-tr:not(.form-row)");
 
         const isMulti = questionType === "multi";
+        const isChoice = questionType === "choice";
+
         [
             questionTbody.querySelector("td.field-min_choices"),
             questionTbody.querySelector("td.field-max_choices"),
@@ -10,6 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
         ].forEach(td => {
             if (td) td.style.visibility = isMulti ? "visible" : "hidden";
         });
+
+        if (choicesPanel) {
+            choicesPanel.style.display = (isMulti || isChoice) ? "" : "none";
+        }
     }
 
     function getQuestionTbody(el) {
