@@ -1,0 +1,41 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+    {% block extrahead %}
+        {{ block.super }}
+        <link rel="icon" type="image/x-icon" href="{% static 'img/favicon/favicon.ico' %}">
+        <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon/favicon-32x32.png' %}"/>
+        <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-touch-icon.png' %}">
+        <link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/favicon/android-chrome-512x512.png' %}">
+        <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/favicon/android-chrome-192x192.png' %}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon/favicon-32x32.png' %}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon/favicon-16x16.png' %}">
+        <meta name="msapplication-TileColor" content="#268AFF">
+        <meta name="theme-color" content="#268AFF">
+        <style>
+            :root {
+                --giphouse-base: #268AFF;
+                --giphouse-dark: #145ab9;
+                --giphouse-accent: #e5dc5d;
+                --accent: white;
+                --primary: var(--giphouse-base);
+                --secondary: var(--giphouse-accent);
+                --link-fg: var(--body-fg);
+                --link-hover-color: var(--giphouse-dark);
+                --link-selected-fg: var(--giphouse-accent);
+                --header-bg: var(--giphouse-base);
+                --header-color: white;
+                --default-button-bg: var(--giphouse-dark);
+                --default-button-hover-bg: var(--giphouse-base);
+                --button-hover-bg: var(--giphouse-dark);
+                --breadcrumbs-link-fg: var(--giphouse-accent);
+                --breadcrumbs-fg: white;
+                --breadcrumbs-bg: var(--giphouse-dark);
+            }
+            #user-tools a:focus, #user-tools a:hover {
+                color: var(--giphouse-dark);
+            }
+            .content a:not(table a) {
+                color: var(--giphouse-base);
+            }
+        </style>
+{% endblock %}

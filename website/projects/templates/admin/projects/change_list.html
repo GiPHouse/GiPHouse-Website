@@ -1,0 +1,9 @@
+{% extends "admin/fa-admin.html" %}
+{% load admin_urls %}
+
+{% block object-tools-items %}
+    <li>
+        <a href="{% url 'admin:synchronise_to_github' %}">Synchronize projects of the current semester to GitHub</a>
+    </li>
+    {{ block.super }}
+{% endblock %}

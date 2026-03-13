@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About - {{ block.super }}{% endblock %}
+{% block content %}
+    <h3>What is GiPHouse?</h3>
+    <p>GiPHouse is a virtual software company of the Radboud University Nijmegen, which has already been active for more than 25 years. GiPHouse is entirely run by students and is divided into two parts, which run independently from each other in the spring and fall semesters.</p>
+    <p>For students, working for GiPHouse is a perfect opportunity to get some real-life experience as a software developer, as a project manager or with creating a start-up. Besides developing the software, we also expect students to spend time on team meetings, meetings with their customers, writing documentation and other important project-related work. Collaboration in a professional context is therefore a key-aspect of the GiPHouse courses.</p>
+
+    <p>During every first half of the calendar year (spring semester), GiPHouse develops software for paying customers. These projects are completely developed by students, who get study credits for successfully participating in the courses that are linked to GiPHouse. Working on these projects is the main focus of the courses. Project teams usually consist of six to eight engineers (bachelor students) and one to three project managers (master students).</p>
+    <p>During the second half of the calendar year (fall semester), a master's course is given about beginning a start-up company. In this course, students are tasked with developing software around a central theme. This software will hopefully be the start of a real start-up, which could go on even after the course is finished.</p>
+
+    <ul class="nav nav-pills my-5 nav-justified" id="pills-tab" role="tablist">
+      <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="spring-semester-tab" data-bs-toggle="pill" data-bs-target="#pills-spring-semester" type="button" role="tab" aria-controls="pills-spring-semester" aria-selected="true"><h3>Spring semester</h3>(Software Engineering & System Development Management)</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="fall-semester-tab" data-bs-toggle="pill" data-bs-target="#pills-fall-semester" type="button" role="tab" aria-controls="pills-fall-semester" aria-selected="false"><h3>Fall semester</h3>(Software Development Entrepreneurship)</button>
+      </li>
+    </ul>
+    <div class="tab-content" id="pills-tabContent">
+      <div class="tab-pane fade show active" id="pills-spring-semester" role="tabpanel" aria-labelledby="spring-semester-tab" tabindex="0">
+          <div class="row">
+              <div class="col-12 col-lg-6">
+                  <h4>Software Engineering <a href="https://www.ru.nl/courseguides/science/vm/osirislinks/ibi/nwi-ibi001/" target="_blank"><span class="badge rounded-pill bg-primary mx-3">NWI-IBI001</span></a></h4>
+                  <p>The Software Engineering (SE) course is a course for bachelor students of the Computing Science programme. In this course, most students will get their real-life experience as a software developer, working for an actual customer. During the course, students work in teams of about 6 to 8 software engineers, and two or three project managers. Learning objectives are:</p>
+                  <ul>
+                      <li>agile software development</li>
+                      <li>Scrum methodology</li>
+                      <li>working together as a team in a professional context</li>
+                      <li>developing high-quality code, using design principles and software patterns</li>
+                      <li>systematic testing techniques</li>
+                  </ul>
+                  <p>The estimated workload for this course is 168 hours (6 ec). This includes lectures, project meetings, meetings with the customer, and working on the project itself.</p>
+              </div>
+              <div class="col-12 col-lg-6">
+                  <h4>System Development Management <a href="https://www.ru.nl/courseguides/science/vm/osirislinks/imc/nwi-imc021/" target="_blank"><span class="badge rounded-pill bg-primary mx-3">NWI-IMC021</span></a></h4>
+                  <p>The System Development Management (SDM) course is a course for master's students of the Information Sciences programme. In this course, students learn how to be a manager of a software development project team, working for an actual customer. Teams consist of two or three managers, leading about 6 to 8 software engineers. Learning objectives are:</p>
+                  <ul>
+                      <li>agile software development</li>
+                      <li>Scrum methodology</li>
+                      <li>pro-active communication with different stakeholders</li>
+                      <li>managing project risks</li>
+                      <li>showing leadership and guarding team synergy</li>
+                      <li>using modern project management tools</li>
+                  </ul>
+                  <p>The estimated workload for this course is 168 hours (6 ec). This includes lectures, project meetings, meetings with the customer, and working on the project itself.</p>
+              </div>
+          </div>
+          <div class="row">
+              <div class="col-12">
+                  <h3 class="mt-3">The project</h3>
+                  <p>After course registration, students receive project descriptions for all projects of the year. Those descriptions contain a small summary of the client, the idea of the project and possibly any specific skills that can be relevant for the project. Students can express their preferences for projects they want to work on, as well as team members they want to collaborate with. Based on these preferences, students are assigned to teams.</p>
+                  <p>At the first kick-off day of the course, students will meet their teams and have a first meeting with their client. Then a brief start-up period follows in which teams can get their background knowledge up to par and try to get a clearer overview of what the project is about. The students are usually free to choose their favourite programming language and platform, baring client wishes.</p>
+                  <p>After this, teams follow scrum methodology and work in sprints, where each sprint finishes with a working product. Besides software development, students also give intermediate presentations and write a project plan, sprint plans and reviews, et cetera.</p>
+                  <p>At the end of the semester, the customer has to judge the quality of the product and the team-customer collaboration. The final grade for the course is an average of the customer judgement and a judgement of the teachers that involves both the quality of the end-product, the intermediate documentation of the process and collaboration within the team.</p>
+                  <p>Teams are expected to work physically together on-campus for at least one daypart per week (preferably more), supplement with individual, hybrid or online work for the rest of the course's workload. It is not required to work during the hours scheduled by the university.</p>
+              </div>
+          </div>
+          <div class="row">
+              <h3 class="mt-3">GiPHouse structure</h3>
+              <p>Within GiPHouse we simulate an actual corporate experience. We will try to explain the structure of the organization below</p>
+              <div class="col-12 col-lg-6">
+                  <h5>Supervisory Board (teachers)</h5>
+                  <p>Although the teachers do not have a concrete function within the organization, they are crucial for the courses surrounding GiPHouse. The teachers are responsible for the course material and the grading of the students.</p>
+                  <h5>Executive Board (directors)</h5>
+                  <p>GiPHouse is run by a board of student assistants, also called <em>directors</em>. They are responsible for the smooth day-to-day running of the company and it's projects. There are different roles they fulfill. </p>
+                  <ul>
+                      <li><strong>CEO</strong>: responsible for coordination within the executive board.</li>
+                      <li><strong>Secretary</strong>: responsible for all communication and archiving.</li>
+                      <li><strong>Facilities</strong>: responsible for any practical matters, like managing building access, project room management or organizing small GiPHouse events.</li>
+                      <li><strong>IT</strong>: manages the GiPHouse's technical infrastructure.</li>
+                      <li><strong>Sales</strong>: does project acquisition and maintains contact with customers in the period the project is not actually running.</li>
+                      <li><strong>Human resources</strong>: team composition and interventions in case of issues.</li>
+                      <li><strong>Quality assurance</strong>: assesses, evaluates and reports progress of project teams. Team managers primarily report to their assigned QA director.</li>
+                  </ul>
+                  <h5>Managers (SDM students) </h5>
+                  <p>Every team has two or three managers. The managers are responsible for the documentation for the directors, ensuring the expectations of the clients are managed correctly and steering the agile development process.</p>
+                  <h5>Engineers (SE students) </h5>
+                  <p>Engineers are responsible for the actual code that is delivered at the end of the project. Aside from creating the features the client desires, they are also responsible for documentation and the testing of the code.</p>
+              </div>
+              <div class="col-12 col-lg-6">
+                  <img src="{% static "img/organogram.png" %}" alt="Organogram" class="img-fluid mt-4">
+                  <h4 class="mt-5">Issues</h4>
+                  <p>For employees, the general approach to take when a problem arises is to contact the person that is one layer within the organization above you. For engineers, this means you should initially always try to contact your manager first. If that does not work out, you can contact the executive board. If the problem is not solved by the executive board, you can contact the teachers.</p>
+              </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="pills-fall-semester" role="tabpanel" aria-labelledby="fall-semester-tab" tabindex="0">
+          <h4>Software Development Entrepreneurship <a href="https://www.ru.nl/courseguides/science/vm/osirislinks/nwi-imi004/" target="_blank"><span class="badge rounded-pill bg-primary mx-3">NWI-IMI004</span></a></h4>
+          <p>In the Software Development Entrepreneurship (SDE) course, students will be starting their own small business around a software product. Students work in small teams of about 3 to 5 students. Learning objectives are:</p>
+          <ul>
+              <li>doing market research and pursuing outreach</li>
+              <li>setting up a business model and creating a business plan</li>
+              <li>developing a realistic software product that is ready for market</li>
+          </ul>
+          The estimated workload for this course is 168 hours (6 ec).
+      </div>
+    </div>
+{% endblock %}

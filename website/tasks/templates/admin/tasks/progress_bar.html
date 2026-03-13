@@ -1,0 +1,49 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+{% block content %}
+    <progress id="bar" value="0" max="0"> 32% </progress>
+    <div id="status"></div>
+
+    <script src="{% static 'js/jquery-3.5.1.slim.min.js' %}"></script>
+    <script>
+        function format(completed, total) {
+            $("#status").html("Processed " + completed + " of " +  total + " objects");
+            if(completed !== "?") {
+                $("#bar").attr({
+                    "value": completed,
+                    "max": total
+                });
+            }
+        }
+        function redirect() {
+            window.location.replace("{% url "admin:result" task %}");
+        }
+
+        function update() {
+            let http = new XMLHttpRequest();
+            http.onreadystatechange = function() {
+                if (this.readyState === 4 && this.status === 200) {
+                    const {completed, total, hasData} = JSON.parse(this.responseText);
+                    if (!(completed == null || total == null)) {
+                        format(completed, total);
+                    }
+                    if (completed !== total || completed === null || total === null) {
+                        setTimeout(update, 1000);
+                    } else if (hasData) {
+                        window.location.replace("{% url "admin:download" task %}");
+                        setTimeout(redirect, 1000);
+                    } else {
+                        redirect()
+                    }
+                }
+            };
+            http.open("GET", "{% url "admin:progress" task %}", true);
+            http.send();
+        }
+        $(function(){
+            format("?", "?");
+            update();
+        });
+    </script>
+{% endblock %}
+
