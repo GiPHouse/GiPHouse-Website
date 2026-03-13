@@ -12,5 +12,5 @@ class SemesterProjects(component.Component):
         }
 
     class Media:
-        css = 'semester_projects/style.css'
-        js = 'semester_projects/script.js'
+        css = ["semester_projects/style.css"]
+        js = ["semester_projects/script.js"]

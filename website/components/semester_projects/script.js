@@ -1,3 +1,5 @@
+// accordion boilerplate from:
+// https://www.w3schools.com/howto/howto_js_accordion.asp#:~:text=Step%203
 (function () {
   var acc = document.getElementsByClassName("accordion");
   var i;
