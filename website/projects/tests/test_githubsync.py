@@ -182,7 +182,7 @@ class GitHubSyncTest(TestCase):
             preference1=cls.project1,
             semester=cls.semester,
         )
-        reg.projects.add(cls.project1)
+        reg.add_project(cls.project1)
         cls.exception = GithubException(
             status=MagicMock(status=404), data="abc", headers={}
         )
@@ -284,7 +284,7 @@ class GitHubSyncTest(TestCase):
 
     def test_sync_team_member__not_in_project(self):
         reg = Registration.objects.get(user=self.employee1)
-        reg.project = None
+        reg.first_project = None
         reg.save()
         return_value = self.sync.sync_team_member(
             self.employee1, self.project1
