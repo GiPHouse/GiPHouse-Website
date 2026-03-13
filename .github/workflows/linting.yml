@@ -8,10 +8,10 @@ jobs:
     steps:
 
     - name: "Checkout the repository"
-      uses: "actions/checkout@v4"
+      uses: "actions/checkout@v6"
 
     - name: "Setup Python"
-      uses: "actions/setup-python@v3"
+      uses: "actions/setup-python@v6"
       with:
         python-version: '3.14'
 
@@ -19,4 +19,4 @@ jobs:
       uses: astral-sh/setup-uv@v7
 
     - name: ruff-action
-      uses: astral-sh/ruff-action@v3.6.1
+      uses: astral-sh/ruff-action@v3
