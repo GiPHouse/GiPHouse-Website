@@ -291,15 +291,12 @@ class RegistrationAdminTest(TestCase):
             ),
         )
 
+
     def test_unassign_project(self):
         response = self.client.post(
             reverse("admin:registrations_employee_changelist"),
             {
-                ACTION_CHECKBOX_NAME: [
-                    self.manager.pk,
-                    self.user.pk,
-                    self.manager2.pk,
-                ],
+                ACTION_CHECKBOX_NAME: [self.manager.pk, self.user.pk, self.manager2.pk],
                 "action": "unassign_from_project",
                 "index": 0,
             },
