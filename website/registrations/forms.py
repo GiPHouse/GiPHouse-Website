@@ -33,6 +33,7 @@ class Step2Form(forms.Form):
         self.fields["project3"].queryset = Project.objects.filter(
             semester=Semester.objects.get_first_semester_with_open_registration()
         )
+        
         self.warnings = []
 
     ignore_warnings = forms.BooleanField(
@@ -294,8 +295,13 @@ class Step2FormNew(forms.Form):
                     choices=choices,
                     required=not q.optional,
                     widget=forms.CheckboxSelectMultiple)
+                
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
+
+        ignore_warnings_field = self.fields.pop("ignore_warnings", None)
+        if ignore_warnings_field is not None:
+            self.fields["ignore_warnings"] = ignore_warnings_field
     
     def clean_email(self):
         email = self.cleaned_data.get("email")
@@ -342,23 +348,26 @@ class Step2FormNew(forms.Form):
                 question = questions.Question.objects.get(pk=question_id)
                 answer = cleaned_data.get(field_name)
 
-                if not question.optional and not answer:
-                    raise ValidationError(f"Question '{question.question}' is required.")
-
                 if question.question_type == questions.Question.MULTI and answer:
                     selected_count = len(answer)
 
                     if question.min_choices is not None and selected_count < question.min_choices:
                         self.warnings.append(
-                            f"'{question.question}': At least {question.min_choices} choices are required (you selected {selected_count})."
+                            (
+                                field_name,
+                                f"At least {question.min_choices} choices are required (you selected {selected_count}).",
+                            )
                         )
 
                     if question.max_choices is not None and selected_count > question.max_choices:
                         self.warnings.append(
-                            f"'{question.question}': No more than {question.max_choices} choices are allowed (you selected {selected_count})."
+                            (
+                                field_name,
+                                f"No more than {question.max_choices} choices are allowed (you selected {selected_count}).",
+                            )
                         )
 
                     if question.warnings:
-                            self.warnings.append(question.warnings.strip())
+                            self.warnings.append((field_name, question.warnings.strip()))
         
         return cleaned_data
