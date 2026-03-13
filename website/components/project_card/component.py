@@ -7,5 +7,5 @@ class ProjectCard(component.Component):
 
     def get_context_data(self, project):
         return {
-            'project': project,
+            "project": project,
         }

@@ -7,8 +7,8 @@ class SemesterProjects(component.Component):
 
     def get_context_data(self, semester, projects):
         return {
-            'semester': semester,
-            'projects': projects,
+            "semester": semester,
+            "projects": projects,
         }
 
     class Media:
