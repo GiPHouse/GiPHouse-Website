@@ -100,8 +100,8 @@ class Registration(models.Model):
     def project(self):
         """Get the first project of a registration."""
         return self.projects.first()
-
-    # @property --> Should this be property or no?
+    
+    #@property --> Should this be property or no?
     def projects_user(self):
         """Get all the projects of a registration."""
         return self.projects.all()
@@ -118,10 +118,7 @@ class Registration(models.Model):
     @property
     def is_director(self):
         """Check if a registration is a director."""
-        return (
-            self.projects.all().count() == 0
-            and self.course == Course.objects.sdm()
-        )
+        return self.projects.all().count() == 0 and self.course == Course.objects.sdm()
 
     def _match_partner_name_to_user(self, name):
         """

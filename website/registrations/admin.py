@@ -136,13 +136,7 @@ class UserAdmin(admin.ModelAdmin):
     def get_current_project(self, obj):
         """Return current project."""
         registration = obj.registration_set.first()
-        return (
-            mark_safe(
-                "<br>".join(str(p) for p in registration.projects_user())
-            )
-            if registration
-            else None
-        )
+        return mark_safe("<br>".join(str(p) for p in registration.projects_user())) if registration else None
 
     get_current_project.short_description = "Project"
 
