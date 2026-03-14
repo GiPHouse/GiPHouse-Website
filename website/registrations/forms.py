@@ -20,6 +20,8 @@ class Step2Form(forms.Form):
 
     first_name = forms.CharField()
     last_name = forms.CharField()
+    email = forms.EmailField()
+    student_number = forms.CharField(label="Student Number")
     github_username = forms.CharField(disabled=True)
     github_id = forms.IntegerField(disabled=True)
     ignore_warnings = forms.BooleanField(
@@ -80,6 +82,16 @@ class Step2Form(forms.Form):
                     choices=choices,
                     required=not q.optional,
                     widget=forms.CheckboxSelectMultiple,
+                )
+            elif q.question_type == questions.Question.DROPDOWN:
+                choices = questions.QuestionChoice.objects.filter(
+                    question=q
+                ).values_list("id", "value")
+                self.fields[field_name] = forms.ChoiceField(
+                    label=q.question,
+                    choices=choices,
+                    required=not q.optional,
+                    widget=forms.Select,
                 )
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")

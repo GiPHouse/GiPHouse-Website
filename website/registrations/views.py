@@ -125,7 +125,7 @@ class Step2View(FormView):
                 if question.question_type == questions.Question.TEXT or question.question_type == questions.Question.BIGTEXT:
                     questions.TextData.objects.create(answer=answer_obj, value=value)
 
-                elif question.question_type == questions.Question.CHOICE:
+                elif question.question_type == questions.Question.CHOICE or question.question_type == questions.Question.DROPDOWN:
                     choice_obj = questions.QuestionChoice.objects.get(
                         id=int(value)
                     )
