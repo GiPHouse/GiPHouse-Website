@@ -127,7 +127,7 @@ class Step2View(FormView):
                         answer=answer_obj, value=value
                     )
 
-                elif question.question_type == questions.Question.CHOICE:
+                elif question.question_type == questions.Question.CHOICE or question.question_type == questions.Question.DROPDOWN:
                     choice_obj = questions.QuestionChoice.objects.get(
                         id=int(value)
                     )

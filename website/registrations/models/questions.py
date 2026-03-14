@@ -51,12 +51,14 @@ class Question(models.Model):
     CHOICE = "choice"
     MULTI = "multi"
     BIGTEXT = "bigtext"
+    DROPDOWN = "dropdown"
 
     QUESTION_TYPES = [
         (TEXT, "Text"),
         (BIGTEXT, "Big text"),
         (CHOICE, "Single choice"),
         (MULTI, "Multiple choice"),
+        (DROPDOWN, "Dropdown"),
     ]
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
@@ -99,7 +101,7 @@ class Answer(models.Model):
             except TextData.DoesNotExist:
                 return None
 
-        elif qtype == Question.CHOICE:
+        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
             try:
                 return self.choicedata
             except ChoiceData.DoesNotExist:
@@ -123,7 +125,7 @@ class Answer(models.Model):
                 self.textdata = TextData(answer=self, value=value)
             self.textdata.save()
 
-        elif qtype == Question.CHOICE:
+        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
             try:
                 self.choicedata.choice = value
             except ChoiceData.DoesNotExist:
@@ -147,7 +149,7 @@ class Answer(models.Model):
         if qtype == Question.TEXT:
             return getattr(self.textdata, "value", "")
 
-        elif qtype == Question.CHOICE:
+        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
             return getattr(self.choicedata.choice, "value", "")
 
         elif qtype == Question.MULTI:
