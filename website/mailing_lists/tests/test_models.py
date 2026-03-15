@@ -88,7 +88,7 @@ class ModelTest(TestCase):
             preference1=project,
             semester=semester,
         )
-        reg.project = project
+        reg.add_project(project)
 
         MailingListCourseSemesterLink.objects.create(
             mailing_list=self.existing_list, course=course, semester=semester
@@ -112,7 +112,7 @@ class ModelTest(TestCase):
             preference1=project,
             semester=semester,
         )
-        reg.project = project
+        reg.add_project(project)
 
         self.existing_list.projects.add(project)
         self.existing_list.save()
