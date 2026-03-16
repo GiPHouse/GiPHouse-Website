@@ -59,20 +59,22 @@ class QuestionAdmin(NestedModelAdmin):
     inlines = [QuestionChoiceInline]
 
 
-class UserAdminSemesterFilter(AutocompleteFilter):
+class UserAdminSemesterFilter(admin.SimpleListFilter):
     """Filter class to filter Semester objects."""
 
     title = "Semester"
-    field_name = "semester"
-    rel_model = Registration
+    parameter_name = "semester"
+
+    def lookups(self, request, model_admin):
+        semesters = Semester.objects.all()
+        return [(s.id, str(s)) for s in semesters]
 
     def queryset(self, request, queryset):
         """Filter semesters."""
         if self.value():
-            return queryset.filter(registration__semester=self.value())
+            return queryset.filter(registration__semester_id=self.value())
         else:
             return queryset
-
 
 class UserAdminProjectFilter(AutocompleteFilter):
     """Filter class to filter current Project objects."""
