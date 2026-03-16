@@ -27,7 +27,7 @@ from registrations.models import (
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    #TeamAssignmentGenerator,
+    # TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
@@ -66,15 +66,36 @@ class UserAdminSemesterFilter(admin.SimpleListFilter):
     parameter_name = "semester"
 
     def lookups(self, request, model_admin):
+        """ "Defines all the filter options including All"""
         semesters = Semester.objects.all()
-        return [(s.id, str(s)) for s in semesters]
+        id = 1
+        filter_options = [(0, "All ")]
+        for s in semesters:
+            filter_options.append((id, s))
+            id += 1
+        return filter_options
+
+    def choices(self, changelist):
+        """ "Hides the non functional All button"""
+        for choice in super().choices(changelist):
+            if choice["display"] == "All":
+                continue
+            yield choice
+
+    def value(self):
+        """Autoselects the newest semester"""
+        val = super().value()
+        if val is not None:
+            return val
+        return str(1) if Semester.objects.all().first() else None
 
     def queryset(self, request, queryset):
         """Filter semesters."""
-        if self.value():
-            return queryset.filter(registration__semester_id=self.value())
-        else:
+        if self.value() == "0":
             return queryset
+        else:
+            return queryset.filter(registration__semester_id=self.value())
+
 
 class UserAdminProjectFilter(AutocompleteFilter):
     """Filter class to filter current Project objects."""
