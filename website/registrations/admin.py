@@ -119,6 +119,24 @@ class RegistrationInline(admin.StackedInline):
     filter_horizontal = ("projects",)
 
 
+class CollapsedRelatedFieldFilter(admin.RelatedFieldListFilter):
+    """Class to collapse related field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedChoicesFieldFilter(admin.ChoicesFieldListFilter):
+    """Class to collapse choices field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedBooleanFieldFilter(admin.BooleanFieldListFilter):
+    """Class to collapse boolean field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     """Custom admin for Student."""
@@ -167,17 +185,29 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = (
         UserAdminSemesterFilter,
         UserAdminProjectFilter,
-        "registration__course",
-        "registration__dev_experience",
-        "registration__git_experience",
-        "registration__scrum_experience",
-        "registration__management_interest",
-        "is_staff",
-        "registration__is_international",
-        "registration__available_during_scheduled_timeslot_1",
-        "registration__available_during_scheduled_timeslot_2",
-        "registration__available_during_scheduled_timeslot_3",
-        "registration__has_problems_with_signing_an_nda",
+        ("registration__course", CollapsedRelatedFieldFilter),
+        ("registration__dev_experience", CollapsedChoicesFieldFilter),
+        ("registration__git_experience", CollapsedChoicesFieldFilter),
+        ("registration__scrum_experience", CollapsedChoicesFieldFilter),
+        ("registration__management_interest", CollapsedBooleanFieldFilter),
+        ("is_staff", CollapsedBooleanFieldFilter),
+        ("registration__is_international", CollapsedBooleanFieldFilter),
+        (
+            "registration__available_during_scheduled_timeslot_1",
+            CollapsedBooleanFieldFilter,
+        ),
+        (
+            "registration__available_during_scheduled_timeslot_2",
+            CollapsedBooleanFieldFilter,
+        ),
+        (
+            "registration__available_during_scheduled_timeslot_3",
+            CollapsedBooleanFieldFilter,
+        ),
+        (
+            "registration__has_problems_with_signing_an_nda",
+            CollapsedBooleanFieldFilter,
+        ),
     )
 
     # Necessary for the autocomplete filter
