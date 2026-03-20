@@ -196,9 +196,7 @@ class RegistrationAdminTest(TestCase):
     def test_get_user_changelist_semesterfilter(self):
         response = self.client.get(
             reverse("admin:registrations_employee_changelist"),
-            data={
-                UserAdminSemesterFilter.parameter_name: self.semester.id
-            },
+            data={UserAdminSemesterFilter.parameter_name: self.semester.id},
             follow=True,
         )
         self.assertEqual(response.status_code, 200)

@@ -76,7 +76,7 @@ class UserAdminSemesterFilter(admin.SimpleListFilter):
         return filter_options
 
     def choices(self, changelist):
-        """ "Hides the non functional All button"""
+        """Hides the non functional All button"""
         for choice in super().choices(changelist):
             if choice["display"] == "All":
                 continue
