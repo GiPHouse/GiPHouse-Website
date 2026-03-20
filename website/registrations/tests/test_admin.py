@@ -197,7 +197,7 @@ class RegistrationAdminTest(TestCase):
         response = self.client.get(
             reverse("admin:registrations_employee_changelist"),
             data={
-                f"{UserAdminSemesterFilter.field_name}__{UserAdminSemesterFilter.field_pk}__exact": self.semester.id
+                UserAdminSemesterFilter.parameter_name: self.semester.id
             },
             follow=True,
         )

@@ -66,7 +66,7 @@ class UserAdminSemesterFilter(admin.SimpleListFilter):
     parameter_name = "semester"
 
     def lookups(self, request, model_admin):
-        """ "Defines all the filter options including All"""
+        """Defines all the filter options including All"""
         semesters = Semester.objects.all()
         id = 1
         filter_options = [(0, "All ")]
