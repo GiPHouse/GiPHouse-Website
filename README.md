@@ -167,10 +167,10 @@ The website has multiple settings. By default, the development settings are used
 
 ### Getting Started
 Follow the following steps to setup your own personal development environment.
-1. Install Python 3.8+ and [poetry](https://poetry.eustace.io/).
+1. Install Python 3.10 and [poetry](https://poetry.eustace.io/).
 2. Clone this repository.
 3. Run `poetry install` to install all dependencies into virtual environment.
-4. Run `poetry shell` to enter the virtual environment.
+4. Run `poetry env activate`, and enter the virtual environment using the script path from the command.
 5. Run `python website/manage.py migrate` to initialize the database.
 6. Run `python website/manage.py runserver` to start the local testing server.
 7. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
