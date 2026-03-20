@@ -27,7 +27,7 @@ from registrations.models import (
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    #TeamAssignmentGenerator,
+    # TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
@@ -59,19 +59,42 @@ class QuestionAdmin(NestedModelAdmin):
     inlines = [QuestionChoiceInline]
 
 
-class UserAdminSemesterFilter(AutocompleteFilter):
+class UserAdminSemesterFilter(admin.SimpleListFilter):
     """Filter class to filter Semester objects."""
 
     title = "Semester"
-    field_name = "semester"
-    rel_model = Registration
+    parameter_name = "semester"
+
+    def lookups(self, request, model_admin):
+        """ "Defines all the filter options including All"""
+        semesters = Semester.objects.all()
+        id = 1
+        filter_options = [(0, "All ")]
+        for s in semesters:
+            filter_options.append((id, s))
+            id += 1
+        return filter_options
+
+    def choices(self, changelist):
+        """ "Hides the non functional All button"""
+        for choice in super().choices(changelist):
+            if choice["display"] == "All":
+                continue
+            yield choice
+
+    def value(self):
+        """Autoselects the newest semester"""
+        val = super().value()
+        if val is not None:
+            return val
+        return str(1) if Semester.objects.all().first() else None
 
     def queryset(self, request, queryset):
         """Filter semesters."""
-        if self.value():
-            return queryset.filter(registration__semester=self.value())
-        else:
+        if self.value() == "0":
             return queryset
+        else:
+            return queryset.filter(registration__semester_id=self.value())
 
 
 class UserAdminProjectFilter(AutocompleteFilter):
@@ -94,6 +117,24 @@ class RegistrationInline(admin.StackedInline):
     model = Registration
     extra = 0
     filter_horizontal = ("projects",)
+
+
+class CollapsedRelatedFieldFilter(admin.RelatedFieldListFilter):
+    """Class to collapse related field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedChoicesFieldFilter(admin.ChoicesFieldListFilter):
+    """Class to collapse choices field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedBooleanFieldFilter(admin.BooleanFieldListFilter):
+    """Class to collapse boolean field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
 
 
 @admin.register(User)
@@ -144,17 +185,29 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = (
         UserAdminSemesterFilter,
         UserAdminProjectFilter,
-        "registration__course",
-        "registration__dev_experience",
-        "registration__git_experience",
-        "registration__scrum_experience",
-        "registration__management_interest",
-        "is_staff",
-        "registration__is_international",
-        "registration__available_during_scheduled_timeslot_1",
-        "registration__available_during_scheduled_timeslot_2",
-        "registration__available_during_scheduled_timeslot_3",
-        "registration__has_problems_with_signing_an_nda",
+        ("registration__course", CollapsedRelatedFieldFilter),
+        ("registration__dev_experience", CollapsedChoicesFieldFilter),
+        ("registration__git_experience", CollapsedChoicesFieldFilter),
+        ("registration__scrum_experience", CollapsedChoicesFieldFilter),
+        ("registration__management_interest", CollapsedBooleanFieldFilter),
+        ("is_staff", CollapsedBooleanFieldFilter),
+        ("registration__is_international", CollapsedBooleanFieldFilter),
+        (
+            "registration__available_during_scheduled_timeslot_1",
+            CollapsedBooleanFieldFilter,
+        ),
+        (
+            "registration__available_during_scheduled_timeslot_2",
+            CollapsedBooleanFieldFilter,
+        ),
+        (
+            "registration__available_during_scheduled_timeslot_3",
+            CollapsedBooleanFieldFilter,
+        ),
+        (
+            "registration__has_problems_with_signing_an_nda",
+            CollapsedBooleanFieldFilter,
+        ),
     )
 
     # Necessary for the autocomplete filter
