@@ -111,40 +111,12 @@ class Answer(models.Model):
             except MultiData.DoesNotExist:
                 return None
 
-    @answer.setter
-    def answer(self, value):
-        """Set the correct answer value depending on question type."""
-        qtype = self.question.question_type
-
-        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
-            try:
-                self.textdata.value = value
-            except TextData.DoesNotExist:
-                self.textdata = TextData(answer=self, value=value)
-            self.textdata.save()
-
-        elif qtype == Question.CHOICE:
-            try:
-                self.choicedata.choice = value
-            except ChoiceData.DoesNotExist:
-                self.choicedata = ChoiceData(answer=self, choice=value)
-            self.choicedata.save()
-
-        else:
-            try:
-                data = self.multidata
-            except MultiData.DoesNotExist:
-                data = MultiData.objects.create(answer=self)
-
-            data.choices.set(value)
-            data.save()
-
     @property
     def answer_value(self):
         """Return the human-readable answer depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT:
+        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
             return getattr(self.textdata, "value", "")
 
         elif qtype == Question.CHOICE:
@@ -157,6 +129,46 @@ class Answer(models.Model):
                 return ""
 
         return ""
+
+    @classmethod
+    def save_from_cleaned_data(cls, submission, cleaned_data):
+        "Create Answer objects for all question_* fields."
+
+        for key, raw_value in cleaned_data.items():
+            if not key.startswith("question_"):
+                continue
+
+            question_id = int(key.split("_")[1])
+            question = Question.objects.get(pk=question_id)
+
+            answer = cls.objects.create(submission=submission, question=question)
+            answer.set_value(raw_value)
+
+    def set_value(self, raw_value):
+        """Store the answer depending on the question type."""
+        qtype = self.question.question_type
+
+        if qtype in (Question.TEXT, Question.BIGTEXT):
+            TextData.objects.update_or_create(
+                answer=self,
+                defaults={"value": raw_value}
+            )
+
+        elif qtype == Question.CHOICE:
+            choice = QuestionChoice.objects.get(pk=int(raw_value))
+            ChoiceData.objects.update_or_create(
+                answer=self,
+                defaults={"choice": choice}
+            )
+
+        elif qtype == Question.MULTI:
+            choice_ids = [int(v) for v in raw_value]
+            choices = self.question.choices.filter(pk__in=choice_ids)
+
+            multi, _ = MultiData.objects.get_or_create(answer=self)
+            multi.choices.set(choices)
+            multi.save()
+
 
     def __str__(self):
         return f"{self.submission.participant} answers #{self.question.id}"

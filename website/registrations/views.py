@@ -111,36 +111,6 @@ class Step2View(FormView):
 
         return initial
 
-    def save_answers(self, submission, cleaned_data):
-        """Save the answers to the database."""
-        for key, value in cleaned_data.items():
-            if key.startswith("question_"):
-                question_id = int(key.split("_")[1])
-                question = questions.Question.objects.get(pk=question_id)
-
-                answer_obj = questions.Answer.objects.create(
-                    submission=submission, question=question
-                )
-
-                if question.question_type == questions.Question.TEXT or question.question_type == questions.Question.BIGTEXT:
-                    questions.TextData.objects.create(answer=answer_obj, value=value)
-
-                elif question.question_type == questions.Question.CHOICE:
-                    choice_obj = questions.QuestionChoice.objects.get(
-                        id=int(value)
-                    )
-                    questions.ChoiceData.objects.create(
-                        answer=answer_obj, choice=choice_obj
-                    )
-
-                elif question.question_type == questions.Question.MULTI:
-                    choice_ids = [int(v) for v in value]
-                    choice_objs = question.choices.filter(pk__in=choice_ids)
-                    multi = questions.MultiData.objects.create(
-                        answer=answer_obj
-                    )
-                    multi.choices.set(choice_objs)
-
     def form_valid(self, form):
         """Check for warnings before registering."""
         if form.warnings and not form.cleaned_data.get("ignore_warnings"):
@@ -173,7 +143,7 @@ class Step2View(FormView):
                 registration=registration, participant=user
             )
             # TO DO: Validate dynamic parts of the form and save the answers to the database
-            self.save_answers(submission, form.cleaned_data)
+            questions.Answer.save_from_cleaned_data(submission, form.cleaned_data)
 
         # Clean up session
         for key in [
