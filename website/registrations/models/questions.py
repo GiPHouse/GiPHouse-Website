@@ -51,12 +51,14 @@ class Question(models.Model):
     CHOICE = "choice"
     MULTI = "multi"
     BIGTEXT = "bigtext"
+    DROPDOWN = "dropdown"
 
     QUESTION_TYPES = [
         (TEXT, "Text"),
         (BIGTEXT, "Big text"),
         (CHOICE, "Single choice"),
         (MULTI, "Multiple choice"),
+        (DROPDOWN, "Dropdown"),
     ]
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
@@ -99,7 +101,7 @@ class Answer(models.Model):
             except TextData.DoesNotExist:
                 return None
 
-        elif qtype == Question.CHOICE:
+        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
             try:
                 return self.choicedata
             except ChoiceData.DoesNotExist:
@@ -111,6 +113,34 @@ class Answer(models.Model):
             except MultiData.DoesNotExist:
                 return None
 
+    @answer.setter
+    def answer(self, value):
+        """Set the correct answer value depending on question type."""
+        qtype = self.question.question_type
+
+        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
+            try:
+                self.textdata.value = value
+            except TextData.DoesNotExist:
+                self.textdata = TextData(answer=self, value=value)
+            self.textdata.save()
+
+        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
+            try:
+                self.choicedata.choice = value
+            except ChoiceData.DoesNotExist:
+                self.choicedata = ChoiceData(answer=self, choice=value)
+            self.choicedata.save()
+
+        else:
+            try:
+                data = self.multidata
+            except MultiData.DoesNotExist:
+                data = MultiData.objects.create(answer=self)
+
+            data.choices.set(value)
+            data.save()
+
     @property
     def answer_value(self):
         """Return the human-readable answer depending on question type."""
@@ -119,7 +149,7 @@ class Answer(models.Model):
         if qtype == Question.TEXT or qtype == Question.BIGTEXT:
             return getattr(self.textdata, "value", "")
 
-        elif qtype == Question.CHOICE:
+        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
             return getattr(self.choicedata.choice, "value", "")
 
         elif qtype == Question.MULTI:
