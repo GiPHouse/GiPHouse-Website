@@ -61,13 +61,35 @@ class QuestionAdminForm(forms.ModelForm):
 
         return cleaned_data
 
+class FollowUpQuestionChoiceInline(NestedTabularInline):
+    model = QuestionChoice
+    extra = 1
+    fk_name = "question"
+    inlines = []
+
+class FollowUpQuestionInline(NestedTabularInline):
+    model = Question
+    fk_name = "parent_choice"
+    extra = 1
+    exclude = ("parent_choice", "registration")
+    inlines = [FollowUpQuestionChoiceInline]
+
+    def save_new(self, form, commit=True):
+        instance = super().save_new(form, commit=False)
+        instance.registration = form.cleaned_data["registration"]
+        if commit:
+            instance.save()
+        return instance
+
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 0
-
+    fk_name = "question"
+    inlines = [FollowUpQuestionInline]
 
 class QuestionInline(NestedTabularInline):
     model = Question
+    fk_name = "registration"
     form = QuestionAdminForm
     extra = 0
     inlines = [QuestionChoiceInline]
