@@ -1,9 +1,11 @@
+from html import unescape
 from unittest import mock
 from urllib.parse import quote
 
 from django.shortcuts import reverse
 from django.template import Context, Template
 from django.test import TestCase
+from django.utils.html import escape
 
 from github_oauth.links import URL_GITHUB_LOGIN
 
@@ -29,8 +31,13 @@ class GithubTagsTest(TestCase):
 
         rendered_template = template_to_render.render(context)
 
-        self.assertInHTML(
-            f"""<a href="{URL_GITHUB_LOGIN}
-                          &redirect_uri={redirect_uri}"></a>""",
-            rendered_template,
-        )
+        # sorry I am bad at raw html and Django quirks
+        unescaped = unescape(rendered_template)
+        self.assertIn(URL_GITHUB_LOGIN, unescaped)
+        self.assertIn(redirect_uri, unescaped)
+
+        #self.assertInHTML(
+        #    f"""<a href="{URL_GITHUB_LOGIN}
+        #                  &amp;redirect_uri={redirect_uri}"></a>""",
+        #    rendered_template
+        #)

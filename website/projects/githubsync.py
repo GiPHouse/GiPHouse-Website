@@ -95,8 +95,8 @@ class GitHubAPITalker:
         :except: GithubException when requesting a new access token fails
         """
         if self._access_token is None or (
-            self._access_token.expires_at.now(timezone.utc)
-            < datetime.now(timezone.utc) + timedelta(seconds=60)
+            self._access_token.expires_at.replace(tzinfo=timezone.utc)
+            - datetime.now(timezone.utc) < timedelta(seconds=60)
         ):
             self._access_token = self._gi.get_access_token(
                 self.installation_id

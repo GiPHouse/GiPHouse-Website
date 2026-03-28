@@ -146,28 +146,33 @@ class GetProjectsTest(TestCase):
         self.assertIsNotNone(Project.objects.get(name="Test project"))
 
     def test_create_mail_is_valid(self):
-        p1 = Project(
+        p1 = Project.objects.create(
             name="p1",
-            semester=Semester(year=2020, season="Spring"),
+            semester=self.semester,
             description="test1",
         )
-        p2 = Project(
+
+        sem2 = Semester.objects.create(
+            year=2030,
+            season=Semester.SPRING
+        )
+        p2 = Project.objects.create(
             name="p23352135no/fe",
-            semester=Semester(year=2030, season="Spring"),
+            semester=sem2,
             description="test2",
         )
 
         self.client.post(
             reverse("admin:projects_project_changelist"),
             {
-                ACTION_CHECKBOX_NAME: [self.project.pk],
+                ACTION_CHECKBOX_NAME: [p1.pk, p2.pk],
                 "action": "create_mailing_lists",
                 "index": 0,
             },
         )
 
-        self.assertNotEqual(MailingList.objects.filter(projects=p1), [])
-        self.assertNotEqual(MailingList.objects.filter(projects=p2), [])
+        self.assertTrue(MailingList.objects.filter(projects=p1).exists())
+        self.assertTrue(MailingList.objects.filter(projects=p2).exists())
 
     def test_create_mailing_lists(self):
         response = self.client.post(
