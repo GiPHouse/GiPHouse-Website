@@ -17,7 +17,7 @@ from projects.models import Project
 
 from nested_admin import NestedModelAdmin, NestedTabularInline
 
-from registrations.models import Employee, Registration, Registrations, Question, QuestionChoice
+from registrations.models import *
 from registrations.team_assignment import (
     CSV_STRUCTURE,
     TeamAssignmentGenerator,
@@ -109,6 +109,26 @@ class QuestionAdmin(NestedModelAdmin):
     list_display = ("question", "registration", "question_type", "optional")
     inlines = [QuestionChoiceInline]
 
+class AnswerInline(NestedTabularInline):
+    model = Answer
+    extra = 0
+    readonly_fields = ("question_text", "answer_value")
+    exclude = ("question",)
+
+    def question_text(self, obj):
+        return obj.question.question
+    question_text.short_description = "Question"
+
+    def answer_value(self, obj):
+        return obj.answer_value
+    answer_value.short_description = "Answer"
+
+
+@admin.register(RegistrationSubmission)
+class RegistrationSubmissionAdmin(admin.ModelAdmin):
+    list_display = ("registration", "participant", "submitted", "created")
+    inlines = [AnswerInline]
+
 
 class UserAdminSemesterFilter(AutocompleteFilter):
     """Filter class to filter Semester objects."""
@@ -138,17 +158,23 @@ class UserAdminProjectFilter(AutocompleteFilter):
             return queryset.filter(registration__projects=self.value())
         return queryset
 
-
-class RegistrationInline(admin.StackedInline):
+class RegistrationInline(NestedTabularInline):
     """Inline form for Registration."""
 
-    model = Registration
+    model = Registrations
     extra = 0
-    filter_horizontal = ("projects",)
+
+
+class RegistrationSubmissionInline(NestedTabularInline):
+    """Inline form for Registration."""
+
+    model = RegistrationSubmission
+    extra = 0
+    inlines = [AnswerInline]
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(NestedModelAdmin):
     """Custom admin for Student."""
 
     actions = (
@@ -187,7 +213,7 @@ class UserAdmin(admin.ModelAdmin):
         ("Private comments", {"fields": ("comments",)}),
     )
 
-    inlines = [RegistrationInline]
+    inlines = [RegistrationSubmissionInline]
     list_display = (
         "__str__",
         "get_current_project",

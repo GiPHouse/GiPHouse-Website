@@ -2,6 +2,7 @@ from django.db import models
 from courses.models import Semester
 from registrations.models import Employee
 
+
 class RegistrationManager(models.Manager):
     """Manager for the Registration model."""
 
@@ -13,8 +14,11 @@ class RegistrationManager(models.Manager):
 
 
 "Change name to Registration after removing registration.py and its dependencies."
+
+
 class Registrations(models.Model):
     """A group of questions."""
+
     title = models.CharField(max_length=200)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
@@ -23,8 +27,8 @@ class Registrations(models.Model):
     def __str__(self):
         """Return title."""
         return f"{self.title} ({self.semester})"
-    
-    
+
+
 class RegistrationSubmission(models.Model):
     """Submission of a Registration by a user."""
 
@@ -42,14 +46,19 @@ class RegistrationSubmission(models.Model):
 
 class Question(models.Model):
     "Question for the registration form."
+
     TEXT = "text"
     CHOICE = "choice"
     MULTI = "multi"
+    BIGTEXT = "bigtext"
+    DROPDOWN = "dropdown"
 
     QUESTION_TYPES = [
         (TEXT, "Text"),
+        (BIGTEXT, "Big text"),
         (CHOICE, "Single choice"),
         (MULTI, "Multiple choice"),
+        (DROPDOWN, "Dropdown"),
     ]
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
@@ -64,12 +73,18 @@ class Question(models.Model):
     )
 
     min_choices = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Minimum number of choices for MULTI questions"
+        null=True,
+        blank=True,
+        help_text="Minimum number of choices for MULTI questions",
     )
     max_choices = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Maximum number of choices for MULTI questions"
+        null=True,
+        blank=True,
+        help_text="Maximum number of choices for MULTI questions",
     )
-    warnings = models.TextField(blank=True, null=True, help_text="Warnings to show if validation fails")
+    warnings = models.TextField(
+        blank=True, null=True, help_text="Warnings to show if validation fails"
+    )
 
     def __str__(self):
         return self.question
@@ -80,19 +95,19 @@ class Answer(models.Model):
     submission = models.ForeignKey(
         RegistrationSubmission, on_delete=models.CASCADE
     )
-    
+
     @property
     def answer(self):
         """Return the correct answer data object depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT:
+        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
             try:
                 return self.textdata
             except TextData.DoesNotExist:
                 return None
 
-        elif qtype == Question.CHOICE:
+        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
             try:
                 return self.choicedata
             except ChoiceData.DoesNotExist:
@@ -109,14 +124,14 @@ class Answer(models.Model):
         """Set the correct answer value depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT:
+        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
             try:
                 self.textdata.value = value
             except TextData.DoesNotExist:
                 self.textdata = TextData(answer=self, value=value)
             self.textdata.save()
 
-        elif qtype == Question.CHOICE:
+        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
             try:
                 self.choicedata.choice = value
             except ChoiceData.DoesNotExist:
@@ -132,23 +147,45 @@ class Answer(models.Model):
             data.choices.set(value)
             data.save()
 
+    @property
+    def answer_value(self):
+        """Return the human-readable answer depending on question type."""
+        qtype = self.question.question_type
+
+        if qtype == Question.TEXT:
+            return getattr(self.textdata, "value", "")
+
+        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
+            return getattr(self.choicedata.choice, "value", "")
+
+        elif qtype == Question.MULTI:
+            try:
+                return ", ".join(c.value for c in self.multidata.choices.all())
+            except MultiData.DoesNotExist:
+                return ""
+
+        return ""
+
     def __str__(self):
         return f"{self.submission.participant} answers #{self.question.id}"
 
 
-
 class QuestionChoice(models.Model):
     "Model for ChoiceData and MultiData."
-    question = models.ForeignKey(Question, related_name="choices", on_delete=models.CASCADE)
+
+    question = models.ForeignKey(
+        Question, related_name="choices", on_delete=models.CASCADE
+    )
     value = models.CharField(max_length=255)
     follow_up = models.BooleanField(default=False)
 
     def __str__(self):
         return self.value
-    
-    
+
+
 class TextData(models.Model):
     "Model storing value of an open question."
+
     answer = models.OneToOneField(Answer, on_delete=models.CASCADE)
     value = models.TextField(blank=True, null=True)
 
@@ -158,13 +195,13 @@ class TextData(models.Model):
 
 class ChoiceData(models.Model):
     "Model storing choice answer for a closed question."
+
     answer = models.OneToOneField(Answer, on_delete=models.CASCADE)
     choice = models.ForeignKey(QuestionChoice, on_delete=models.CASCADE)
 
 
 class MultiData(models.Model):
     "Model storing multiple choice answers for a closed question."
+
     answer = models.OneToOneField(Answer, on_delete=models.CASCADE)
     choices = models.ManyToManyField(QuestionChoice)
-
-
