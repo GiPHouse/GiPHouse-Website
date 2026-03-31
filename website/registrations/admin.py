@@ -17,7 +17,14 @@ from projects.models import Project
 
 from nested_admin import NestedModelAdmin, NestedTabularInline
 
-from registrations.models import *
+from registrations.models import Employee, Registration
+from registrations.models.questions import (
+    Question,
+    QuestionChoice,
+    Registrations,
+    RegistrationSubmission,
+    Answer,
+)
 from registrations.team_assignment import (
     CSV_STRUCTURE,
     TeamAssignmentGenerator,
