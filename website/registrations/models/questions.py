@@ -41,7 +41,7 @@ class RegistrationSubmission(models.Model):
 
     def __str__(self):
         """Return string representation of the submission."""
-        return f"{self.registration.title} submission by {self.participant} at {self.created}" 
+        return f"{self.registration.title} submission by {self.participant} at {self.created}"
 
 
 class Question(models.Model):

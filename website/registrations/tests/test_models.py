@@ -207,8 +207,7 @@ class ModelsTest(TestCase):
         )
 
 
-
-class questionTest (TestCase):
+class questionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Set up data for the happy path tests
@@ -220,136 +219,121 @@ class questionTest (TestCase):
             github_id=1, first_name="Test", last_name="Participant"
         )
         cls.test_submission = questions.RegistrationSubmission.objects.create(
-            registration=cls.test_registration, participant=cls.test_participant)
-        #TEST QUESTION TYPES
+            registration=cls.test_registration,
+            participant=cls.test_participant,
+        )
+        # TEST QUESTION TYPES
         cls.test_question_CHOICE = questions.Question.objects.create(
             registration=cls.test_registration,
             question="What is your favorite color?",
             question_type=questions.Question.CHOICE,
-            optional=False
+            optional=False,
         )
         cls.test_question_TEXT = questions.Question.objects.create(
             registration=cls.test_registration,
             question="What is your name?",
             question_type=questions.Question.TEXT,
-            optional=False
+            optional=False,
         )
         cls.test_question_BIGTEXT = questions.Question.objects.create(
             registration=cls.test_registration,
             question="Please describe your experience with Python:",
             question_type=questions.Question.BIGTEXT,
-            optional=False
+            optional=False,
         )
         cls.test_question_MULTI = questions.Question.objects.create(
             registration=cls.test_registration,
             question="Please select all that apply:",
             question_type=questions.Question.MULTI,
-            optional=False
+            optional=False,
         )
         cls.test_question_DROPDOWN = questions.Question.objects.create(
             registration=cls.test_registration,
             question="Please select your preferred option:",
             question_type=questions.Question.DROPDOWN,
-            optional=False
+            optional=False,
         )
-        #TEST ANSWERS models
+        # TEST ANSWERS models
         cls.test_answer_CHOICE = questions.Answer.objects.create(
-            submission=cls.test_submission,
-            question=cls.test_question_CHOICE
+            submission=cls.test_submission, question=cls.test_question_CHOICE
         )
         cls.test_answer_TEXT = questions.Answer.objects.create(
-            submission=cls.test_submission,
-            question=cls.test_question_TEXT
+            submission=cls.test_submission, question=cls.test_question_TEXT
         )
         cls.test_answer_BIGTEXT = questions.Answer.objects.create(
-            submission=cls.test_submission,
-            question=cls.test_question_BIGTEXT
+            submission=cls.test_submission, question=cls.test_question_BIGTEXT
         )
         cls.test_answer_MULTI = questions.Answer.objects.create(
-            submission=cls.test_submission,
-            question=cls.test_question_MULTI
+            submission=cls.test_submission, question=cls.test_question_MULTI
         )
         cls.test_answer_DROPDOWN = questions.Answer.objects.create(
-            submission=cls.test_submission,
-            question=cls.test_question_DROPDOWN
+            submission=cls.test_submission, question=cls.test_question_DROPDOWN
         )
         # TEST ANSWERS DATA
-        cls.test_TextData= questions.TextData.objects.create(
-            answer=cls.test_answer_TEXT,
-            value="Test Participant")
-        cls.test_BigTextData= questions.TextData.objects.create(
+        cls.test_TextData = questions.TextData.objects.create(
+            answer=cls.test_answer_TEXT, value="Test Participant"
+        )
+        cls.test_BigTextData = questions.TextData.objects.create(
             answer=cls.test_answer_BIGTEXT,
-            value="I have been programming in Python for 5 years and have experience with Django and Flask.")
-        
-        cls.test_questionChoice = questions.QuestionChoice.objects.create(
-            question=cls.test_question_CHOICE,
-            value="Blue"
-        )
-        cls.test_questionMulti1 = questions.QuestionChoice.objects.create(
-            question=cls.test_question_MULTI,
-            value="Option 1"
-        )
-        cls.test_questionMulti2 = questions.QuestionChoice.objects.create(
-            question=cls.test_question_MULTI,
-            value="Option 2"
+            value="I have been programming in Python for 5 years and have experience with Django and Flask.",
         )
 
-        cls.test_ChoiceData= questions.ChoiceData.objects.create(
-            answer=cls.test_answer_CHOICE,
-            choice=cls.test_questionChoice
+        cls.test_questionChoice = questions.QuestionChoice.objects.create(
+            question=cls.test_question_CHOICE, value="Blue"
         )
-        cls.test_MultiData= questions.MultiData.objects.create(
+        cls.test_questionMulti1 = questions.QuestionChoice.objects.create(
+            question=cls.test_question_MULTI, value="Option 1"
+        )
+        cls.test_questionMulti2 = questions.QuestionChoice.objects.create(
+            question=cls.test_question_MULTI, value="Option 2"
+        )
+
+        cls.test_ChoiceData = questions.ChoiceData.objects.create(
+            answer=cls.test_answer_CHOICE, choice=cls.test_questionChoice
+        )
+        cls.test_MultiData = questions.MultiData.objects.create(
             answer=cls.test_answer_MULTI,
         )
-        cls.test_MultiData.choices.set([cls.test_questionMulti1, cls.test_questionMulti2])
-        cls.test_DropdownData= questions.ChoiceData.objects.create(
-            answer=cls.test_answer_DROPDOWN,
-            choice=cls.test_questionMulti1
+        cls.test_MultiData.choices.set(
+            [cls.test_questionMulti1, cls.test_questionMulti2]
+        )
+        cls.test_DropdownData = questions.ChoiceData.objects.create(
+            answer=cls.test_answer_DROPDOWN, choice=cls.test_questionMulti1
         )
 
         # Set up data for edge case tests (e.g., missing fields, invalid data types)
 
-
     def test_registration_str(self):
         self.assertEqual(
             f"{self.test_registration.title} ({self.test_semester})",
-            str(self.test_registration)
+            str(self.test_registration),
         )
-    
+
     def test_registrationsubmission_str(self):
         submission = questions.RegistrationSubmission.objects.create(
             registration=self.test_registration,
-            participant=self.test_participant
+            participant=self.test_participant,
         )
         self.assertEqual(
             f"{self.test_registration.title} submission by {self.test_participant} at {submission.created}",
-            str(submission)
+            str(submission),
         )
-    
+
     def test_question_str(self):
         self.assertEqual(
-            "What is your favorite color?",
-            str(self.test_question_CHOICE)
+            "What is your favorite color?", str(self.test_question_CHOICE)
         )
-    
+
     def test_answer_get(self):
+        self.assertEqual("Blue", self.test_answer_CHOICE.answer_value)
         self.assertEqual(
-            "Blue",
-            self.test_answer_CHOICE.answer_value
-        )
-        self.assertEqual(
-            "Test Participant",
-            self.test_answer_TEXT.answer_value
+            "Test Participant", self.test_answer_TEXT.answer_value
         )
         self.assertEqual(
             "I have been programming in Python for 5 years and have experience with Django and Flask.",
-            self.test_answer_BIGTEXT.answer_value
+            self.test_answer_BIGTEXT.answer_value,
         )
         self.assertEqual(
-            "Option 1, Option 2",
-            self.test_answer_MULTI.answer_value
+            "Option 1, Option 2", self.test_answer_MULTI.answer_value
         )
-        self.assertEqual(
-            "Option 1",
-            self.test_answer_DROPDOWN.answer_value
-        )
+        self.assertEqual("Option 1", self.test_answer_DROPDOWN.answer_value)

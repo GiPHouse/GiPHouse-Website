@@ -49,8 +49,10 @@ class Step2Form(forms.Form):
         self.github_username = github_username
         self.warnings = []
 
-        current_registration = questions.Registrations.objects.current_registration()
-        
+        current_registration = (
+            questions.Registrations.objects.current_registration()
+        )
+
         if not current_registration:
             raise ValueError("No registration found for the current semester")
 
