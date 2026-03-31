@@ -25,7 +25,7 @@ class Registrations(models.Model):
     objects = RegistrationManager()
 
     def __str__(self):
-        """Return title."""
+        """Return title + semester."""
         return f"{self.title} ({self.semester})"
 
 
@@ -41,7 +41,7 @@ class RegistrationSubmission(models.Model):
 
     def __str__(self):
         """Return string representation of the submission."""
-        return self.registration.title
+        return f"{self.registration.title} submission by {self.participant} at {self.created}" 
 
 
 class Question(models.Model):
@@ -146,7 +146,7 @@ class Answer(models.Model):
         """Return the human-readable answer depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT:
+        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
             return getattr(self.textdata, "value", "")
 
         elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
