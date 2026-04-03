@@ -8,7 +8,7 @@ from django.views.generic import FormView, TemplateView
 from courses.models import Semester
 
 
-from registrations.forms import Step2Form
+from registrations.forms import Step2FormNew
 from registrations.models import Employee, questions
 
 
@@ -64,7 +64,7 @@ class Step2View(FormView):
 
     template_name = "registrations/step-2.html"
 
-    form_class = Step2Form
+    form_class = Step2FormNew
     success_url = "/"
 
     def get_form_kwargs(self):
