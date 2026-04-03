@@ -3,11 +3,8 @@ import re
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.forms import widgets
 
-from courses.models import Course, Semester
-from projects.models import Project
-from registrations.models import Employee, Registration, questions
+from registrations.models import Employee, questions
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
@@ -48,8 +45,10 @@ class Step2Form(forms.Form):
         self.github_username = github_username
         self.warnings = []
 
-        current_registration = questions.Registrations.objects.current_registration()
-        
+        current_registration = (
+            questions.Registrations.objects.current_registration()
+        )
+
         if not current_registration:
             raise ValueError("No registration found for the current semester")
 

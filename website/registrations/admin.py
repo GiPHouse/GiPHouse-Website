@@ -17,7 +17,14 @@ from projects.models import Project
 
 from nested_admin import NestedModelAdmin, NestedTabularInline
 
-from registrations.models import *
+from registrations.models import Employee, Registration
+from registrations.models.questions import (
+    Question,
+    QuestionChoice,
+    Registrations,
+    RegistrationSubmission,
+    Answer,
+)
 from registrations.team_assignment import (
     CSV_STRUCTURE,
     TeamAssignmentGenerator,
@@ -27,6 +34,7 @@ User: Employee = get_user_model()
 
 "The following four classes provide the logic behind the admin"
 "interface for Registrationss with the proper inlines."
+
 
 class QuestionAdminForm(forms.ModelForm):
     class Meta:
@@ -46,15 +54,25 @@ class QuestionAdminForm(forms.ModelForm):
                 errors.append("min_choices cannot be negative.")
             if max_choices is not None and max_choices < 0:
                 errors.append("max_choices cannot be negative.")
-            if min_choices is not None and max_choices is not None and min_choices > max_choices:
-                errors.append("min_choices cannot be greater than max_choices.")
+            if (
+                min_choices is not None
+                and max_choices is not None
+                and min_choices > max_choices
+            ):
+                errors.append(
+                    "min_choices cannot be greater than max_choices."
+                )
 
             if self.instance and self.instance.pk:
                 choice_count = self.instance.choices.count()
                 if min_choices is not None and min_choices > choice_count:
-                    errors.append(f"min_choices ({min_choices}) cannot exceed the number of choices ({choice_count}).")
+                    errors.append(
+                        f"min_choices ({min_choices}) cannot exceed the number of choices ({choice_count})."
+                    )
                 if max_choices is not None and max_choices > choice_count:
-                    errors.append(f"max_choices ({max_choices}) cannot exceed the number of choices ({choice_count}).")
+                    errors.append(
+                        f"max_choices ({max_choices}) cannot exceed the number of choices ({choice_count})."
+                    )
 
         if errors:
             raise forms.ValidationError(errors)
@@ -93,6 +111,7 @@ class QuestionInline(NestedTabularInline):
     form = QuestionAdminForm
     extra = 0
     inlines = [QuestionChoiceInline]
+
     class Media:
         js = ("js/question_type_toggle.js",)
 
@@ -117,10 +136,12 @@ class AnswerInline(NestedTabularInline):
 
     def question_text(self, obj):
         return obj.question.question
+
     question_text.short_description = "Question"
 
     def answer_value(self, obj):
         return obj.answer_value
+
     answer_value.short_description = "Answer"
 
 
