@@ -66,6 +66,12 @@ class Question(models.Model):
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     optional = models.BooleanField(default=False)
 
+    parent_choice = models.ForeignKey(
+        "QuestionChoice", null=True, blank=True,
+        on_delete=models.CASCADE,
+        related_name="follow_up_questions"
+    )
+
     min_choices = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -171,6 +177,7 @@ class QuestionChoice(models.Model):
         Question, related_name="choices", on_delete=models.CASCADE
     )
     value = models.CharField(max_length=255)
+    follow_up = models.BooleanField(default=False)
 
     def __str__(self):
         return self.value

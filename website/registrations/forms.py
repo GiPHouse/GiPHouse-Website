@@ -14,7 +14,6 @@ User: Employee = get_user_model()
 
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
-
     first_name = forms.CharField()
     last_name = forms.CharField()
     email = forms.EmailField()
@@ -162,7 +161,10 @@ class Step2Form(forms.Form):
                         and selected_count < question.min_choices
                     ):
                         self.warnings.append(
-                            f"'{question.question}': At least {question.min_choices} choices are required (you selected {selected_count})."
+                            (
+                                field_name,
+                                f"At least {question.min_choices} choices are required (you selected {selected_count}).",
+                            )
                         )
 
                     if (
@@ -170,7 +172,10 @@ class Step2Form(forms.Form):
                         and selected_count > question.max_choices
                     ):
                         self.warnings.append(
-                            f"'{question.question}': No more than {question.max_choices} choices are allowed (you selected {selected_count})."
+                            (
+                                field_name,
+                                f"No more than {question.max_choices} choices are allowed (you selected {selected_count}).",
+                            )
                         )
 
                     if question.warnings:

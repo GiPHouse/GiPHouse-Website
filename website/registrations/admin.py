@@ -79,14 +79,35 @@ class QuestionAdminForm(forms.ModelForm):
 
         return cleaned_data
 
+class FollowUpQuestionChoiceInline(NestedTabularInline):
+    model = QuestionChoice
+    extra = 1
+    fk_name = "question"
+    inlines = []
+
+class FollowUpQuestionInline(NestedTabularInline):
+    model = Question
+    fk_name = "parent_choice"
+    extra = 1
+    exclude = ("parent_choice", "registration")
+    inlines = [FollowUpQuestionChoiceInline]
+
+    def save_new(self, form, commit=True):
+        instance = super().save_new(form, commit=False)
+        instance.registration = form.cleaned_data["registration"]
+        if commit:
+            instance.save()
+        return instance
 
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 0
-
+    fk_name = "question"
+    inlines = [FollowUpQuestionInline]
 
 class QuestionInline(NestedTabularInline):
     model = Question
+    fk_name = "registration"
     form = QuestionAdminForm
     extra = 0
     inlines = [QuestionChoiceInline]
@@ -107,8 +128,7 @@ class QuestionAdmin(NestedModelAdmin):
     list_display = ("question", "registration", "question_type", "optional")
     inlines = [QuestionChoiceInline]
 
-
-class AnswerInline(admin.TabularInline):
+class AnswerInline(NestedTabularInline):
     model = Answer
     extra = 0
     readonly_fields = ("question_text", "answer_value")
@@ -159,17 +179,23 @@ class UserAdminProjectFilter(AutocompleteFilter):
             return queryset.filter(registration__projects=self.value())
         return queryset
 
-
-class RegistrationInline(admin.StackedInline):
+class RegistrationInline(NestedTabularInline):
     """Inline form for Registration."""
 
-    model = Registration
+    model = Registrations
     extra = 0
-    filter_horizontal = ("projects",)
+
+
+class RegistrationSubmissionInline(NestedTabularInline):
+    """Inline form for Registration."""
+
+    model = RegistrationSubmission
+    extra = 0
+    inlines = [AnswerInline]
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(NestedModelAdmin):
     """Custom admin for Student."""
 
     actions = (
@@ -208,7 +234,7 @@ class UserAdmin(admin.ModelAdmin):
         ("Private comments", {"fields": ("comments",)}),
     )
 
-    inlines = [RegistrationInline]
+    inlines = [RegistrationSubmissionInline]
     list_display = (
         "__str__",
         "get_current_project",
