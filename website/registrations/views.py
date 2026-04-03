@@ -135,19 +135,19 @@ class Step2View(FormView):
             user.github_username = form.cleaned_data["github_username"]
             user.student_number = form.cleaned_data["student_number"]
             user.save()
-
-            registration = (
+            
+            submitted_registration = (
                 registration.Registrations.objects.current_registration()
             )
 
-            if not registration:
+            if not submitted_registration:
                 form.add_error(
                     None, "No registration form found for this semester."
                 )
                 return self.form_invalid(form)
 
             submission = registration.RegistrationSubmission.objects.create(
-                registration=registration, participant=user
+                registration=submitted_registration, participant=user
             )
             # TO DO: Validate dynamic parts of the form and save the answers to the database
             registration.Answer.save_from_cleaned_data(submission, form.cleaned_data)
