@@ -485,7 +485,7 @@ class Step2FormNew(forms.Form):
                         if is_follow_up and not question.optional and not answer:
                             self.add_error(
                                 field_name, 
-                                f"This field is required."
+                                "This field is required."
                             )
                         else:   
                             if question.question_type == questions.Question.MULTI and answer:
