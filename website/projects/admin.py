@@ -76,7 +76,7 @@ class RepositoryInline(admin.StackedInline):
     form = RepositoryInlineForm
     model = Repository
 
-    readonly_fields = ("github_repo_id",)
+    #readonly_fields = ("github_repo_id",)
 
     def get_extra(self, request, obj=None, **kwargs):
         """Only show an extra inline if none exist."""

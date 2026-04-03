@@ -139,7 +139,7 @@ class Repository(models.Model):
         null=True,
         blank=True,
         unique=True,
-        help_text="This is the id of the GitHub repository.",
+        help_text="This is the id of the GitHub repository. Leave empty if a new repository should be created.",
     )
 
     class Archived(models.IntegerChoices):
