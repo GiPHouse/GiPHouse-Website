@@ -86,6 +86,11 @@ class Question(models.Model):
         blank=True, null=True, help_text="Warnings to show if validation fails"
     )
 
+    def save(self, *args, **kwargs):
+        if self.registration_id is None and self.parent_choice_id is not None:
+            self.registration_id = self.parent_choice.question.registration_id
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.question
 

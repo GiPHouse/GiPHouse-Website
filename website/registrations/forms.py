@@ -1,4 +1,5 @@
 import re
+import logging
 
 from django import forms
 from django.contrib.auth import get_user_model
@@ -13,21 +14,239 @@ student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
 
 User: Employee = get_user_model()
-
+logger = logging.getLogger(__name__)
 
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    email = forms.EmailField()
-    student_number = forms.CharField(label="Student Number")
-    github_username = forms.CharField(disabled=True)
-    github_id = forms.IntegerField(disabled=True)
+
+    def __init__(self, *args, **kwargs):
+        """Set querysets dynamically."""
+        super().__init__(*args, **kwargs)
+
+        self.fields["course"].queryset = Course.objects.all()
+
+        self.fields["project1"].queryset = Project.objects.filter(
+            semester=Semester.objects.get_first_semester_with_open_registration()
+        )
+        self.fields["project2"].queryset = Project.objects.filter(
+            semester=Semester.objects.get_first_semester_with_open_registration()
+        )
+        self.fields["project3"].queryset = Project.objects.filter(
+            semester=Semester.objects.get_first_semester_with_open_registration()
+        )
+        
+        self.warnings = []
+
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
         required=False,
         initial=False,
     )
+
+    github_id = forms.IntegerField(disabled=True, label="GitHub ID")
+    github_username = forms.CharField(disabled=True, label="GitHub Username")
+
+    first_name = forms.CharField(label="First Name")
+    last_name = forms.CharField(label="Last Name")
+
+    student_number = forms.CharField(
+        label="Student Number",
+        widget=widgets.TextInput(attrs={"placeholder": "s1234567"}),
+    )
+
+    course = forms.ModelChoiceField(queryset=None, empty_label=None)
+
+    email = forms.EmailField()
+
+    dev_experience = forms.ChoiceField(
+        label="What is your programming experience?",
+        choices=Registration.EXPERIENCE_CHOICES,
+        initial=Registration.EXPERIENCE_BEGINNER,
+        help_text="<strong>Beginner</strong>: I passed the programming "
+        "courses from my curriculum but it was not easy.<br>"
+        "<strong>Intermediate</strong>: the programming courses in "
+        "the curriculum were easy for me and I have experience "
+        "with some small (hobby) projects.<br>"
+        "<strong>Advanced</strong>: I have a lot of experience with "
+        "programming.<br>"
+        "<strong>NOTE</strong>: If you did not pass the programming "
+        "courses and you are following the Software Engineering course, please "
+        "do not register for this course.",
+    )
+
+    git_experience = forms.ChoiceField(
+        label="What is your experience working with git(hub)?",
+        choices=Registration.EXPERIENCE_CHOICES,
+        initial=Registration.EXPERIENCE_BEGINNER,
+        help_text="<strong>Beginner</strong>: I never really used git <br>"
+        "<strong>Intermediate</strong>: I have used git before, working "
+        "on small projects. With multiple branches and pull requests <br>"
+        "<strong>Advanced</strong>: I have a lot of experience with "
+        "git(hub) working on a project with multiple programmers. <br>"
+        "<strong>NOTE</strong>: You do not need any experience with git, "
+        "you are going to learn it in this course. But it is nice if you already know git.",
+    )
+
+    scrum_experience = forms.ChoiceField(
+        label="What is your scrum experience?",
+        choices=Registration.EXPERIENCE_CHOICES,
+        initial=Registration.EXPERIENCE_BEGINNER,
+        help_text="<strong>Beginner</strong>: None <br>"
+        "<strong>Intermediate</strong>: I have worked in teams, but "
+        " not really with scrum <br>"
+        "<strong>Advanced</strong>: I have a lot of experience with "
+        "scrum. (Work or committee)<br>"
+        "<strong>NOTE</strong>: You do not need any experience with scrum, "
+        "you are going to learn it in this course. But it is nice if you already know scrum.",
+    )
+
+    management_interest = forms.BooleanField(
+        label="[Only relevant for bachelor students] I am interested in a management role",
+        required=False,
+        initial=False,
+        help_text="If you check this box, you might get a more management oriented role.",
+    )
+
+    project1 = forms.ModelChoiceField(
+        label="First project preference", queryset=None, required=False
+    )
+
+    project2 = forms.ModelChoiceField(
+        label="Second project preference", queryset=None, required=False
+    )
+
+    project3 = forms.ModelChoiceField(
+        label="Third project preference", queryset=None, required=False
+    )
+
+    partner1 = forms.CharField(
+        label="Project partner preference",
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Piet Janssen"}),
+        max_length=100,
+        required=False,
+        help_text="Optional",
+    )
+
+    partner2 = forms.CharField(
+        label="Project partner preference",
+        widget=forms.TextInput(attrs={"placeholder": ""}),
+        max_length=100,
+        required=False,
+        help_text="Optional",
+    )
+
+    partner3 = forms.CharField(
+        label="Project partner preference",
+        widget=forms.TextInput(attrs={"placeholder": ""}),
+        max_length=100,
+        required=False,
+        help_text="Optional",
+    )
+
+    international = forms.BooleanField(
+        label="I don't speak Dutch", required=False
+    )
+
+    # 10 timeslot fields
+    for i in range(1, 11):
+        locals()[f"available_during_scheduled_timeslot_{i}"] = forms.BooleanField(
+            label=f"I am available during scheduled timeslot {i} for the course",
+            required=False,
+            initial=True,
+        )
+
+    has_problems_with_signing_an_nda = forms.BooleanField(
+        label="I have problems with signing an NDA",
+        required=False,
+        initial=False,
+        help_text="If you check this box, you will not be placed in a project that requires an NDA.",
+    )
+
+    comments = forms.CharField(
+        widget=forms.Textarea(attrs={"placeholder": "Do you have any comments?"}),
+        required=False,
+        help_text="Optional",
+    )
+
+    def clean_email(self):
+        if (
+            User.objects.exclude(github_id=self.cleaned_data["github_id"])
+            .filter(email=self.cleaned_data["email"])
+            .exists()
+        ):
+            raise ValidationError("Email address already in use.", code="exists")
+
+        match = wrong_email_regex.match(self.cleaned_data["email"])
+        if match is not None:
+            raise ValidationError("Non-existent email address.", code="invalid")
+
+        return self.cleaned_data["email"]
+
+    def clean_student_number(self):
+        student_number = self.cleaned_data["student_number"]
+
+        m = student_number_regex.match(student_number)
+        if m is None:
+            raise ValidationError("Invalid Student Number", code="invalid")
+
+        student_number = "s" + m.group(1)
+
+        if (
+            User.objects.exclude(github_id=self.cleaned_data["github_id"])
+            .filter(student_number=student_number)
+            .exists()
+        ):
+            raise ValidationError("Student Number already in use.", code="exists")
+        return student_number
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if User.objects.filter(
+            github_id=cleaned_data.get("github_id"),
+            registration__semester=Semester.objects.get_first_semester_with_open_registration(),
+        ).exists():
+            raise ValidationError("User already registered for this semester.", code="exists")
+
+        project1 = cleaned_data.get("project1")
+        project2 = cleaned_data.get("project2")
+        project3 = cleaned_data.get("project3")
+
+        if len(set(filter(None, (project1, project2, project3)))) != 3:
+            raise ValidationError("You should fill in all preferences with unique values.")
+
+        available_slots = sum(
+            bool(cleaned_data.get(f"available_during_scheduled_timeslot_{i}"))
+            for i in range(1, 11)
+        )
+
+        if available_slots < 4 and not cleaned_data.get("available_during_scheduled_timeslot_10"):
+            self.warnings.append(
+                "You are only available for less than 4 scheduled timeslots and "
+                "not available for the last timeslot on Friday afternoon. "
+                "This may make scheduling difficult."
+            )
+
+        return cleaned_data
+
+
+class Step2FormNew(forms.Form):
+    """Form to get user information for registration."""
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    course = forms.ModelChoiceField(queryset=Course.objects.all(), empty_label=None)
+    email = forms.EmailField()
+    github_username = forms.CharField(disabled=True)
+    github_id = forms.IntegerField(disabled=True)
+    student_number = forms.CharField()
+    ignore_warnings = forms.BooleanField(
+        label="I acknowledge the warning(s) and want to proceed with the registration",
+        required=False,
+        initial=False,
+    )
+
+    class Media:
+        js = ("js/question_type_toggle_step2.js",)
 
     def __init__(self, *args, session=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,61 +259,160 @@ class Step2Form(forms.Form):
 
         if github_id is None or github_username is None:
             raise ValueError("GitHub session info is incomplete")
-
+        
         self.fields["github_id"].initial = github_id
         self.fields["github_username"].initial = github_username
 
         self.github_id = github_id
         self.github_username = github_username
         self.warnings = []
+        self.dynamic_questions = []
+        self.questions_by_id = {}
 
         current_registration = questions.Registrations.objects.current_registration()
         
         if not current_registration:
             raise ValueError("No registration found for the current semester")
 
-        for q in current_registration.question_set.all():
+        logger.warning(
+            "Step2 loaded registration %s with %s questions",
+            current_registration.title,
+            current_registration.question_set.count()
+        )
+
+        all_questions = list(
+            current_registration.question_set.select_related(
+                "parent_choice__question"
+            ).prefetch_related("choices")
+        )
+
+        self.dynamic_questions = all_questions
+        self.questions_by_id = {q.id: q for q in all_questions}
+        root_questions = [q for q in all_questions if q.parent_choice_id is None]
+        
+        logger.warning(
+            "Dynamic questions: %s",
+            [(q.id, q.question) for q in all_questions]
+        )
+        logger.warning(
+            "Questions by ID: %s",
+            {q.id: q.question for q in all_questions}
+        )
+        logger.warning( 
+            "Root questions: %s",
+            [(q.id, q.question) for q in root_questions]
+        )
+
+        self.ordered_question_list = self.ordered_questions()
+        source_data = self.data if self.is_bound else self.initial
+        self.active_questions_ids_list = self._get_active_question_ids(source_data)
+
+        for q in self.ordered_question_list:
+            logger.warning(
+                (
+                    "Question debug: id=%s registration_id=%s "
+                    "parent_choice_id=%s  parent_choice=%s type=%s optional=%s "
+                    "min_choices=%s max_choices=%s warnings=%s text=%r "
+                    "choices=%s"
+                ),
+                q.id,
+                q.registration_id,
+                q.parent_choice_id,
+                q.parent_choice.question.id if q.parent_choice and q.parent_choice.question else None,
+                q.question_type,
+                q.optional,
+                q.min_choices,
+                q.max_choices,
+                q.warnings,
+                q.question,
+                list(q.choices.values_list("id", "value", "follow_up")),
+            )
+
             field_name = f"question_{q.id}"
+            is_follow_up = q.parent_choice_id is not None
+            widget_attrs = {
+                "question-id": str(q.id),
+                "text": q.question,
+            }
+            if is_follow_up:
+                widget_attrs["parent-choice-id"] = str(q.parent_choice_id)
+                widget_attrs["parent-question-id"] = str(q.parent_choice.question_id)
+                widget_attrs["follow-up-required"] = ("1" if not q.optional else "0")
 
             if q.question_type == questions.Question.TEXT:
                 self.fields[field_name] = forms.CharField(
-                    label=q.question, required=not q.optional
+                    label=q.question,
+                    required=False if is_follow_up else not q.optional,
+                    widget=forms.TextInput(attrs=widget_attrs),
                 )
 
             elif q.question_type == questions.Question.CHOICE:
-                choices = questions.QuestionChoice.objects.filter(
-                    question=q
-                ).values_list("id", "value")
+                choices=questions.QuestionChoice.objects.filter(
+                        question=q
+                    ).values_list("id", "value")
                 self.fields[field_name] = forms.ChoiceField(
                     label=q.question,
                     choices=choices,
-                    required=not q.optional,
-                    widget=forms.RadioSelect,
+                    required=False if is_follow_up else not q.optional,
+                    widget=forms.RadioSelect(attrs=widget_attrs),
                 )
-
+                
             elif q.question_type == questions.Question.MULTI:
-                choices = questions.QuestionChoice.objects.filter(
-                    question=q
-                ).values_list("id", "value")
+                choices=questions.QuestionChoice.objects.filter(
+                        question=q
+                    ).values_list("id", "value")
                 self.fields[field_name] = forms.MultipleChoiceField(
                     label=q.question,
                     choices=choices,
-                    required=not q.optional,
-                    widget=forms.CheckboxSelectMultiple,
+                    required=False if is_follow_up else not q.optional,
+                    widget=forms.CheckboxSelectMultiple(attrs=widget_attrs),
                 )
-            elif q.question_type == questions.Question.DROPDOWN:
-                choices = questions.QuestionChoice.objects.filter(
-                    question=q
-                ).values_list("id", "value")
-                self.fields[field_name] = forms.ChoiceField(
-                    label=q.question,
-                    choices=choices,
-                    required=not q.optional,
-                    widget=forms.Select,
-                )
+                
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
 
+        ignore_warnings_field = self.fields.pop("ignore_warnings", None)
+        if ignore_warnings_field is not None:
+            self.fields["ignore_warnings"] = ignore_warnings_field
+
+    
+    def ordered_questions(self):
+        ordered = []
+        added_ids = set()
+        
+        follow_ups_by_parent_choice = {}
+        for q in self.dynamic_questions:
+            if q.parent_choice_id is not None:
+                if q.parent_choice_id not in follow_ups_by_parent_choice:
+                    follow_ups_by_parent_choice[q.parent_choice_id] = []
+                follow_ups_by_parent_choice[q.parent_choice_id].append(q)
+
+        logger.warning(
+            "Follow-ups by parent: %s",
+            {parent_id: [(q.id, q.question) for q in follow_ups] for parent_id, follow_ups in follow_ups_by_parent_choice.items()}
+        )
+        
+        def add_question_and_follow_ups(q):
+            if q.id in added_ids:
+                return
+            ordered.append(q)
+            added_ids.add(q.id)
+            for choice in q.choices.all():
+                follow_ups = follow_ups_by_parent_choice.get(choice.id, [])
+                for follow_up in follow_ups:
+                    add_question_and_follow_ups(follow_up)
+
+        for q in self.dynamic_questions:
+            if q.parent_choice_id is None:
+                add_question_and_follow_ups(q)
+
+        logger.warning(
+            "Ordered questions: %s",
+            [(q.id, q.question) for q in ordered]
+        )
+
+        return ordered
+    
     def clean_email(self):
         email = self.cleaned_data.get("email")
         github_id = self.cleaned_data.get("github_id")
@@ -105,14 +423,10 @@ class Step2Form(forms.Form):
                 .filter(email=email)
                 .exists()
             ):
-                raise ValidationError(
-                    "Email address already in use.", code="exists"
-                )
+                raise ValidationError("Email address already in use.", code="exists")
 
             if wrong_email_regex.match(email) is not None:
-                raise ValidationError(
-                    "Non-existent email address.", code="invalid"
-                )
+                raise ValidationError("Non-existent email address.", code="invalid")
 
         return email
 
@@ -131,55 +445,73 @@ class Step2Form(forms.Form):
             .filter(student_number=student_number)
             .exists()
         ):
-            raise ValidationError(
-                "Student Number already in use.", code="exists"
-            )
-
+            raise ValidationError("Student Number already in use.", code="exists")
+        
         return student_number
+    
+    def _get_active_question_ids(self, data):
+        active_ids = set()
+
+        for q in self.ordered_question_list:
+            if q.parent_choice_id is None:
+                active_ids.add(q.id)
+            else:
+                parent_field = f"question_{q.parent_choice.question_id}"
+                parent_value = data.get(parent_field)
+                
+                if parent_value is not None:
+                    if str(q.parent_choice_id) == str(parent_value):
+                        active_ids.add(q.id)
+                        
+        return active_ids
 
     def clean(self):
         cleaned_data = super().clean()
+        active_ids = self._get_active_question_ids(cleaned_data)
 
         for field_name in self.fields:
             if field_name.startswith("question_"):
                 question_id = int(field_name.split("_")[1])
-                question = questions.Question.objects.get(pk=question_id)
-                answer = cleaned_data.get(field_name)
 
-                if not question.optional and not answer:
-                    raise ValidationError(
-                        f"Question '{question.question}' is required."
-                    )
+                if question_id not in active_ids:
+                    cleaned_data.pop(field_name, None)
+                else:
+                    question = self.questions_by_id.get(question_id)
+                    if question is not None:
+                        answer = cleaned_data.get(field_name)
+                        is_follow_up = question.parent_choice_id is not None
 
-                if (
-                    question.question_type == questions.Question.MULTI
-                    and answer
-                ):
-                    selected_count = len(answer)
-
-                    if (
-                        question.min_choices is not None
-                        and selected_count < question.min_choices
-                    ):
-                        self.warnings.append(
-                            (
-                                field_name,
-                                f"At least {question.min_choices} choices are required (you selected {selected_count}).",
+                        # Follow-up fields are conditionally required based on activation.
+                        if is_follow_up and not question.optional and not answer:
+                            self.add_error(
+                                field_name, 
+                                f"This field is required."
                             )
-                        )
+                        else:   
+                            if question.question_type == questions.Question.MULTI and answer:
+                                selected_count = len(answer)
 
-                    if (
-                        question.max_choices is not None
-                        and selected_count > question.max_choices
-                    ):
-                        self.warnings.append(
-                            (
-                                field_name,
-                                f"No more than {question.max_choices} choices are allowed (you selected {selected_count}).",
-                            )
-                        )
+                                if question.min_choices is not None and selected_count < question.min_choices:
+                                    self.warnings.append(
+                                        (
+                                            field_name,
+                                            f"At least {question.min_choices} choices are required (you selected {selected_count}).",
+                                        )
+                                    )
 
-                    if question.warnings:
-                        self.warnings.append(question.warnings.strip())
+                                if question.max_choices is not None and selected_count > question.max_choices:
+                                    self.warnings.append(
+                                        (
+                                            field_name,
+                                            f"No more than {question.max_choices} choices are allowed (you selected {selected_count}).",
+                                        )
+                                    )
 
+                                if question.warnings:
+                                    self.warnings.append((field_name, question.warnings.strip()))
+
+        if self.warnings and not self.cleaned_data.get("ignore_warnings"):
+            for field_name, message in self.warnings:
+                self.add_error(field_name, message)
+        
         return cleaned_data

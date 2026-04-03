@@ -63,23 +63,16 @@ class QuestionAdminForm(forms.ModelForm):
 
 class FollowUpQuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
-    extra = 1
+    extra = 0
     fk_name = "question"
     inlines = []
 
 class FollowUpQuestionInline(NestedTabularInline):
     model = Question
     fk_name = "parent_choice"
-    extra = 1
+    extra = 0
     exclude = ("parent_choice", "registration")
     inlines = [FollowUpQuestionChoiceInline]
-
-    def save_new(self, form, commit=True):
-        instance = super().save_new(form, commit=False)
-        instance.registration = form.cleaned_data["registration"]
-        if commit:
-            instance.save()
-        return instance
 
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
@@ -93,8 +86,13 @@ class QuestionInline(NestedTabularInline):
     form = QuestionAdminForm
     extra = 0
     inlines = [QuestionChoiceInline]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.filter(parent_choice__isnull=True)
+
     class Media:
-        js = ("js/question_type_toggle.js",)
+        js = ("js/question_type_toggle_admin.js",)
 
 
 @admin.register(Registrations)
