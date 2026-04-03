@@ -182,7 +182,7 @@ class Step2View(FormView):
                 registration=registration, participant=user
             )
             # TO DO: Validate dynamic parts of the form and save the answers to the database
-            self.save_answers(submission, form.cleaned_data)
+            questions.Answer.save_from_cleaned_data(submission, form.cleaned_data)
 
         # Clean up session
         for key in [

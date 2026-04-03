@@ -20,6 +20,8 @@ class Step2Form(forms.Form):
     student_number = forms.CharField(label="Student Number")
     github_username = forms.CharField(disabled=True)
     github_id = forms.IntegerField(disabled=True)
+    student_number = forms.CharField()
+    email = forms.EmailField()
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
         required=False,
@@ -81,6 +83,15 @@ class Step2Form(forms.Form):
                     required=not q.optional,
                     widget=forms.CheckboxSelectMultiple,
                 )
+
+            elif q.question_type == questions.Question.BIGTEXT:
+                self.fields[field_name] = forms.CharField(
+                    label=q.question,
+                    required=not q.optional,
+                    widget=forms.Textarea,
+                )
+
+                
             elif q.question_type == questions.Question.DROPDOWN:
                 choices = questions.QuestionChoice.objects.filter(
                     question=q
@@ -91,6 +102,7 @@ class Step2Form(forms.Form):
                     required=not q.optional,
                     widget=forms.Select,
                 )
+
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
 
