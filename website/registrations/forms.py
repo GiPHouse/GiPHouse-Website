@@ -105,13 +105,6 @@ class Step2Form(forms.Form):
                     widget=forms.Select,
                 )
 
-            elif q.question_type == questions.Question.BIGTEXT:
-                self.fields[field_name] = forms.CharField(
-                    label=q.question,
-                    required=not q.optional,
-                    widget=forms.Textarea,
-                )
-
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
 
