@@ -3,11 +3,8 @@ import re
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.forms import widgets
 
-from courses.models import Course, Semester
-from projects.models import Project
-from registrations.models import Employee, Registration, questions
+from registrations.models import Employee, questions
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
@@ -17,7 +14,6 @@ User: Employee = get_user_model()
 
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
-
     first_name = forms.CharField()
     last_name = forms.CharField()
     email = forms.EmailField()
@@ -51,8 +47,10 @@ class Step2Form(forms.Form):
         self.github_username = github_username
         self.warnings = []
 
-        current_registration = questions.Registrations.objects.current_registration()
-        
+        current_registration = (
+            questions.Registrations.objects.current_registration()
+        )
+
         if not current_registration:
             raise ValueError("No registration found for the current semester")
 
@@ -175,7 +173,10 @@ class Step2Form(forms.Form):
                         and selected_count < question.min_choices
                     ):
                         self.warnings.append(
-                            f"'{question.question}': At least {question.min_choices} choices are required (you selected {selected_count})."
+                            (
+                                field_name,
+                                f"At least {question.min_choices} choices are required (you selected {selected_count}).",
+                            )
                         )
 
                     if (
@@ -183,7 +184,10 @@ class Step2Form(forms.Form):
                         and selected_count > question.max_choices
                     ):
                         self.warnings.append(
-                            f"'{question.question}': No more than {question.max_choices} choices are allowed (you selected {selected_count})."
+                            (
+                                field_name,
+                                f"No more than {question.max_choices} choices are allowed (you selected {selected_count}).",
+                            )
                         )
 
                     if question.warnings:

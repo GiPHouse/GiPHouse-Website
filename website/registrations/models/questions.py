@@ -25,7 +25,7 @@ class Registrations(models.Model):
     objects = RegistrationManager()
 
     def __str__(self):
-        """Return title."""
+        """Return title + semester."""
         return f"{self.title} ({self.semester})"
 
 
@@ -41,7 +41,7 @@ class RegistrationSubmission(models.Model):
 
     def __str__(self):
         """Return string representation of the submission."""
-        return self.registration.title
+        return f"{self.registration.title} submission by {self.participant} at {self.created}"
 
 
 class Question(models.Model):
@@ -65,6 +65,12 @@ class Question(models.Model):
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
     optional = models.BooleanField(default=False)
+
+    parent_choice = models.ForeignKey(
+        "QuestionChoice", null=True, blank=True,
+        on_delete=models.CASCADE,
+        related_name="follow_up_questions"
+    )
 
     min_choices = models.PositiveIntegerField(
         null=True,
@@ -211,6 +217,7 @@ class QuestionChoice(models.Model):
         Question, related_name="choices", on_delete=models.CASCADE
     )
     value = models.CharField(max_length=255)
+    follow_up = models.BooleanField(default=False)
 
     def __str__(self):
         return self.value

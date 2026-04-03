@@ -93,7 +93,7 @@ class Step2View(FormView):
             first_name, last_name = self.request.session["github_name"].rsplit(
                 " ", 1
             )
-        except (KeyError, AttributeError):
+        except KeyError, AttributeError:
             first_name, last_name = "", ""
         except ValueError:
             first_name, last_name = self.request.session["github_name"], ""
@@ -111,12 +111,48 @@ class Step2View(FormView):
 
         return initial
 
+    def save_answers(self, submission, cleaned_data):
+        """Save the answers to the database."""
+        for key, value in cleaned_data.items():
+            if key.startswith("question_"):
+                question_id = int(key.split("_")[1])
+                question = questions.Question.objects.get(pk=question_id)
+
+                answer_obj = questions.Answer.objects.create(
+                    submission=submission, question=question
+                )
+
+                if question.question_type == questions.Question.TEXT or question.question_type == questions.Question.BIGTEXT:
+                    questions.TextData.objects.create(answer=answer_obj, value=value)
+
+                elif (
+                    question.question_type == questions.Question.CHOICE
+                    or question.question_type == questions.Question.DROPDOWN
+                ):
+                    choice_obj = questions.QuestionChoice.objects.get(
+                        id=int(value)
+                    )
+                    questions.ChoiceData.objects.create(
+                        answer=answer_obj, choice=choice_obj
+                    )
+
+                elif question.question_type == questions.Question.MULTI:
+                    choice_ids = [int(v) for v in value]
+                    choice_objs = question.choices.filter(pk__in=choice_ids)
+                    multi = questions.MultiData.objects.create(
+                        answer=answer_obj
+                    )
+                    multi.choices.set(choice_objs)
 
     def form_valid(self, form):
         """Check for warnings before registering."""
         if form.warnings and not form.cleaned_data.get("ignore_warnings"):
             for warning in form.warnings:
-                form.add_error(None, warning)
+                if isinstance(warning, tuple) and len(warning) == 2:
+                    field_name, message = warning
+                    form.add_error(field_name, message)
+                else:
+                    form.add_error(None, warning)
             return self.form_invalid(form)
 
         """Register new user if the form is valid."""
@@ -132,7 +168,9 @@ class Step2View(FormView):
             user.student_number = form.cleaned_data["student_number"]
             user.save()
 
-            registration = questions.Registrations.objects.current_registration()
+            registration = (
+                questions.Registrations.objects.current_registration()
+            )
 
             if not registration:
                 form.add_error(
