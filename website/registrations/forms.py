@@ -4,7 +4,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
-from registrations.models import Employee, Registration 
+from registrations.models import Employee, registration 
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
@@ -48,7 +48,7 @@ class Step2Form(forms.Form):
         self.warnings = []
 
         current_registration = (
-            Registration.Registrations.objects.current_registration()
+            registration.Registrations.objects.current_registration()
         )
 
         if not current_registration:
@@ -57,13 +57,13 @@ class Step2Form(forms.Form):
         for q in current_registration.question_set.all():
             field_name = f"question_{q.id}"
 
-            if q.question_type == Registration.Question.TEXT:
+            if q.question_type == registration.Question.TEXT:
                 self.fields[field_name] = forms.CharField(
                     label=q.question, required=not q.optional
                 )
 
-            elif q.question_type == Registration.Question.CHOICE:
-                choices = Registration.QuestionChoice.objects.filter(
+            elif q.question_type == registration.Question.CHOICE:
+                choices = registration.QuestionChoice.objects.filter(
                     question=q
                 ).values_list("id", "value")
                 self.fields[field_name] = forms.ChoiceField(
@@ -73,8 +73,8 @@ class Step2Form(forms.Form):
                     widget=forms.RadioSelect,
                 )
 
-            elif q.question_type == Registration.Question.MULTI:
-                choices = Registration.QuestionChoice.objects.filter(
+            elif q.question_type == registration.Question.MULTI:
+                choices = registration.QuestionChoice.objects.filter(
                     question=q
                 ).values_list("id", "value")
                 self.fields[field_name] = forms.MultipleChoiceField(
@@ -84,7 +84,7 @@ class Step2Form(forms.Form):
                     widget=forms.CheckboxSelectMultiple,
                 )
 
-            elif q.question_type == Registration.Question.BIGTEXT:
+            elif q.question_type == registration.Question.BIGTEXT:
                 self.fields[field_name] = forms.CharField(
                     label=q.question,
                     required=not q.optional,
@@ -92,8 +92,8 @@ class Step2Form(forms.Form):
                 )
 
                 
-            elif q.question_type == Registration.Question.DROPDOWN:
-                choices = Registration.QuestionChoice.objects.filter(
+            elif q.question_type == registration.Question.DROPDOWN:
+                choices = registration.QuestionChoice.objects.filter(
                     question=q
                 ).values_list("id", "value")
                 self.fields[field_name] = forms.ChoiceField(
@@ -154,7 +154,7 @@ class Step2Form(forms.Form):
         for field_name in self.fields:
             if field_name.startswith("question_"):
                 question_id = int(field_name.split("_")[1])
-                question = Registration.Question.objects.get(pk=question_id)
+                question = registration.Question.objects.get(pk=question_id)
                 answer = cleaned_data.get(field_name)
 
                 if not question.optional and not answer:
@@ -163,7 +163,7 @@ class Step2Form(forms.Form):
                     )
 
                 if (
-                    question.question_type == Registration.Question.MULTI
+                    question.question_type == registration.Question.MULTI
                     and answer
                 ):
                     selected_count = len(answer)

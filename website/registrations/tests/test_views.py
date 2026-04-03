@@ -7,7 +7,7 @@ from courses.models import Course, Semester
 
 from projects.models import Project
 
-from registrations.models import Employee, Registration
+from registrations.models import Employee, registration
 
 User: Employee = get_user_model()
 
@@ -113,7 +113,7 @@ class Step2Test(TestCase):
         cls.github_username = "test"
         cls.github_id = 1
         cls.student_number = "s1234567"
-        cls.dev_experience = Registration.EXPERIENCE_BEGINNER
+        cls.dev_experience = registration.Registration.EXPERIENCE_BEGINNER
 
         cls.project_preference1 = Project.objects.create(
             semester=cls.semester,
@@ -180,6 +180,7 @@ class Step2Test(TestCase):
         self.assertContains(response, f'value="{self.last_name}"')
         self.assertContains(response, f'value="{self.email}"')
 
+    # All tests below are for reference only and should be replaced
     def test_post_step2(self):
         response = self.client.post(
             "/register/step2",
@@ -267,7 +268,7 @@ class Step2Test(TestCase):
         existing_user = User.objects.create_user(
             github_id=self.github_id, student_number=self.student_number
         )
-        Registration.objects.create(
+        registration.Registration.objects.create(
             user=existing_user,
             dev_experience=self.dev_experience,
             course_id=self.se.id,
@@ -313,7 +314,7 @@ class Step2Test(TestCase):
             year=timezone.now().year - 2, season=Semester.FALL
         )
 
-        Registration.objects.create(
+        registration.Registration.objects.create(
             user=existing_user,
             dev_experience=self.dev_experience,
             course_id=self.se.id,
@@ -363,7 +364,7 @@ class Step2Test(TestCase):
             student_number=self.student_number,
             email=self.email,
         )
-        Registration.objects.create(
+        registration.Registration.objects.create(
             user=existing_user,
             dev_experience=self.dev_experience,
             course_id=self.se.id,
@@ -411,7 +412,7 @@ class Step2Test(TestCase):
             student_number=self.student_number,
             email="non-existent@test.invalid",
         )
-        Registration.objects.create(
+        registration.Registration.objects.create(
             user=existing_user,
             dev_experience=self.dev_experience,
             course_id=self.se.id,
