@@ -4,11 +4,8 @@ import logging
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.forms import widgets
 
-from courses.models import Course, Semester
-from projects.models import Project
-from registrations.models import Employee, Registration, questions
+from registrations.models import Employee, questions
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
@@ -239,6 +236,7 @@ class Step2FormNew(forms.Form):
     github_username = forms.CharField(disabled=True)
     github_id = forms.IntegerField(disabled=True)
     student_number = forms.CharField()
+    email = forms.EmailField()
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
         required=False,
@@ -269,8 +267,10 @@ class Step2FormNew(forms.Form):
         self.dynamic_questions = []
         self.questions_by_id = {}
 
-        current_registration = questions.Registrations.objects.current_registration()
-        
+        current_registration = (
+            questions.Registrations.objects.current_registration()
+        )
+
         if not current_registration:
             raise ValueError("No registration found for the current semester")
 
@@ -364,10 +364,29 @@ class Step2FormNew(forms.Form):
                 self.fields[field_name] = forms.MultipleChoiceField(
                     label=q.question,
                     choices=choices,
-                    required=False if is_follow_up else not q.optional,
-                    widget=forms.CheckboxSelectMultiple(attrs=widget_attrs),
+                    required=not q.optional,
+                    widget=forms.CheckboxSelectMultiple,
                 )
+
+            elif q.question_type == questions.Question.BIGTEXT:
+                self.fields[field_name] = forms.CharField(
+                    label=q.question,
+                    required=not q.optional,
+                    widget=forms.Textarea,
+                )
+
                 
+            elif q.question_type == questions.Question.DROPDOWN:
+                choices = questions.QuestionChoice.objects.filter(
+                    question=q
+                ).values_list("id", "value")
+                self.fields[field_name] = forms.ChoiceField(
+                    label=q.question,
+                    choices=choices,
+                    required=not q.optional,
+                    widget=forms.Select,
+                )
+
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
 

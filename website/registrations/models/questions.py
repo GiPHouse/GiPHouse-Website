@@ -25,7 +25,7 @@ class Registrations(models.Model):
     objects = RegistrationManager()
 
     def __str__(self):
-        """Return title."""
+        """Return title + semester."""
         return f"{self.title} ({self.semester})"
 
 
@@ -41,7 +41,7 @@ class RegistrationSubmission(models.Model):
 
     def __str__(self):
         """Return string representation of the submission."""
-        return self.registration.title
+        return f"{self.registration.title} submission by {self.participant} at {self.created}"
 
 
 class Question(models.Model):
@@ -157,7 +157,7 @@ class Answer(models.Model):
         """Return the human-readable answer depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT:
+        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
             return getattr(self.textdata, "value", "")
 
         elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
@@ -170,6 +170,46 @@ class Answer(models.Model):
                 return ""
 
         return ""
+
+    @classmethod
+    def save_from_cleaned_data(cls, submission, cleaned_data):
+        "Create Answer objects for all question_* fields."
+
+        for key, raw_value in cleaned_data.items():
+            if not key.startswith("question_"):
+                continue
+
+            question_id = int(key.split("_")[1])
+            question = Question.objects.get(pk=question_id)
+
+            answer = cls.objects.create(submission=submission, question=question)
+            answer.set_value(raw_value)
+
+    def set_value(self, raw_value):
+        """Store the answer depending on the question type."""
+        qtype = self.question.question_type
+
+        if qtype in (Question.TEXT, Question.BIGTEXT):
+            TextData.objects.update_or_create(
+                answer=self,
+                defaults={"value": raw_value}
+            )
+
+        elif qtype == Question.CHOICE:
+            choice = QuestionChoice.objects.get(pk=int(raw_value))
+            ChoiceData.objects.update_or_create(
+                answer=self,
+                defaults={"choice": choice}
+            )
+
+        elif qtype == Question.MULTI:
+            choice_ids = [int(v) for v in raw_value]
+            choices = self.question.choices.filter(pk__in=choice_ids)
+
+            multi, _ = MultiData.objects.get_or_create(answer=self)
+            multi.choices.set(choices)
+            multi.save()
+
 
     def __str__(self):
         return f"{self.submission.participant} answers #{self.question.id}"

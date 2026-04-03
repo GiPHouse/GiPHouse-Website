@@ -93,7 +93,7 @@ class Step2View(FormView):
             first_name, last_name = self.request.session["github_name"].rsplit(
                 " ", 1
             )
-        except (KeyError, AttributeError):
+        except KeyError, AttributeError:
             first_name, last_name = "", ""
         except ValueError:
             first_name, last_name = self.request.session["github_name"], ""
@@ -125,7 +125,10 @@ class Step2View(FormView):
                 if question.question_type == questions.Question.TEXT or question.question_type == questions.Question.BIGTEXT:
                     questions.TextData.objects.create(answer=answer_obj, value=value)
 
-                elif question.question_type == questions.Question.CHOICE or question.question_type == questions.Question.DROPDOWN:
+                elif (
+                    question.question_type == questions.Question.CHOICE
+                    or question.question_type == questions.Question.DROPDOWN
+                ):
                     choice_obj = questions.QuestionChoice.objects.get(
                         id=int(value)
                     )
@@ -159,7 +162,9 @@ class Step2View(FormView):
             user.student_number = form.cleaned_data["student_number"]
             user.save()
 
-            registration = questions.Registrations.objects.current_registration()
+            registration = (
+                questions.Registrations.objects.current_registration()
+            )
 
             if not registration:
                 form.add_error(
@@ -171,7 +176,7 @@ class Step2View(FormView):
                 registration=registration, participant=user
             )
             # TO DO: Validate dynamic parts of the form and save the answers to the database
-            self.save_answers(submission, form.cleaned_data)
+            questions.Answer.save_from_cleaned_data(submission, form.cleaned_data)
 
         # Clean up session
         for key in [
