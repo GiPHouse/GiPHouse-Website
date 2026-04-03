@@ -18,7 +18,7 @@ from projects.models import Project
 from nested_admin import NestedModelAdmin, NestedTabularInline
 
 from registrations.models import Employee, Registration
-from registrations.models.questions import (
+from registrations.models.registration import (
     Question,
     QuestionChoice,
     Registrations,

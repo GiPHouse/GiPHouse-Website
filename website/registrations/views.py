@@ -9,7 +9,7 @@ from courses.models import Semester
 
 
 from registrations.forms import Step2Form
-from registrations.models import Employee, questions
+from registrations.models import Employee, Registration
 
 
 # Only for testing
@@ -137,7 +137,7 @@ class Step2View(FormView):
             user.save()
 
             registration = (
-                questions.Registrations.objects.current_registration()
+                Registration.Registrations.objects.current_registration()
             )
 
             if not registration:
@@ -146,11 +146,11 @@ class Step2View(FormView):
                 )
                 return self.form_invalid(form)
 
-            submission = questions.RegistrationSubmission.objects.create(
+            submission = Registration.RegistrationSubmission.objects.create(
                 registration=registration, participant=user
             )
             # TO DO: Validate dynamic parts of the form and save the answers to the database
-            questions.Answer.save_from_cleaned_data(submission, form.cleaned_data)
+            Registration.Answer.save_from_cleaned_data(submission, form.cleaned_data)
 
         # Clean up session
         for key in [
