@@ -1,11 +1,7 @@
-from unittest.mock import MagicMock
-
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from courses.models import Course, Semester
-
-from projects.models import Project
+from courses.models import Semester
 
 from registrations.models import Employee
 

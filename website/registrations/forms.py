@@ -13,7 +13,7 @@ wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
 User: Employee = get_user_model()
 logger = logging.getLogger(__name__)
 
-class Step2FormNew(forms.Form):
+class Step2Form(forms.Form):
     """Form to get user information for registration."""
     first_name = forms.CharField()
     last_name = forms.CharField()
@@ -286,14 +286,13 @@ class Step2FormNew(forms.Form):
                         answer = cleaned_data.get(field_name)
                         is_follow_up = question.parent_choice_id is not None
 
-                        # Follow-up fields are conditionally required based on activation.
                         if is_follow_up and not question.optional and not answer:
                             self.add_error(
                                 field_name, 
                                 "This field is required."
                             )
                         else:   
-                            if question.question_type == questions.Question.MULTI and answer:
+                            if question.question_type == registration.Question.MULTI and answer:
                                 selected_count = len(answer)
 
                                 if question.min_choices is not None and selected_count < question.min_choices:

@@ -6,8 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('registrations', '0017_question_parent_choice_questionchoice_follow_up'),
-        ('registrations', '0019_alter_question_question_type'),
+        ('registrations', '0017_question_parent_choice_questionchoice_follow_up_and_more'),
     ]
 
     operations = [
