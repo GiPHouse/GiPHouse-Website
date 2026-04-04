@@ -587,7 +587,10 @@ class GitHubSyncTest(TestCase):
         self.create_or_update_repo__create()
         self.assertEqual(self.repo1.github_repo_id, 25)
         self.assertEqual(self.sync.repos_created, 1)
-        self.assert_info()
+
+        self.logger.warning.assert_not_called()
+        self.logger.error.assert_not_called()
+        self.assertFalse(self.sync.fail)
 
     def test_create_or_update_repo__create_exception(self):
         self.create_or_update_repo__create(self.exception)

@@ -86,8 +86,9 @@ class RepositoryInlineForm(forms.ModelForm):
     """Form for RepositoryInline."""
 
     def __init__(self, *args, **kwargs):
-        """Limit the choices of is_archived."""
         super().__init__(*args, **kwargs)
+
+        # Limit the choices of is_archived.
         if (
             self.instance is not None
             and self.instance.is_archived == Repository.Archived.CONFIRMED
@@ -103,3 +104,11 @@ class RepositoryInlineForm(forms.ModelForm):
             self.fields[
                 "is_archived"
             ].help_text = "Setting this to 'To be archived' will archive this repository during the next GitHub sync."
+
+        # Make changes to GitHub repo id field
+        if self.instance and self.instance.pk: # existing
+            self.fields["github_repo_id"].help_text = f"If you want to provide a different id, create a new Repository object.<br>Forcefully changing this field will avoid proper deletion flow and is not supported."
+            self.fields["github_repo_id"].disabled = True
+        else: # new
+            self.fields["github_repo_id"].help_text = "Leaving this field blank will create a new repository and assign members to it during the next sync.<br>If you want to use an existing repository, fill in its id in this field."
+            self.fields["private"].help_text = "If you want to use an existing repository, its status will change to the one set by this checkbox during the next update."

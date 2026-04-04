@@ -458,9 +458,16 @@ class GitHubSync:
         :param repo: The repository to create
         :return: the GitHub repository that is created
         """
+
+        # local wrapper makes interacts with the GitHub library,
+        # receives a class from the GitHub library
         github_repo = self.github.create_repo(repo)
         self.info(f"Created repository {repo.name}")
+
+        # again, this is a class from the GitHub library
         github_team = self.github.get_team(repo.project.github_team_id)
+
+        # a class from the GitHub library has these methods
         github_team.add_to_repos(github_repo)
 
         success = github_team.update_team_repository(github_repo, "admin")
