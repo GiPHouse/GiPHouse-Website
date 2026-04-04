@@ -407,7 +407,7 @@ class GitHubSync:
         for project_repo in Repository.objects.filter(project=project_team):
             if project_repo.github_repo_id is None:
                 try:
-                    project_repo.github_repo_id = self.github.create_repo(
+                    project_repo.github_repo_id = self.create_repo(
                         project_repo
                     ).id
                     project_repo.save()
@@ -451,12 +451,20 @@ class GitHubSync:
         :param repo: The repository to create
         :return: the GitHub repository that is created
         """
+
+        # local wrapper makes interacts with the GitHub library,
+        # receives a class from the GitHub library
         github_repo = self.github.create_repo(repo)
         self.info(f"Created repository {repo.name}")
+
+        # again, this is a class from the GitHub library
         github_team = self.github.get_team(repo.project.github_team_id)
+
+        # a class from the GitHub library has these methods
         github_team.add_to_repos(github_repo)
         github_team.set_repo_permission(github_repo, "admin")
         self.info(f"Added team {github_team.name} to repository {repo.name}")
+
         return github_repo
 
     def archive_repos_marked_as_archived(self, project_team):
