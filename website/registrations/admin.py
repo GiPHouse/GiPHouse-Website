@@ -79,11 +79,13 @@ class QuestionAdminForm(forms.ModelForm):
 
         return cleaned_data
 
+
 class FollowUpQuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 1
     fk_name = "question"
     inlines = []
+
 
 class FollowUpQuestionInline(NestedTabularInline):
     model = Question
@@ -99,11 +101,13 @@ class FollowUpQuestionInline(NestedTabularInline):
             instance.save()
         return instance
 
+
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 0
     fk_name = "question"
     inlines = [FollowUpQuestionInline]
+
 
 class QuestionInline(NestedTabularInline):
     model = Question
@@ -127,6 +131,7 @@ class QuestionAdmin(NestedModelAdmin):
     form = QuestionAdminForm
     list_display = ("question", "registration", "question_type", "optional")
     inlines = [QuestionChoiceInline]
+
 
 class AnswerInline(NestedTabularInline):
     model = Answer
@@ -178,6 +183,7 @@ class UserAdminProjectFilter(AutocompleteFilter):
         if self.value():
             return queryset.filter(registration__projects=self.value())
         return queryset
+
 
 class RegistrationInline(NestedTabularInline):
     """Inline form for Registration."""

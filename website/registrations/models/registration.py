@@ -12,6 +12,7 @@ from registrations.models import Employee
 
 User: Employee = get_user_model()
 
+
 class RegistrationManager(models.Manager):
     """Manager for the Registration model."""
 
@@ -76,9 +77,11 @@ class Question(models.Model):
     optional = models.BooleanField(default=False)
 
     parent_choice = models.ForeignKey(
-        "QuestionChoice", null=True, blank=True,
+        "QuestionChoice",
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
-        related_name="follow_up_questions"
+        related_name="follow_up_questions",
     )
 
     min_choices = models.PositiveIntegerField(
@@ -186,7 +189,9 @@ class Answer(models.Model):
             question_id = int(key.split("_")[1])
             question = Question.objects.get(pk=question_id)
 
-            answer = cls.objects.create(submission=submission, question=question)
+            answer = cls.objects.create(
+                submission=submission, question=question
+            )
             answer.set_value(raw_value)
 
     def set_value(self, raw_value):
@@ -195,15 +200,13 @@ class Answer(models.Model):
 
         if qtype in (Question.TEXT, Question.BIGTEXT):
             TextData.objects.update_or_create(
-                answer=self,
-                defaults={"value": raw_value}
+                answer=self, defaults={"value": raw_value}
             )
 
         elif qtype == Question.CHOICE:
             choice = QuestionChoice.objects.get(pk=int(raw_value))
             ChoiceData.objects.update_or_create(
-                answer=self,
-                defaults={"choice": choice}
+                answer=self, defaults={"choice": choice}
             )
 
         elif qtype == Question.MULTI:
@@ -213,7 +216,6 @@ class Answer(models.Model):
             multi, _ = MultiData.objects.get_or_create(answer=self)
             multi.choices.set(choices)
             multi.save()
-
 
     def __str__(self):
         return f"{self.submission.participant} answers #{self.question.id}"

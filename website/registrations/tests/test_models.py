@@ -1,17 +1,23 @@
-from unittest.mock import MagicMock
-
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from courses.models import Course, Semester
-
-from projects.models import Project
+from courses.models import Semester
 
 from registrations.models import Employee
 
-from registrations.models.registration import QuestionChoice, Registrations, RegistrationSubmission, Question, Answer, TextData, ChoiceData, MultiData
+from registrations.models.registration import (
+    QuestionChoice,
+    Registrations,
+    RegistrationSubmission,
+    Question,
+    Answer,
+    TextData,
+    ChoiceData,
+    MultiData,
+)
 
 User: Employee = get_user_model()
+
 
 class questionTest(TestCase):
     @classmethod
@@ -19,8 +25,7 @@ class questionTest(TestCase):
         # Set up data for the happy path tests
         cls.test_semester = Semester.objects.get_or_create_current_semester()
         cls.test_registration = Registrations.objects.create(
-            title="Test Registration",
-            semester=cls.test_semester
+            title="Test Registration", semester=cls.test_semester
         )
         cls.test_participant = Employee.objects.create_user(
             github_id=1, first_name="Test", last_name="Participant"

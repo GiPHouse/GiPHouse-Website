@@ -110,7 +110,6 @@ class Step2View(FormView):
         )
 
         return initial
-    
 
     def form_valid(self, form):
         """Check for warnings before registering."""
@@ -135,7 +134,7 @@ class Step2View(FormView):
             user.github_username = form.cleaned_data["github_username"]
             user.student_number = form.cleaned_data["student_number"]
             user.save()
-            
+
             submitted_registration = (
                 registration.Registrations.objects.current_registration()
             )
@@ -150,7 +149,9 @@ class Step2View(FormView):
                 registration=submitted_registration, participant=user
             )
             # TO DO: Validate dynamic parts of the form and save the answers to the database
-            registration.Answer.save_from_cleaned_data(submission, form.cleaned_data)
+            registration.Answer.save_from_cleaned_data(
+                submission, form.cleaned_data
+            )
 
         # Clean up session
         for key in [
