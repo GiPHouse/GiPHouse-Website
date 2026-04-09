@@ -4,7 +4,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
-from registrations.models import Employee, registration 
+from registrations.models import Employee, registration
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
@@ -14,6 +14,7 @@ User: Employee = get_user_model()
 
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
+
     first_name = forms.CharField()
     last_name = forms.CharField()
     email = forms.EmailField()
@@ -91,7 +92,6 @@ class Step2Form(forms.Form):
                     widget=forms.Textarea,
                 )
 
-                
             elif q.question_type == registration.Question.DROPDOWN:
                 choices = registration.QuestionChoice.objects.filter(
                     question=q

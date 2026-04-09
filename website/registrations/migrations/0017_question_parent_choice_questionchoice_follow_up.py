@@ -5,20 +5,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registrations', '0016_question_max_choices_question_min_choices_and_more'),
+        (
+            "registrations",
+            "0016_question_max_choices_question_min_choices_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='question',
-            name='parent_choice',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='follow_up_questions', to='registrations.questionchoice'),
+            model_name="question",
+            name="parent_choice",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="follow_up_questions",
+                to="registrations.questionchoice",
+            ),
         ),
         migrations.AddField(
-            model_name='questionchoice',
-            name='follow_up',
+            model_name="questionchoice",
+            name="follow_up",
             field=models.BooleanField(default=False),
         ),
     ]
