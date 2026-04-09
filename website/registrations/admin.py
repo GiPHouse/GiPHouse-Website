@@ -89,7 +89,7 @@ class FollowUpQuestionInline(NestedTabularInline):
     model = Question
     fk_name = "parent_choice"
     extra = 0
-    exclude = ("parent_choice", "registration")
+    exclude = ["parent_choice", "registration"]
     inlines = [FollowUpQuestionChoiceInline]
 
 class QuestionChoiceInline(NestedTabularInline):
@@ -103,6 +103,7 @@ class QuestionInline(NestedTabularInline):
     fk_name = "registration"
     form = QuestionAdminForm
     extra = 0
+    exclude = ["parent_choice"]
     inlines = [QuestionChoiceInline]
 
     def get_queryset(self, request):
