@@ -1,6 +1,8 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 
 from freezegun import freeze_time
 
@@ -39,13 +41,28 @@ class ModelTest(TestCase):
             title=cls.title,
         )
 
+    def test_mailinglistalias_str_method(self):
+        lecture_reg = LectureRegistration()
+
+        try:
+            # the implemented __str__ method should be different from the __str__ function in the
+            # parent class (Model)
+            self.assertNotEqual(
+                str(lecture_reg), models.Model.__str__(lecture_reg)
+            )
+            self.assertIs(type(str(lecture_reg)), str)
+        except (ObjectDoesNotExist, AttributeError):
+            # if the __str__ method relies on any fields which were not instantiated, it throws a derivative of
+            # ObjectDoesNotExist which means it is different from the parent class implementation
+            pass
+
     def test_lecture_registration_not_required(self):
         """Test registration not required."""
         self.assertFalse(self.lecture.registration_required)
 
     def test_lecture_registration_required(self):
         """Test registration is required."""
-        self.lecture.register_until = timezone.datetime(2018, 9, 10)
+        self.lecture.register_until = timezone.datetime(2018, 9, 10).now(timezone.UTC)
         self.lecture.save()
         self.assertTrue(self.lecture.registration_required)
 

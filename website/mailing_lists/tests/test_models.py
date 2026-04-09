@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.db import models
 
 from courses.models import Course, Semester
 
@@ -30,6 +31,9 @@ class ModelTest(TestCase):
         cls.existing_alias = MailingListAlias.objects.create(
             address=cls.existing_alias_address, mailing_list=cls.existing_list
         )
+
+    def test_mailininglistalias_str_method(self):
+        self.assertEqual(self.existing_alias_address, str(self.existing_alias))
 
     def test_list_validate_unique_is_valid(self):
         self.existing_list.validate_unique()
@@ -88,13 +92,21 @@ class ModelTest(TestCase):
             preference1=project,
             semester=semester,
         )
-        reg.project = project
+        reg.add_project(project)
 
-        MailingListCourseSemesterLink.objects.create(
+        mail_list_course_sem_link = MailingListCourseSemesterLink.objects.create(
             mailing_list=self.existing_list, course=course, semester=semester
         )
 
         self.assertCountEqual(self.existing_list.all_addresses, ["e@test.nl"])
+
+        # the implemented __str__ method should be different from the __str__ function in the
+        # parent class (Model)
+        self.assertNotEqual(
+            str(mail_list_course_sem_link), models.Model.__str__(mail_list_course_sem_link)
+        )
+        self.assertIs(type(str(mail_list_course_sem_link)), str)
+
 
     def test_all_addresses_projects(self):
         semester = Semester.objects.create(year=2000, season=Semester.FALL)
@@ -112,7 +124,7 @@ class ModelTest(TestCase):
             preference1=project,
             semester=semester,
         )
-        reg.project = project
+        reg.add_project(project)
 
         self.existing_list.projects.add(project)
         self.existing_list.save()
@@ -136,6 +148,13 @@ class ModelTest(TestCase):
         self.assertCountEqual(
             self.existing_list.all_addresses, [extra.address]
         )
+
+        # the implemented __str__ method should be different from the __str__ function in the
+        # parent class (Model)
+        self.assertNotEqual(
+            str(extra), models.Model.__str__(extra)
+        )
+        self.assertIs(type(str(extra)), str)
 
     def test_email_validator_does_block_reserved_address(self):
         try:
@@ -164,14 +183,23 @@ class ModelTest(TestCase):
             ).exists()
         )
 
+
+
     def test_handle_mailing_list_delete_without_gsuite_group_name(self):
-        mailinglist = MailingList.objects.create(address="signal_list")
+        address="signal_list"
+        mailinglist = MailingList.objects.create(address=address)
         mailinglist.delete()
         self.assertTrue(
             MailingListToBeDeleted.objects.filter(
-                address="signal_list"
+                address=address
             ).exists()
         )
+
+        # test the __str__ method
+        mailinglist_to_be_del = MailingListToBeDeleted.objects.filter(
+            address=address
+        )[0]
+        self.assertEqual(address, str(mailinglist_to_be_del))
 
     def test_mailinglist_aliases_empty(self):
         mailing_list = MailingList.objects.create(address="signal_list")

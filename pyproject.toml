@@ -38,7 +38,6 @@ dependencies = [
     "google-api-python-client>=2.190.0",
     "google-auth-httplib2>=0.3.0",
     "google-auth-oauthlib>=1.2.4",
-    "pygithub>=2.8.1",
     "cryptography>=38.0.3",
     "ortools>=9.15.6755",
     "PyGithub>=2.8.1",
@@ -49,6 +48,7 @@ dependencies = [
     "django-bleach>=3.1.0",
     "django-nested-admin>=4.1.6",
     "gunicorn>=25.1.0",
+    "django-components>=0.148.0",
 ]
 
 [project.optional-dependencies]

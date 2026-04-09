@@ -26,12 +26,13 @@ class ReservationTest(TestCase):
         )
 
         cls.room = Room.objects.create(name="New York", location="Merc 0.1337")
+        cls.time1_start, cls.time1_end = timezone.now(), timezone.now()+timezone.timedelta(hours=1)
 
         cls.user_reservation = Reservation.objects.create(
             reservee=cls.user,
             room=cls.room,
-            start_time=timezone.now(),
-            end_time=timezone.now() + timezone.timedelta(hours=1),
+            start_time=cls.time1_start,
+            end_time=cls.time1_end,
         )
 
         cls.other_reservation = Reservation.objects.create(
@@ -44,6 +45,9 @@ class ReservationTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.client.force_login(self.user)
+
+    def test_reservation_model_str_method(self):
+        self.assertEqual(str(self.user_reservation), f"{self.user} has {self.room} reserved at {self.time1_start} until {self.time1_end}")
 
     def test_get_calendar(self):
         response = self.client.get(reverse("room_reservation:calendar"))

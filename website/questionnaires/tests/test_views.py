@@ -59,7 +59,7 @@ class QuestionnaireTest(TestCase):
             preference1=cls.team,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
-        reg.project = cls.team
+        reg.add_project(cls.team)
 
         cls.alone_user = User.objects.create_user(
             github_id=1, github_username="test1"
@@ -75,7 +75,7 @@ class QuestionnaireTest(TestCase):
             preference1=cls.team,
             dev_experience=Registration.EXPERIENCE_ADVANCED,
         )
-        reg.project = cls.team
+        reg.add_project(cls.team)
 
         cls.active_questions = Questionnaire.objects.create(
             semester=semester,
