@@ -152,10 +152,7 @@ class GetProjectsTest(TestCase):
             description="test1",
         )
 
-        sem2 = Semester.objects.create(
-            year=2030,
-            season=Semester.SPRING
-        )
+        sem2 = Semester.objects.create(year=2030, season=Semester.SPRING)
         p2 = Project.objects.create(
             name="p23352135no/fe",
             semester=sem2,

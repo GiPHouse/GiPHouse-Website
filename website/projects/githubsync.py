@@ -96,7 +96,8 @@ class GitHubAPITalker:
         """
         if self._access_token is None or (
             self._access_token.expires_at.replace(tzinfo=timezone.utc)
-            - datetime.now(timezone.utc) < timedelta(seconds=60)
+            - datetime.now(timezone.utc)
+            < timedelta(seconds=60)
         ):
             self._access_token = self._gi.get_access_token(
                 self.installation_id

@@ -84,9 +84,7 @@ class EmployeeQueryTest(TestCase):
 
     def test_client_model_str_method(self):
         client_name = "free labor"
-        client = Client.objects.create(
-            name = client_name
-        )
+        client = Client.objects.create(name=client_name)
 
         self.assertEqual(str(client), f"{client_name}")
 
@@ -131,7 +129,9 @@ class EmployeeQueryTest(TestCase):
         self.assertTrue(
             ProjectToBeDeleted.objects.get(github_team_id=12345678)
         )
-        proj_to_be_del = ProjectToBeDeleted.objects.get(github_team_id=12345678)
+        proj_to_be_del = ProjectToBeDeleted.objects.get(
+            github_team_id=12345678
+        )
 
         # the implemented __str__ method should be different from the __str__ function in the
         # parent class (Model)
@@ -151,7 +151,9 @@ class EmployeeQueryTest(TestCase):
         self.assertTrue(
             RepositoryToBeDeleted.objects.get(github_repo_id=87654321)
         )
-        repo_to_be_del = RepositoryToBeDeleted.objects.get(github_repo_id=87654321)
+        repo_to_be_del = RepositoryToBeDeleted.objects.get(
+            github_repo_id=87654321
+        )
 
         # the implemented __str__ method should be different from the __str__ function in the
         # parent class (Model)
