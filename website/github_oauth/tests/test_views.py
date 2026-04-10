@@ -1,6 +1,6 @@
 from unittest import mock
 
-from django.contrib.auth import get_user_model, get_user
+from django.contrib.auth import get_user_model  # noqa: F401
 from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase

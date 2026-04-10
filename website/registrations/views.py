@@ -9,7 +9,24 @@ from courses.models import Semester
 
 
 from registrations.forms import Step2Form
-from registrations.models import Employee, Registration
+from registrations.models import Employee, registration
+
+
+# Only for testing
+def dev_login(request):
+    """Simulate GitHub OAuth login for local development. This sets the session variables that Step2Form expects."""
+
+    employee = Employee.objects.get(github_username="devuser")
+    login(request, employee)
+
+    request.session["github_id"] = 123456
+    request.session["github_username"] = "devuser"
+    request.session["github_name"] = "Dev User"
+    request.session["github_email"] = "devuser@example.com"
+
+    # Redirect to Step2View where the form is return redirect("registrations:step2")
+    return redirect("registrations:step2")
+
 
 User: Employee = get_user_model()
 
@@ -49,6 +66,11 @@ class Step2View(FormView):
 
     form_class = Step2Form
     success_url = "/"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["session"] = self.request.session
+        return kwargs
 
     def dispatch(self, request, *args, **kwargs):
         """Check whether github_id is set in the session."""
@@ -92,7 +114,12 @@ class Step2View(FormView):
     def form_valid(self, form):
         """Check for warnings before registering."""
         if form.warnings and not form.cleaned_data.get("ignore_warnings"):
-            form.add_error(None, form.warnings[0])
+            for warning in form.warnings:
+                if isinstance(warning, tuple) and len(warning) == 2:
+                    field_name, message = warning
+                    form.add_error(field_name, message)
+                else:
+                    form.add_error(None, warning)
             return self.form_invalid(form)
 
         """Register new user if the form is valid."""
@@ -107,61 +134,34 @@ class Step2View(FormView):
             user.github_username = form.cleaned_data["github_username"]
             user.student_number = form.cleaned_data["student_number"]
             user.save()
-            Registration.objects.create(
-                user=user,
-                semester=Semester.objects.get_first_semester_with_open_registration(),
-                course=form.cleaned_data["course"],
-                git_experience=form.cleaned_data["git_experience"],
-                dev_experience=form.cleaned_data["dev_experience"],
-                scrum_experience=form.cleaned_data["scrum_experience"],
-                management_interest=form.cleaned_data["management_interest"],
-                preference1=form.cleaned_data["project1"],
-                preference2=form.cleaned_data["project2"],
-                preference3=form.cleaned_data["project3"],
-                partner_preference1=form.cleaned_data.get("partner1", ""),
-                partner_preference2=form.cleaned_data.get("partner2", ""),
-                partner_preference3=form.cleaned_data.get("partner3", ""),
-                comments=form.cleaned_data.get("comments", ""),
-                is_international=form.cleaned_data["international"],
-                available_during_scheduled_timeslot_1=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_1", False
-                ),
-                available_during_scheduled_timeslot_2=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_2", False
-                ),
-                available_during_scheduled_timeslot_3=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_3", False
-                ),
-                available_during_scheduled_timeslot_4=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_4", False
-                ),
-                available_during_scheduled_timeslot_5=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_5", False
-                ),
-                available_during_scheduled_timeslot_6=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_6", False
-                ),
-                available_during_scheduled_timeslot_7=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_7", False
-                ),
-                available_during_scheduled_timeslot_8=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_8", False
-                ),
-                available_during_scheduled_timeslot_9=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_9", False
-                ),
-                available_during_scheduled_timeslot_10=form.cleaned_data.get(
-                    "available_during_scheduled_timeslot_10", False
-                ),
-                has_problems_with_signing_an_nda=form.cleaned_data.get(
-                    "has_problems_with_signing_an_nda", False
-                ),
+
+            submitted_registration = (
+                registration.Registrations.objects.current_registration()
             )
 
-        del self.request.session["github_id"]
-        del self.request.session["github_username"]
-        del self.request.session["github_name"]
-        del self.request.session["github_email"]
+            if not submitted_registration:
+                form.add_error(
+                    None, "No registration form found for this semester."
+                )
+                return self.form_invalid(form)
+
+            submission = registration.RegistrationSubmission.objects.create(
+                registration=submitted_registration, participant=user
+            )
+            # TO DO: Validate dynamic parts of the form and save the answers to the database
+            registration.Answer.save_from_cleaned_data(
+                submission, form.cleaned_data
+            )
+
+        # Clean up session
+        for key in [
+            "github_id",
+            "github_username",
+            "github_name",
+            "github_email",
+        ]:
+            if key in self.request.session:
+                del self.request.session[key]
 
         messages.success(
             self.request,

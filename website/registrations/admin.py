@@ -18,16 +18,17 @@ from projects.models import Project
 
 from nested_admin import NestedModelAdmin, NestedTabularInline
 
-from registrations.models import (
-    Employee,
-    Registration,
-    Registrations,
+from registrations.models import Employee, Registration
+from registrations.models.registration import (
     Question,
     QuestionChoice,
+    Registrations,
+    RegistrationSubmission,
+    Answer,
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    #TeamAssignmentGenerator,
+    # TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
@@ -36,15 +37,88 @@ User: Employee = get_user_model()
 "interface for Registrationss with the proper inlines."
 
 
-class QuestionChoiceInline(NestedTabularInline):
+class QuestionAdminForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        question_type = cleaned_data.get("question_type")
+        min_choices = cleaned_data.get("min_choices")
+        max_choices = cleaned_data.get("max_choices")
+
+        errors = []
+
+        if question_type == Question.MULTI:
+            if min_choices is not None and min_choices < 0:
+                errors.append("min_choices cannot be negative.")
+            if max_choices is not None and max_choices < 0:
+                errors.append("max_choices cannot be negative.")
+            if (
+                min_choices is not None
+                and max_choices is not None
+                and min_choices > max_choices
+            ):
+                errors.append(
+                    "min_choices cannot be greater than max_choices."
+                )
+
+            if self.instance and self.instance.pk:
+                choice_count = self.instance.choices.count()
+                if min_choices is not None and min_choices > choice_count:
+                    errors.append(
+                        f"min_choices ({min_choices}) cannot exceed the number of choices ({choice_count})."
+                    )
+                if max_choices is not None and max_choices > choice_count:
+                    errors.append(
+                        f"max_choices ({max_choices}) cannot exceed the number of choices ({choice_count})."
+                    )
+
+        if errors:
+            raise forms.ValidationError(errors)
+
+        return cleaned_data
+
+
+class FollowUpQuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 1
+    fk_name = "question"
+    inlines = []
+
+
+class FollowUpQuestionInline(NestedTabularInline):
+    model = Question
+    fk_name = "parent_choice"
+    extra = 1
+    exclude = ("parent_choice", "registration")
+    inlines = [FollowUpQuestionChoiceInline]
+
+    def save_new(self, form, commit=True):
+        instance = super().save_new(form, commit=False)
+        instance.registration = form.cleaned_data["registration"]
+        if commit:
+            instance.save()
+        return instance
+
+
+class QuestionChoiceInline(NestedTabularInline):
+    model = QuestionChoice
+    extra = 0
+    fk_name = "question"
+    inlines = [FollowUpQuestionInline]
 
 
 class QuestionInline(NestedTabularInline):
     model = Question
-    extra = 1
+    fk_name = "registration"
+    form = QuestionAdminForm
+    extra = 0
     inlines = [QuestionChoiceInline]
+
+    class Media:
+        js = ("js/question_type_toggle.js",)
 
 
 @admin.register(Registrations)
@@ -55,8 +129,32 @@ class RegistrationsAdmin(NestedModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(NestedModelAdmin):
+    form = QuestionAdminForm
     list_display = ("question", "registration", "question_type", "optional")
     inlines = [QuestionChoiceInline]
+
+
+class AnswerInline(NestedTabularInline):
+    model = Answer
+    extra = 0
+    readonly_fields = ("question_text", "answer_value")
+    exclude = ("question",)
+
+    def question_text(self, obj):
+        return obj.question.question
+
+    question_text.short_description = "Question"
+
+    def answer_value(self, obj):
+        return obj.answer_value
+
+    answer_value.short_description = "Answer"
+
+
+@admin.register(RegistrationSubmission)
+class RegistrationSubmissionAdmin(admin.ModelAdmin):
+    list_display = ("registration", "participant", "submitted", "created")
+    inlines = [AnswerInline]
 
 
 class UserAdminSemesterFilter(AutocompleteFilter):
@@ -88,16 +186,23 @@ class UserAdminProjectFilter(AutocompleteFilter):
         return queryset
 
 
-class RegistrationInline(admin.StackedInline):
+class RegistrationInline(NestedTabularInline):
     """Inline form for Registration."""
 
-    model = Registration
+    model = Registrations
     extra = 0
-    filter_horizontal = ("projects",)
+
+
+class RegistrationSubmissionInline(NestedTabularInline):
+    """Inline form for Registration."""
+
+    model = RegistrationSubmission
+    extra = 0
+    inlines = [AnswerInline]
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(NestedModelAdmin):
     """Custom admin for Student."""
 
     actions = (
@@ -134,7 +239,7 @@ class UserAdmin(admin.ModelAdmin):
         ("Private comments", {"fields": ("comments",)}),
     )
 
-    inlines = [RegistrationInline]
+    inlines = [RegistrationSubmissionInline]
     list_display = (
         "__str__",
         "get_current_project",

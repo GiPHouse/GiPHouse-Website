@@ -51,7 +51,7 @@ class ModelTest(TestCase):
                 str(lecture_reg), models.Model.__str__(lecture_reg)
             )
             self.assertIs(type(str(lecture_reg)), str)
-        except (ObjectDoesNotExist, AttributeError):
+        except ObjectDoesNotExist, AttributeError:
             # if the __str__ method relies on any fields which were not instantiated, it throws a derivative of
             # ObjectDoesNotExist which means it is different from the parent class implementation
             pass
@@ -62,7 +62,9 @@ class ModelTest(TestCase):
 
     def test_lecture_registration_required(self):
         """Test registration is required."""
-        self.lecture.register_until = timezone.datetime(2018, 9, 10).now(timezone.UTC)
+        self.lecture.register_until = timezone.datetime(2018, 9, 10).now(
+            timezone.UTC
+        )
         self.lecture.save()
         self.assertTrue(self.lecture.registration_required)
 
