@@ -221,7 +221,11 @@ class UserAdmin(admin.ModelAdmin):
         """Return current project."""
         registration = obj.registration_set.first()
         return (
-            mark_safe("<br>".join(str(p) for p in registration.get_projects()))
+            mark_safe(
+                '<div style="display: -webkit-box;-webkit-line-clamp: 5;-webkit-box-orient: vertical;overflow: hidden;">'
+                + "<br>".join(str(p) for p in registration.get_projects())
+                + "</div>"
+            )
             if registration
             else None
         )
