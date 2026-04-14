@@ -7,7 +7,6 @@ from django.views.generic import FormView, TemplateView
 
 from courses.models import Semester
 
-
 from registrations.forms import Step2Form
 from registrations.models import Employee, registration
 
@@ -114,12 +113,6 @@ class Step2View(FormView):
     def form_valid(self, form):
         """Check for warnings before registering."""
         if form.warnings and not form.cleaned_data.get("ignore_warnings"):
-            for warning in form.warnings:
-                if isinstance(warning, tuple) and len(warning) == 2:
-                    field_name, message = warning
-                    form.add_error(field_name, message)
-                else:
-                    form.add_error(None, warning)
             return self.form_invalid(form)
 
         """Register new user if the form is valid."""
