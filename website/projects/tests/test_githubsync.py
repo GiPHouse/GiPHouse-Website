@@ -53,8 +53,8 @@ class GitHubAPITalkerTest(TestCase):
 
         patcher = patch.object(
             type(self.talker),
-            'github_service',  # the name of the property
-            new_callable=PropertyMock   # it's a property
+            "github_service",  # the name of the property
+            new_callable=PropertyMock,  # it's a property
         )
         self.addCleanup(patcher.stop)
         mock_property = patcher.start()

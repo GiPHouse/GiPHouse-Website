@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from tasks.models import Task
 
+
 class ModelsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -14,9 +15,12 @@ class ModelsTest(TestCase):
             total=cls.total,
             completed=cls.completed,
             fail=cls.fail,
-            redirect_url=cls.redirect_url
+            redirect_url=cls.redirect_url,
         )
 
     def test_task_model_str_method(self):
-        self.assertEqual(f"Task with {self.completed} done out of {self.total} and "
-            f"failed with redirect to {self.redirect_url}", str(self.test_task))
+        self.assertEqual(
+            f"Task with {self.completed} done out of {self.total} and "
+            f"failed with redirect to {self.redirect_url}",
+            str(self.test_task),
+        )

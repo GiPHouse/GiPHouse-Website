@@ -94,8 +94,12 @@ class ModelTest(TestCase):
         )
         reg.add_project(project)
 
-        mail_list_course_sem_link = MailingListCourseSemesterLink.objects.create(
-            mailing_list=self.existing_list, course=course, semester=semester
+        mail_list_course_sem_link = (
+            MailingListCourseSemesterLink.objects.create(
+                mailing_list=self.existing_list,
+                course=course,
+                semester=semester,
+            )
         )
 
         self.assertCountEqual(self.existing_list.all_addresses, ["e@test.nl"])
@@ -103,10 +107,10 @@ class ModelTest(TestCase):
         # the implemented __str__ method should be different from the __str__ function in the
         # parent class (Model)
         self.assertNotEqual(
-            str(mail_list_course_sem_link), models.Model.__str__(mail_list_course_sem_link)
+            str(mail_list_course_sem_link),
+            models.Model.__str__(mail_list_course_sem_link),
         )
         self.assertIs(type(str(mail_list_course_sem_link)), str)
-
 
     def test_all_addresses_projects(self):
         semester = Semester.objects.create(year=2000, season=Semester.FALL)
@@ -151,9 +155,7 @@ class ModelTest(TestCase):
 
         # the implemented __str__ method should be different from the __str__ function in the
         # parent class (Model)
-        self.assertNotEqual(
-            str(extra), models.Model.__str__(extra)
-        )
+        self.assertNotEqual(str(extra), models.Model.__str__(extra))
         self.assertIs(type(str(extra)), str)
 
     def test_email_validator_does_block_reserved_address(self):
@@ -183,16 +185,12 @@ class ModelTest(TestCase):
             ).exists()
         )
 
-
-
     def test_handle_mailing_list_delete_without_gsuite_group_name(self):
-        address="signal_list"
+        address = "signal_list"
         mailinglist = MailingList.objects.create(address=address)
         mailinglist.delete()
         self.assertTrue(
-            MailingListToBeDeleted.objects.filter(
-                address=address
-            ).exists()
+            MailingListToBeDeleted.objects.filter(address=address).exists()
         )
 
         # test the __str__ method
