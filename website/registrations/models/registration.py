@@ -71,9 +71,63 @@ class Question(models.Model):
         (DROPDOWN, "Dropdown"),
     ]
 
+    FIRSTNAME   = "firstname"
+    LASTNAME    = "lastname"
+
+    PROJECT1    = "project1"
+    PROJECT2    = "project2"
+    PROJECT3    = "project3"
+
+    PARTNER1    = "partner1"
+    PARTNER2    = "partner2"
+    PARTNER3    = "partner3"
+
+    DEVEXP      = "devexp"
+    MANAGEMENT  = "management"
+    NONDUTCH    = "nondutch"
+
+    TIMESLOT1   = "timeslot1"
+    TIMESLOT2   = "timeslot2"
+    TIMESLOT3   = "timeslot3"
+    TIMESLOT4   = "timeslot4"
+    TIMESLOT5   = "timeslot5"
+    TIMESLOT6   = "timeslot6"
+    TIMESLOT7   = "timeslot7"
+    TIMESLOT8   = "timeslot8"
+    TIMESLOT9   = "timeslot9"
+    TIMESLOT10  = "timeslot10"
+
+    NONDA       = "nonda"
+
+    QUESTION_LABELS = [
+        (FIRSTNAME, "First name"),
+        (LASTNAME, "Last name"),
+        (PROJECT1, "1st project preference"),
+        (PROJECT2, "2nd project preference"),
+        (PROJECT3, "3rd project preference"),
+        (PARTNER1, "1st partner preference"),
+        (PARTNER2, "2nd partner preference"),
+        (PARTNER3, "3rd partner preference"),
+        (DEVEXP, "Dev Experience"),
+        (MANAGEMENT, "Management Interest"),
+        (NONDUTCH, "Non-dutch"),
+        (TIMESLOT1, "Available during scheduled timeslot 1"),
+        (TIMESLOT2, "Available during scheduled timeslot 2"),
+        (TIMESLOT3, "Available during scheduled timeslot 3"),
+        (TIMESLOT4, "Available during scheduled timeslot 4"),
+        (TIMESLOT5, "Available during scheduled timeslot 5"),
+        (TIMESLOT6, "Available during scheduled timeslot 6"),
+        (TIMESLOT7, "Available during scheduled timeslot 7"),
+        (TIMESLOT8, "Available during scheduled timeslot 8"),
+        (TIMESLOT9, "Available during scheduled timeslot 9"),
+        (TIMESLOT10, "Available during scheduled timeslot 10"),
+        (NONDA, "Has problems with signing an NDA"),
+    ]
+
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
+    label = models.CharField(max_length=50, choices=QUESTION_LABELS)
     optional = models.BooleanField(default=False)
 
     parent_choice = models.ForeignKey(
