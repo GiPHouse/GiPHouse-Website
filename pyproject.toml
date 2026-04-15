@@ -59,7 +59,7 @@ production = [
 
 [dependency-groups]
 dev = [
-    "coverage[toml]>=6.5.0",
+    "coverage[toml]>=7.13.5",
     "pydocstyle>=6.3.0",
     "freezegun>=1.5.5",
     "Faker>=40.4.0",
