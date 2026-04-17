@@ -156,6 +156,29 @@ class RegistrationSubmissionAdmin(admin.ModelAdmin):
     inlines = [AnswerInline]
 
 
+class AnswerInline(NestedTabularInline):
+    model = Answer
+    extra = 0
+    readonly_fields = ("question_text", "answer_value")
+    exclude = ("question",)
+
+    def question_text(self, obj):
+        return obj.question.question
+
+    question_text.short_description = "Question"
+
+    def answer_value(self, obj):
+        return obj.answer_value
+
+    answer_value.short_description = "Answer"
+
+
+@admin.register(RegistrationSubmission)
+class RegistrationSubmissionAdmin(admin.ModelAdmin):
+    list_display = ("registration", "participant", "submitted", "created")
+    inlines = [AnswerInline]
+
+
 class UserAdminSemesterFilter(admin.SimpleListFilter):
     """Filter class to filter Semester objects."""
 
