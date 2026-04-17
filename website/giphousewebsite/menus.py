@@ -37,19 +37,7 @@ MAIN_MENU = [
     },
     {
         "title": "Projects",
-        "submenu": lambda: [
-            {
-                "title": str(semester),
-                "url": reverse(
-                    "projects:projects",
-                    kwargs={
-                        "year": semester.year,
-                        "season_slug": semester.get_season_display().lower(),
-                    },
-                ),
-            }
-            for semester in Semester.objects.all()
-        ],
+        "url": reverse("projects:overview"),
     },
     {
         "title": "Room Reservations",

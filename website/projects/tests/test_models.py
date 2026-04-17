@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 from django.test import TestCase
+from django.db import models
 
 from courses.models import Course, Semester
 
@@ -10,6 +11,7 @@ from projects.models import (
     ProjectToBeDeleted,
     Repository,
     RepositoryToBeDeleted,
+    Client,
 )
 
 from registrations.models import Employee, Registration
@@ -78,7 +80,13 @@ class EmployeeQueryTest(TestCase):
             preference1=project,
             semester=cls.semester,
         )
-        reg.projects.add(project)
+        reg.add_project(project)
+
+    def test_client_model_str_method(self):
+        client_name = "free labor"
+        client = Client.objects.create(name=client_name)
+
+        self.assertEqual(str(client), f"{client_name}")
 
     def test_generate_team_description(self):
         """Tests a correct team description for a project."""
@@ -121,6 +129,16 @@ class EmployeeQueryTest(TestCase):
         self.assertTrue(
             ProjectToBeDeleted.objects.get(github_team_id=12345678)
         )
+        proj_to_be_del = ProjectToBeDeleted.objects.get(
+            github_team_id=12345678
+        )
+
+        # the implemented __str__ method should be different from the __str__ function in the
+        # parent class (Model)
+        self.assertNotEqual(
+            str(proj_to_be_del), models.Model.__str__(proj_to_be_del)
+        )
+        self.assertIs(type(str(proj_to_be_del)), str)
 
     def test_delete_repository(self):
         """Test if deleted repos are added to delete-list."""
@@ -133,6 +151,16 @@ class EmployeeQueryTest(TestCase):
         self.assertTrue(
             RepositoryToBeDeleted.objects.get(github_repo_id=87654321)
         )
+        repo_to_be_del = RepositoryToBeDeleted.objects.get(
+            github_repo_id=87654321
+        )
+
+        # the implemented __str__ method should be different from the __str__ function in the
+        # parent class (Model)
+        self.assertNotEqual(
+            str(repo_to_be_del), models.Model.__str__(repo_to_be_del)
+        )
+        self.assertIs(type(str(repo_to_be_del)), str)
 
     def test_is_archived(self):
         self.assertEqual(

@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path
 from django.views import View
+from django.utils.safestring import mark_safe
 
 from courses.models import Semester
 
@@ -18,7 +19,7 @@ from projects.models import Project
 from nested_admin import NestedModelAdmin, NestedTabularInline
 
 from registrations.models import Employee, Registration
-from registrations.models.questions import (
+from registrations.models.registration import (
     Question,
     QuestionChoice,
     Registrations,
@@ -27,7 +28,7 @@ from registrations.models.questions import (
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    TeamAssignmentGenerator,
+    # TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
@@ -79,25 +80,20 @@ class QuestionAdminForm(forms.ModelForm):
 
         return cleaned_data
 
+
 class FollowUpQuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
-    extra = 1
+    extra = 0
     fk_name = "question"
     inlines = []
+
 
 class FollowUpQuestionInline(NestedTabularInline):
     model = Question
     fk_name = "parent_choice"
-    extra = 1
-    exclude = ("parent_choice", "registration")
+    extra = 0
+    exclude = ["parent_choice", "registration"]
     inlines = [FollowUpQuestionChoiceInline]
-
-    def save_new(self, form, commit=True):
-        instance = super().save_new(form, commit=False)
-        instance.registration = form.cleaned_data["registration"]
-        if commit:
-            instance.save()
-        return instance
 
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
@@ -105,15 +101,21 @@ class QuestionChoiceInline(NestedTabularInline):
     fk_name = "question"
     inlines = [FollowUpQuestionInline]
 
+
 class QuestionInline(NestedTabularInline):
     model = Question
     fk_name = "registration"
     form = QuestionAdminForm
     extra = 0
+    exclude = ["parent_choice"]
     inlines = [QuestionChoiceInline]
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.filter(parent_choice__isnull=True)
+
     class Media:
-        js = ("js/question_type_toggle.js",)
+        js = ("js/question_type_toggle_admin.js",)
 
 
 @admin.register(Registrations)
@@ -127,6 +129,7 @@ class QuestionAdmin(NestedModelAdmin):
     form = QuestionAdminForm
     list_display = ("question", "registration", "question_type", "optional")
     inlines = [QuestionChoiceInline]
+
 
 class AnswerInline(NestedTabularInline):
     model = Answer
@@ -179,6 +182,7 @@ class UserAdminProjectFilter(AutocompleteFilter):
             return queryset.filter(registration__projects=self.value())
         return queryset
 
+
 class RegistrationInline(NestedTabularInline):
     """Inline form for Registration."""
 
@@ -199,11 +203,9 @@ class UserAdmin(NestedModelAdmin):
     """Custom admin for Student."""
 
     actions = (
-        "place_in_first_project_preference",
         "unassign_from_project",
         "export_student_numbers",
         "export_registrations",
-        "generate_project_assignment_proposal",
     )
 
     fieldsets = (
@@ -268,16 +270,13 @@ class UserAdmin(NestedModelAdmin):
     def get_current_project(self, obj):
         """Return current project."""
         registration = obj.registration_set.first()
-        return registration.project if registration else None
+        return (
+            mark_safe("<br>".join(str(p) for p in registration.get_projects()))
+            if registration
+            else None
+        )
 
     get_current_project.short_description = "Project"
-
-    def place_in_first_project_preference(self, request, queryset):
-        """Place the selected users in their first project preference."""
-        for user in queryset:
-            registration = user.registration_set.first()
-            registration.project = registration.preference1
-            registration.save()
 
     def export_student_numbers(self, request, queryset):
         """Export the first name, last name and student number of the selected users to a CSV file."""
@@ -389,35 +388,14 @@ class UserAdmin(NestedModelAdmin):
         num_unassigned = 0
         for user in queryset:
             reg = user.registration_set.first()
-            if reg is not None and reg.project is not None:
-                reg.project = None
+            if reg is not None and reg.get_projects() is not None:
+                reg.remove_projects()
                 reg.save()
                 num_unassigned += 1
         messages.success(
             request,
             f"Succesfully unassigned {num_unassigned} registrations.",
         )
-
-    def generate_project_assignment_proposal(self, request, queryset):
-        """Create task to compute project assignment."""
-        registrations = [user.registration_set.first() for user in queryset]
-
-        if None in registrations:
-            messages.warning(request, "All users should have a registration.")
-            return
-
-        if (
-            len(set(registration.semester for registration in registrations))
-            > 1
-        ):
-            messages.warning(
-                request,
-                "All users should have a registration in the same semester.",
-            )
-            return
-
-        task = TeamAssignmentGenerator(registrations).start_solve_task()
-        return redirect("admin:progress_bar", task=task.id)
 
     def get_urls(self):
         """Get admin urls."""
@@ -504,10 +482,10 @@ class ImportAssignmentAdminView(View):
                     f"{csv_student_number} in semester {semester} for course {csv_course}. "
                 )
 
-            if registration.project:
+            if registration.get_projects().count() != 0:
                 num_ignored += 1
             else:
-                registration.project = project
+                registration.add_project(project)
                 registration.save()
                 num_assigned += 1
 

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from unittest import mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, PropertyMock
 
 from django.test import TestCase
 
@@ -51,6 +51,15 @@ class GitHubAPITalkerTest(TestCase):
         self.talker._organization = MagicMock()
         self.talker._github = MagicMock()
 
+        patcher = patch.object(
+            type(self.talker),
+            "github_service",  # the name of the property
+            new_callable=PropertyMock,  # it's a property
+        )
+        self.addCleanup(patcher.stop)
+        mock_property = patcher.start()
+        mock_property.return_value = self.talker._github
+
         self.old_github_init = MainClass.Github.__init__
         self.old_github_get_org = MainClass.Github.get_organization
         MainClass.Github.__init__ = MagicMock(return_value=None)
@@ -71,7 +80,7 @@ class GitHubAPITalkerTest(TestCase):
     def test_renew_access_token_if_required__unexpired(self):
         """Test if when requesting an unexpired token, nothing happens."""
         self.talker._gi.get_access_token = MagicMock()
-        self.talker._github = MagicMock()
+        # self.talker._github = MagicMock()
         self.talker.renew_access_token_if_required()
         self.talker._gi.get_access_token.assert_not_called()
         self.talker._github.get_organization.assert_not_called()
@@ -182,7 +191,7 @@ class GitHubSyncTest(TestCase):
             preference1=cls.project1,
             semester=cls.semester,
         )
-        reg.projects.add(cls.project1)
+        reg.add_project(cls.project1)
         cls.exception = GithubException(
             status=MagicMock(status=404), data="abc", headers={}
         )
@@ -284,7 +293,8 @@ class GitHubSyncTest(TestCase):
 
     def test_sync_team_member__not_in_project(self):
         reg = Registration.objects.get(user=self.employee1)
-        reg.project = None
+        # field first_project does not currently exist
+        reg.first_project = None
         reg.save()
         return_value = self.sync.sync_team_member(
             self.employee1, self.project1
