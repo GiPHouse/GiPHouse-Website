@@ -127,7 +127,7 @@ class RegistrationsAdmin(NestedModelAdmin):
 @admin.register(Question)
 class QuestionAdmin(NestedModelAdmin):
     form = QuestionAdminForm
-    list_display = ("question", "registration", "question_type", "optional")
+    list_display = ("question", "registration", "question_type", "label", "optional")
     inlines = [QuestionChoiceInline]
 
 
