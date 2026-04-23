@@ -8,7 +8,7 @@ from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.urls import path
+from django.urls import path, reverse
 from django.views import View
 from django.utils.safestring import mark_safe
 from django.forms.models import BaseInlineFormSet
@@ -78,7 +78,7 @@ class QuestionAdminForm(forms.ModelForm):
         max_choices = cleaned_data.get("max_choices")
 
         errors = []
-
+    
         if question_type == Question.MULTI:
             if min_choices is not None and min_choices < 0:
                 errors.append("min_choices cannot be negative.")
@@ -152,6 +152,84 @@ class QuestionInline(NestedTabularInline):
 class RegistrationsAdmin(NestedModelAdmin):
     list_display = ("title", "semester")
     inlines = [QuestionInline]
+
+    # Override get_urls to add custom url for sample registration
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "create-sample/",
+                self.admin_site.admin_view(self.create_sample_registration),
+                name="create-sample-registration",
+            )
+        ]
+        return custom_urls + urls
+
+    # Create a sample registration with autofilled questions
+    def create_sample_registration(self, request):
+        reg = Registrations.objects.create(
+            title="Sample Registration",
+            semester=Semester.objects.get_or_create_current_semester(),
+        )
+
+        sample_questions = [
+            ("firstname",  "First name", Question.TEXT),
+            ("lastname",   "Last name", Question.TEXT),
+
+            ("project1",   "1st project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
+            ("project2",   "2nd project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
+            ("project3",   "3rd project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
+
+            ("partner1",   "1st partner preference", Question.TEXT),
+            ("partner2",   "2nd partner preference", Question.TEXT),
+            ("partner3",   "3rd partner preference", Question.TEXT),
+
+            ("devexp",     "Dev Experience", Question.CHOICE),
+            ("management", "Management Interest", Question.CHOICE, ["Yes", "No"]),
+            ("nondutch",   "Non-dutch", Question.CHOICE, ["Yes", "No"]),
+
+            ("timeslot1",  "Available during scheduled timeslot 1", Question.CHOICE),
+            ("timeslot2",  "Available during scheduled timeslot 2", Question.CHOICE),
+            ("timeslot3",  "Available during scheduled timeslot 3", Question.CHOICE),
+            ("timeslot4",  "Available during scheduled timeslot 4", Question.CHOICE),
+            ("timeslot5",  "Available during scheduled timeslot 5", Question.CHOICE),
+            ("timeslot6",  "Available during scheduled timeslot 6", Question.CHOICE),
+            ("timeslot7",  "Available during scheduled timeslot 7", Question.CHOICE),
+            ("timeslot8",  "Available during scheduled timeslot 8", Question.CHOICE),
+            ("timeslot9",  "Available during scheduled timeslot 9", Question.CHOICE),
+            ("timeslot10", "Available during scheduled timeslot 10", Question.CHOICE),
+
+            ("nonda",      "Has problems with signing an NDA", Question.CHOICE, ["Yes", "No"]),
+        ]
+
+        for item in sample_questions:
+            # Case distinction for questions with and without choices
+            if len(item) == 3:
+                label, text, qtype = item
+                choices = []
+            else:
+                label, text, qtype, choices = item
+
+            q = Question.objects.create(
+                registration=reg,
+                label=label,
+                question=text,
+                question_type=qtype,
+            )
+
+            for choice_text in choices:
+                QuestionChoice.objects.create(
+                    question=q,
+                    value=choice_text
+                )
+
+
+        url = reverse("admin:registrations_registrations_change", args=[reg.pk])
+        return redirect(url)
+
+    # Set changelist to add button that calls create_sample_registration
+    change_list_template = "admin/registrations/change_list.html"
+
 
 
 @admin.register(Question)

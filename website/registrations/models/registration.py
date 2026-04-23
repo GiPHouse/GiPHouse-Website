@@ -280,7 +280,7 @@ class Answer(models.Model):
                 answer=self, defaults={"value": raw_value}
             )
 
-        elif qtype == Question.CHOICE:
+        elif qtype in (Question.CHOICE, Question.DROPDOWN):
             choice = QuestionChoice.objects.get(pk=int(raw_value))
             ChoiceData.objects.update_or_create(
                 answer=self, defaults={"choice": choice}

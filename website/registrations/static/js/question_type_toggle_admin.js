@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const isMulti = questionType === "multi";
         const isChoice = questionType === "choice";
+        const isDropdown = questionType === "dropdown";
         const isFollowUp = isFollowUpTbody(questionTbody);
 
         [
@@ -49,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (choicesPanel) {
-            choicesPanel.style.display = (isMulti || isChoice) ? "" : "none";
+            choicesPanel.style.display = (isMulti || isChoice || isDropdown) ? "" : "none";
         }
     }
 
