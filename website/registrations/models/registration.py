@@ -3,6 +3,7 @@ from difflib import SequenceMatcher
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.functional import cached_property
+from django.core.exceptions import ValidationError
 
 from courses.models import Course, Semester
 
@@ -37,6 +38,24 @@ class Registrations(models.Model):
     def __str__(self):
         """Return title + semester."""
         return f"{self.title} ({self.semester})"
+    
+    def clean(self):
+        """Make sure all labels that must be set are present in the questions"""
+        required_labels = {
+            label
+            for (label, _, must_be_set) in Question.QUESTION_LABELS
+            if must_be_set
+        }
+
+        used_labels = set(
+            self.question_set.values_list("label", flat=True)
+        )
+
+        missing = required_labels - used_labels
+        if missing:
+            raise ValidationError(
+                {"questions": f"Missing required labels: {', '.join(missing)}"}
+            )
 
 
 class RegistrationSubmission(models.Model):
@@ -100,34 +119,34 @@ class Question(models.Model):
     NONDA       = "nonda"
 
     QUESTION_LABELS = [
-        (FIRSTNAME, "First name"),
-        (LASTNAME, "Last name"),
-        (PROJECT1, "1st project preference"),
-        (PROJECT2, "2nd project preference"),
-        (PROJECT3, "3rd project preference"),
-        (PARTNER1, "1st partner preference"),
-        (PARTNER2, "2nd partner preference"),
-        (PARTNER3, "3rd partner preference"),
-        (DEVEXP, "Dev Experience"),
-        (MANAGEMENT, "Management Interest"),
-        (NONDUTCH, "Non-dutch"),
-        (TIMESLOT1, "Available during scheduled timeslot 1"),
-        (TIMESLOT2, "Available during scheduled timeslot 2"),
-        (TIMESLOT3, "Available during scheduled timeslot 3"),
-        (TIMESLOT4, "Available during scheduled timeslot 4"),
-        (TIMESLOT5, "Available during scheduled timeslot 5"),
-        (TIMESLOT6, "Available during scheduled timeslot 6"),
-        (TIMESLOT7, "Available during scheduled timeslot 7"),
-        (TIMESLOT8, "Available during scheduled timeslot 8"),
-        (TIMESLOT9, "Available during scheduled timeslot 9"),
-        (TIMESLOT10, "Available during scheduled timeslot 10"),
-        (NONDA, "Has problems with signing an NDA"),
+        (FIRSTNAME, "First name", False),
+        (LASTNAME, "Last name", False),
+        (PROJECT1, "1st project preference", True),
+        (PROJECT2, "2nd project preference", True),
+        (PROJECT3, "3rd project preference", True),
+        (PARTNER1, "1st partner preference", True),
+        (PARTNER2, "2nd partner preference", True),
+        (PARTNER3, "3rd partner preference", True),
+        (DEVEXP, "Dev Experience", True),
+        (MANAGEMENT, "Management Interest", True),
+        (NONDUTCH, "Non-dutch", True),
+        (TIMESLOT1, "Available during scheduled timeslot 1", True),
+        (TIMESLOT2, "Available during scheduled timeslot 2", True),
+        (TIMESLOT3, "Available during scheduled timeslot 3", True),
+        (TIMESLOT4, "Available during scheduled timeslot 4", True),
+        (TIMESLOT5, "Available during scheduled timeslot 5", True),
+        (TIMESLOT6, "Available during scheduled timeslot 6", True),
+        (TIMESLOT7, "Available during scheduled timeslot 7", True),
+        (TIMESLOT8, "Available during scheduled timeslot 8", True),
+        (TIMESLOT9, "Available during scheduled timeslot 9", True),
+        (TIMESLOT10, "Available during scheduled timeslot 10", True),
+        (NONDA, "Has problems with signing an NDA", True),
     ]
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
-    label = models.CharField(max_length=50, choices=QUESTION_LABELS)
+    label = models.CharField(max_length=50, choices=[(a, b) for a, b, _ in QUESTION_LABELS])
     optional = models.BooleanField(default=False)
 
     parent_choice = models.ForeignKey(
