@@ -41,6 +41,10 @@ class Registrations(models.Model):
     
     def clean(self):
         """Make sure all labels that must be set are present in the questions"""
+        
+        if not self.pk:
+            return
+
         required_labels = {
             label
             for (label, _, must_be_set) in Question.QUESTION_LABELS

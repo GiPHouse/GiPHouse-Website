@@ -11,6 +11,8 @@ from django.shortcuts import redirect, render
 from django.urls import path
 from django.views import View
 from django.utils.safestring import mark_safe
+from django.forms.models import BaseInlineFormSet
+from django.core.exceptions import ValidationError
 
 from courses.models import Semester
 
@@ -36,6 +38,33 @@ User: Employee = get_user_model()
 "The following four classes provide the logic behind the admin"
 "interface for Registrationss with the proper inlines."
 
+class QuestionInlineFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+
+        required_labels = {
+            label
+            for (label, _, must_be_set) in Question.QUESTION_LABELS
+            if must_be_set
+        }
+
+        used_labels = set()
+
+        for form in self.forms:
+            if form.cleaned_data.get("DELETE"):
+                continue
+            if not form.cleaned_data:
+                continue
+
+            label = form.cleaned_data.get("label")
+            if label:
+                used_labels.add(label)
+
+        missing = required_labels - used_labels
+        if missing:
+            raise ValidationError(
+                f"Missing required labels: {', '.join(missing)}"
+            )
 
 class QuestionAdminForm(forms.ModelForm):
     class Meta:
@@ -106,6 +135,7 @@ class QuestionInline(NestedTabularInline):
     model = Question
     fk_name = "registration"
     form = QuestionAdminForm
+    formset = QuestionInlineFormSet
     extra = 0
     exclude = ["parent_choice"]
     inlines = [QuestionChoiceInline]
