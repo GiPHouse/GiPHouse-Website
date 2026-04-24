@@ -97,6 +97,8 @@ class Question(models.Model):
     FIRSTNAME = "firstname"
     LASTNAME = "lastname"
 
+    COURSE = "course"
+
     PROJECT1 = "project1"
     PROJECT2 = "project2"
     PROJECT3 = "project3"
@@ -125,6 +127,7 @@ class Question(models.Model):
     QUESTION_LABELS = [
         (FIRSTNAME, "First name", False),
         (LASTNAME, "Last name", False),
+        (COURSE, "course", True),
         (PROJECT1, "1st project preference", True),
         (PROJECT2, "2nd project preference", True),
         (PROJECT3, "3rd project preference", True),
@@ -144,6 +147,7 @@ class Question(models.Model):
         (TIMESLOT8, "Available during scheduled timeslot 8", True),
         (TIMESLOT9, "Available during scheduled timeslot 9", True),
         (TIMESLOT10, "Available during scheduled timeslot 10", True),
+        
         (NONDA, "Has problems with signing an NDA", True),
     ]
 
