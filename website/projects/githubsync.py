@@ -85,7 +85,7 @@ class GitHubAPITalker:
 
         An access token must be created for all requests to authenticate.
         Access tokens are valid for only 10 minutes
-        and must be recreated afterwards.
+        and must be recreated afterward.
          A timedelta of 60 seconds is used
         to renew access tokens that are not longer than 60 seconds valid.
         Hence, all methods that require the access
@@ -96,13 +96,12 @@ class GitHubAPITalker:
         """
         if self._access_token is None or (
             self._access_token.expires_at.replace(tzinfo=timezone.utc)
-            - datetime.now(timezone.utc)
-            < timedelta(seconds=60)
+            - datetime.now(timezone.utc) < timedelta(seconds=60)
         ):
             self._access_token = self._gi.get_access_token(
                 self.installation_id
             )
-            self._github = Github(self._access_token.token)
+            self._github = Github(auth=Auth.Token(self._access_token.token))
             self._organization = self._github.get_organization(
                 self.organization_name
             )
@@ -152,6 +151,11 @@ class GitHubAPITalker:
     def remove_user(self, user):
         """Remove a user from the GiPHouse GitHub organization."""
         self.github_organization.remove_from_members(user)
+
+
+class PlainGitHubException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
 
 
 class GitHubSync:
@@ -379,7 +383,10 @@ class GitHubSync:
                        to repository {github_repo.name}""")
 
         if not github_team.get_repo_permission(github_repo).admin:
-            github_team.set_repo_permission(github_repo, "admin")
+            success = github_team.update_team_repository(github_repo, "admin")
+            if not success:
+                raise PlainGitHubException("update_team_repository() returned an unsuccessful status code")
+
             self.info(f"""Gave admin permissions to team {github_team.name}
                        for repository {github_repo.name}""")
 
@@ -407,7 +414,7 @@ class GitHubSync:
         for project_repo in Repository.objects.filter(project=project_team):
             if project_repo.github_repo_id is None:
                 try:
-                    project_repo.github_repo_id = self.github.create_repo(
+                    project_repo.github_repo_id = self.create_repo(
                         project_repo
                     ).id
                     project_repo.save()
@@ -421,7 +428,7 @@ class GitHubSync:
                     # if this fails, we might have a problem
                     #  with the github_repo_id
                     self.update_repo(project_repo)
-                except GithubException, AssertionError:
+                except (GithubException, AssertionError, PlainGitHubException):
                     self.error(f"""Something went wrong syncing the repository
                                 '{project_repo}' for '{project_team}'.""")
 
@@ -455,8 +462,13 @@ class GitHubSync:
         self.info(f"Created repository {repo.name}")
         github_team = self.github.get_team(repo.project.github_team_id)
         github_team.add_to_repos(github_repo)
-        github_team.set_repo_permission(github_repo, "admin")
+
+        success = github_team.update_team_repository(github_repo, "admin")
+        if not success:
+            raise PlainGitHubException("update_team_repository() returned an unsuccessful status code")
+
         self.info(f"Added team {github_team.name} to repository {repo.name}")
+
         return github_repo
 
     def archive_repos_marked_as_archived(self, project_team):
@@ -479,13 +491,6 @@ class GitHubSync:
 
     def sync_project(self, project):
         """Sync one project to GitHub."""
-
-        for name, value in vars(
-            project
-        ).items():  # vars(obj) gives instance attributes
-            if not name.startswith("_"):  # filter out private/protected
-                print(f"{name} = {value}")
-
         if project.is_archived == Repository.Archived.NOT_ARCHIVED:
             self.create_or_update_team(project)
             self.create_or_update_repos(project)
