@@ -6,24 +6,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('courses', '0001_initial'),
-        ('lecture_registrations', '0001_initial'),
+        ("courses", "0001_initial"),
+        ("lecture_registrations", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='lectureregistration',
-            name='employee',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="lectureregistration",
+            name="employee",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='lectureregistration',
-            name='lecture',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='courses.lecture'),
+            model_name="lectureregistration",
+            name="lecture",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="courses.lecture",
+            ),
         ),
     ]

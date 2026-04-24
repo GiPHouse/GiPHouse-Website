@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -15,22 +14,57 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Room',
+            name="Room",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('location', models.CharField(max_length=200)),
-                ('special_availability', models.JSONField(blank=True, help_text='If filled in, the room will only accept reservations during the specified timeslots. Enter valid JSON in the following format: [{"from":"2022-01-31|08:00","until":"2022-02-01|18:00"},{"from":"2022-02-02|15:30","until":"2022-02-02|18:00"}].', null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200)),
+                ("location", models.CharField(max_length=200)),
+                (
+                    "special_availability",
+                    models.JSONField(
+                        blank=True,
+                        help_text='If filled in, the room will only accept reservations during the specified timeslots. Enter valid JSON in the following format: [{"from":"2022-01-31|08:00","until":"2022-02-01|18:00"},{"from":"2022-02-02|15:30","until":"2022-02-02|18:00"}].',
+                        null=True,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Reservation',
+            name="Reservation",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('start_time', models.DateTimeField()),
-                ('end_time', models.DateTimeField()),
-                ('reservee', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('room', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='room_reservation.room')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("start_time", models.DateTimeField()),
+                ("end_time", models.DateTimeField()),
+                (
+                    "reservee",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "room",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="room_reservation.room",
+                    ),
+                ),
             ],
         ),
     ]
