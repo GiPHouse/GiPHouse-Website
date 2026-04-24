@@ -94,8 +94,12 @@ class Question(models.Model):
         (DROPDOWN, "Dropdown"),
     ]
 
-    FIRSTNAME   = "firstname"
-    LASTNAME    = "lastname"
+    FIRSTNAME   = "first_name"
+    LASTNAME    = "last_name"
+    EMAIL       = "email"
+    GITHUB_USERNAME = "github_username"
+    GITHUB_ID   = "github_id"
+    STUDENT_NUMBER = "student_number"
 
     PROJECT1    = "project1"
     PROJECT2    = "project2"
@@ -125,6 +129,10 @@ class Question(models.Model):
     QUESTION_LABELS = [
         (FIRSTNAME, "First name", False),
         (LASTNAME, "Last name", False),
+        (EMAIL, "Email", True),
+        (GITHUB_USERNAME, "GitHub username", False),
+        (GITHUB_ID, "GitHub ID", False),
+        (STUDENT_NUMBER, "Student number", True),
         (PROJECT1, "1st project preference", True),
         (PROJECT2, "2nd project preference", True),
         (PROJECT3, "3rd project preference", True),

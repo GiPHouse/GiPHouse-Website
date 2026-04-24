@@ -23,7 +23,6 @@ class Step2Form(forms.Form):
     github_username = forms.CharField(disabled=True)
     github_id = forms.IntegerField(disabled=True)
     student_number = forms.CharField()
-    email = forms.EmailField()
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
         required=False,
