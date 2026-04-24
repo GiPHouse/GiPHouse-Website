@@ -10,6 +10,7 @@ class Task(models.Model):
     success_message = models.TextField(null=True, blank=True)
     data = models.TextField(null=True, blank=True)
     redirect_url = models.CharField(max_length=60)
+    logs = models.TextField(blank=True, default="")
 
     def __str__(self):
         """Show task as string."""

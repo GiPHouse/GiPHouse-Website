@@ -177,17 +177,33 @@ class GitHubSync:
             redirect_url=reverse("admin:projects_project_changelist"),
         )
 
+    def log(self, message, level="INFO"):
+        """Store the logs on the task."""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = f"[{timestamp}] {level}: {message}\n"
+        
+        self.task.logs += log_entry
+        self.task.save(update_fields=['logs'])
+        
+        if level == "ERROR":
+            self.logger.error(message)
+        else:
+            self.logger.info(message)
+
     def error(self, msg):
         """Log an error message and set the fail state to True."""
+        self.log(msg, "ERROR")
         self.logger.error(msg)
         self.fail = True
 
     def warning(self, msg):
         """Log a warning message."""
+        self.log(msg, "WARNING")
         self.logger.warning(msg)
 
     def info(self, msg):
         """Log an info message."""
+        self.log(msg, "INFO")
         self.logger.info(msg)
 
     def sync_team_member(self, employee, project):
