@@ -173,12 +173,6 @@ class AnswerInline(NestedTabularInline):
     answer_value.short_description = "Answer"
 
 
-@admin.register(RegistrationSubmission)
-class RegistrationSubmissionAdmin(admin.ModelAdmin):
-    list_display = ("registration", "participant", "submitted", "created")
-    inlines = [AnswerInline]
-
-
 class UserAdminSemesterFilter(admin.SimpleListFilter):
     """Filter class to filter Semester objects."""
 
