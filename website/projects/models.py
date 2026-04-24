@@ -39,9 +39,11 @@ class Project(models.Model):
         unique_together = [["name", "semester"], ["slug", "semester"]]
 
     name = models.CharField("name", max_length=50)
-    slug = models.SlugField("slug", max_length=50, blank=False, null=False)
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+
+    slug = models.SlugField("slug", max_length=50, blank=False, null=False)
+
     description = HTMLField()
     client = models.ForeignKey(
         Client, on_delete=models.SET_NULL, blank=True, null=True
