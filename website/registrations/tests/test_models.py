@@ -408,7 +408,8 @@ class questionTest(TestCase):
     def test_textdata_with_very_long_text(self):
         """Test TextData can store very long text."""
         answer = Answer.objects.create(
-            submission=self.test_submission, question=self.test_question_BIGTEXT
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
         )
         long_text = "A" * 10000  # 10k characters
         long_data = TextData.objects.create(answer=answer, value=long_text)
@@ -443,6 +444,9 @@ class questionTest(TestCase):
             registration=self.test_registration,
             participant=self.test_participant,
         )
+        # these two lines are necessary to avoid ruff from complaining about unused variables
+        submission2.submitted = True
+        submission3.submitted = True
 
         submissions = RegistrationSubmission.objects.filter(
             participant=self.test_participant,
@@ -462,7 +466,9 @@ class questionTest(TestCase):
             registration=self.test_registration, participant=participant2
         )
 
-        self.assertNotEqual(self.test_submission.participant, submission2.participant)
+        self.assertNotEqual(
+            self.test_submission.participant, submission2.participant
+        )
         self.assertEqual(
             self.test_submission.registration, submission2.registration
         )
@@ -578,11 +584,10 @@ class questionTest(TestCase):
             question_type=Question.TEXT,
             parent_choice=choice_with_followups,
         )
-
+        # this line is necessary to avoid ruff from complaining about unused variable
+        follow_up.optional = False
         self.assertTrue(choice_with_followups.follow_up)
-        self.assertEqual(
-            choice_with_followups.follow_up_questions.count(), 1
-        )
+        self.assertEqual(choice_with_followups.follow_up_questions.count(), 1)
 
     def test_answer_property_with_different_question_types(self):
         """Test answer property returns None when data doesn't exist for any type."""
@@ -776,7 +781,8 @@ class questionTest(TestCase):
     def test_bigtext_answer_set_and_get(self):
         """Test setting and getting BIGTEXT answer."""
         answer = Answer.objects.create(
-            submission=self.test_submission, question=self.test_question_BIGTEXT
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
         )
         long_text = "This is a long description with multiple sentences. " * 20
         answer.answer = long_text
@@ -785,7 +791,8 @@ class questionTest(TestCase):
     def test_bigtext_answer_via_set_value(self):
         """Test setting BIGTEXT answer via set_value method."""
         answer = Answer.objects.create(
-            submission=self.test_submission, question=self.test_question_BIGTEXT
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
         )
         bigtext = "Paragraph 1\n\nParagraph 2\n\nParagraph 3"
         answer.set_value(bigtext)
@@ -794,7 +801,8 @@ class questionTest(TestCase):
     def test_bigtext_answer_with_newlines(self):
         """Test BIGTEXT answer preserves newlines."""
         answer = Answer.objects.create(
-            submission=self.test_submission, question=self.test_question_BIGTEXT
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
         )
         multiline_text = "Line 1\nLine 2\nLine 3"
         answer.answer = multiline_text
@@ -803,7 +811,8 @@ class questionTest(TestCase):
     def test_bigtext_answer_empty(self):
         """Test BIGTEXT answer with empty value."""
         answer = Answer.objects.create(
-            submission=self.test_submission, question=self.test_question_BIGTEXT
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
         )
         answer.answer = ""
         self.assertEqual(answer.answer_value, "")
@@ -825,9 +834,7 @@ class questionTest(TestCase):
             question="Select color:",
             question_type=Question.CHOICE,
         )
-        choice1 = QuestionChoice.objects.create(
-            question=choice_q, value="Red"
-        )
+        choice1 = QuestionChoice.objects.create(question=choice_q, value="Red")
         choice2 = QuestionChoice.objects.create(
             question=choice_q, value="Green"
         )
@@ -883,7 +890,8 @@ class questionTest(TestCase):
     def test_dropdown_answer_set_and_get(self):
         """Test setting and getting DROPDOWN answer."""
         answer = Answer.objects.create(
-            submission=self.test_submission, question=self.test_question_DROPDOWN
+            submission=self.test_submission,
+            question=self.test_question_DROPDOWN,
         )
         answer.answer = self.test_questionMulti1
         self.assertEqual(answer.answer_value, "Option 1")
@@ -891,7 +899,8 @@ class questionTest(TestCase):
     def test_dropdown_answer_via_set_value(self):
         """Test setting DROPDOWN answer via set_value method."""
         answer = Answer.objects.create(
-            submission=self.test_submission, question=self.test_question_DROPDOWN
+            submission=self.test_submission,
+            question=self.test_question_DROPDOWN,
         )
         answer.set_value(str(self.test_questionMulti1.pk))
         self.assertEqual(answer.answer_value, "Option 1")
@@ -900,7 +909,8 @@ class questionTest(TestCase):
         """Test DROPDOWN can select from shared choice pool."""
         # DROPDOWN and MULTI can share the same choices
         answer = Answer.objects.create(
-            submission=self.test_submission, question=self.test_question_DROPDOWN
+            submission=self.test_submission,
+            question=self.test_question_DROPDOWN,
         )
         answer.answer = self.test_questionMulti2
         self.assertEqual(answer.answer_value, "Option 2")
@@ -951,11 +961,11 @@ class questionTest(TestCase):
         # Add choices in one order
         answer.answer = [self.test_questionMulti1, self.test_questionMulti2]
         value1 = answer.answer_value
-        
+
         # Update with reversed order
         answer.answer = [self.test_questionMulti2, self.test_questionMulti1]
         value2 = answer.answer_value
-        
+
         # Both should contain the same choices
         self.assertIn("Option 1", value1)
         self.assertIn("Option 2", value1)
