@@ -216,7 +216,7 @@ $ python website/manage.py createsuperuser --github_id=<your_github_id> --github
 , the added superuser will be added as an entry to the database file. Hence, the created superusers are local.  
 One's GitHub account will be used for login; you can find your GitHub id by changing your username in the link and following it: https://api.github.com/users/yourusername.
 
-To make the backend (`http://127.0.0.1:8000/admin/`) work, an existing GitHub App must be present and Django must have access to it. For now, these are the credentials one can use (Valerijs' app):
+To make the backend (`localhost:8000/admin/`) work, an existing GitHub App must be present and Django must have access to it. For now, these are the credentials one can use (Valerijs' app):
 ```
 DJANGO_GITHUB_CLIENT_ID=Iv23liE9mYKxrugudlw2
 DJANGO_GITHUB_CLIENT_SECRET=4ba6c12caa5ad485b997d68336cadffd9a221c79
