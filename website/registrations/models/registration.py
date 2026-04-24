@@ -94,33 +94,33 @@ class Question(models.Model):
         (DROPDOWN, "Dropdown"),
     ]
 
-    FIRSTNAME   = "firstname"
-    LASTNAME    = "lastname"
+    FIRSTNAME = "firstname"
+    LASTNAME = "lastname"
 
-    PROJECT1    = "project1"
-    PROJECT2    = "project2"
-    PROJECT3    = "project3"
+    PROJECT1 = "project1"
+    PROJECT2 = "project2"
+    PROJECT3 = "project3"
 
-    PARTNER1    = "partner1"
-    PARTNER2    = "partner2"
-    PARTNER3    = "partner3"
+    PARTNER1 = "partner1"
+    PARTNER2 = "partner2"
+    PARTNER3 = "partner3"
 
-    DEVEXP      = "devexp"
-    MANAGEMENT  = "management"
-    NONDUTCH    = "nondutch"
+    DEVEXP = "devexp"
+    MANAGEMENT = "management"
+    NONDUTCH = "nondutch"
 
-    TIMESLOT1   = "timeslot1"
-    TIMESLOT2   = "timeslot2"
-    TIMESLOT3   = "timeslot3"
-    TIMESLOT4   = "timeslot4"
-    TIMESLOT5   = "timeslot5"
-    TIMESLOT6   = "timeslot6"
-    TIMESLOT7   = "timeslot7"
-    TIMESLOT8   = "timeslot8"
-    TIMESLOT9   = "timeslot9"
-    TIMESLOT10  = "timeslot10"
+    TIMESLOT1 = "timeslot1"
+    TIMESLOT2 = "timeslot2"
+    TIMESLOT3 = "timeslot3"
+    TIMESLOT4 = "timeslot4"
+    TIMESLOT5 = "timeslot5"
+    TIMESLOT6 = "timeslot6"
+    TIMESLOT7 = "timeslot7"
+    TIMESLOT8 = "timeslot8"
+    TIMESLOT9 = "timeslot9"
+    TIMESLOT10 = "timeslot10"
 
-    NONDA       = "nonda"
+    NONDA = "nonda"
 
     QUESTION_LABELS = [
         (FIRSTNAME, "First name", False),

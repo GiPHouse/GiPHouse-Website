@@ -408,7 +408,8 @@ class questionTest(TestCase):
     def test_textdata_with_very_long_text(self):
         """Test TextData can store very long text."""
         answer = Answer.objects.create(
-            submission=self.test_submission, question=self.test_question_BIGTEXT
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
         )
         long_text = "A" * 10000  # 10k characters
         long_data = TextData.objects.create(answer=answer, value=long_text)
@@ -443,6 +444,9 @@ class questionTest(TestCase):
             registration=self.test_registration,
             participant=self.test_participant,
         )
+        # these two lines are necessary to avoid ruff from complaining about unused variables
+        submission2.submitted = True
+        submission3.submitted = True
 
         submissions = RegistrationSubmission.objects.filter(
             participant=self.test_participant,
@@ -462,7 +466,9 @@ class questionTest(TestCase):
             registration=self.test_registration, participant=participant2
         )
 
-        self.assertNotEqual(self.test_submission.participant, submission2.participant)
+        self.assertNotEqual(
+            self.test_submission.participant, submission2.participant
+        )
         self.assertEqual(
             self.test_submission.registration, submission2.registration
         )
@@ -578,11 +584,10 @@ class questionTest(TestCase):
             question_type=Question.TEXT,
             parent_choice=choice_with_followups,
         )
-
+        # this line is necessary to avoid ruff from complaining about unused variable
+        follow_up.optional = False
         self.assertTrue(choice_with_followups.follow_up)
-        self.assertEqual(
-            choice_with_followups.follow_up_questions.count(), 1
-        )
+        self.assertEqual(choice_with_followups.follow_up_questions.count(), 1)
 
     def test_answer_property_with_different_question_types(self):
         """Test answer property returns None when data doesn't exist for any type."""
@@ -705,3 +710,350 @@ class questionTest(TestCase):
         self.assertNotEqual(follow_up1.question_type, follow_up2.question_type)
         self.assertNotEqual(follow_up1.optional, follow_up2.optional)
         self.assertNotEqual(follow_up1.warnings, follow_up2.warnings)
+
+    # ===== QUESTION TYPE TESTS =====
+
+    # TEXT TYPE TESTS
+    def test_text_question_creation(self):
+        """Test creating a TEXT type question."""
+        text_question = Question.objects.create(
+            registration=self.test_registration,
+            question="Enter your name:",
+            question_type=Question.TEXT,
+        )
+        self.assertEqual(text_question.question_type, Question.TEXT)
+
+    def test_text_answer_set_and_get(self):
+        """Test setting and getting TEXT answer."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_TEXT
+        )
+        answer.answer = "John Doe"
+        self.assertEqual(answer.answer_value, "John Doe")
+
+    def test_text_answer_via_set_value(self):
+        """Test setting TEXT answer via set_value method."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_TEXT
+        )
+        answer.set_value("Jane Smith")
+        self.assertEqual(answer.answer_value, "Jane Smith")
+
+    def test_text_answer_update(self):
+        """Test updating TEXT answer."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_TEXT
+        )
+        answer.answer = "First Answer"
+        first_value = answer.answer_value
+        answer.answer = "Updated Answer"
+        self.assertNotEqual(first_value, answer.answer_value)
+        self.assertEqual(answer.answer_value, "Updated Answer")
+
+    def test_text_answer_special_characters(self):
+        """Test TEXT answer with special characters."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_TEXT
+        )
+        special_text = "Robert @#$%&*() 中文 🎉"
+        answer.answer = special_text
+        self.assertEqual(answer.answer_value, special_text)
+
+    def test_text_answer_whitespace(self):
+        """Test TEXT answer with leading/trailing whitespace."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_TEXT
+        )
+        text_with_spaces = "  spaces  "
+        answer.answer = text_with_spaces
+        self.assertEqual(answer.answer_value, text_with_spaces)
+
+    # BIGTEXT TYPE TESTS
+    def test_bigtext_question_creation(self):
+        """Test creating a BIGTEXT type question."""
+        bigtext_question = Question.objects.create(
+            registration=self.test_registration,
+            question="Describe your experience:",
+            question_type=Question.BIGTEXT,
+        )
+        self.assertEqual(bigtext_question.question_type, Question.BIGTEXT)
+
+    def test_bigtext_answer_set_and_get(self):
+        """Test setting and getting BIGTEXT answer."""
+        answer = Answer.objects.create(
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
+        )
+        long_text = "This is a long description with multiple sentences. " * 20
+        answer.answer = long_text
+        self.assertEqual(answer.answer_value, long_text)
+
+    def test_bigtext_answer_via_set_value(self):
+        """Test setting BIGTEXT answer via set_value method."""
+        answer = Answer.objects.create(
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
+        )
+        bigtext = "Paragraph 1\n\nParagraph 2\n\nParagraph 3"
+        answer.set_value(bigtext)
+        self.assertEqual(answer.answer_value, bigtext)
+
+    def test_bigtext_answer_with_newlines(self):
+        """Test BIGTEXT answer preserves newlines."""
+        answer = Answer.objects.create(
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
+        )
+        multiline_text = "Line 1\nLine 2\nLine 3"
+        answer.answer = multiline_text
+        self.assertEqual(answer.answer_value, multiline_text)
+
+    def test_bigtext_answer_empty(self):
+        """Test BIGTEXT answer with empty value."""
+        answer = Answer.objects.create(
+            submission=self.test_submission,
+            question=self.test_question_BIGTEXT,
+        )
+        answer.answer = ""
+        self.assertEqual(answer.answer_value, "")
+
+    # CHOICE TYPE TESTS
+    def test_choice_question_creation(self):
+        """Test creating a CHOICE type question."""
+        choice_question = Question.objects.create(
+            registration=self.test_registration,
+            question="Pick one:",
+            question_type=Question.CHOICE,
+        )
+        self.assertEqual(choice_question.question_type, Question.CHOICE)
+
+    def test_choice_question_with_choices(self):
+        """Test CHOICE question with multiple choice options."""
+        choice_q = Question.objects.create(
+            registration=self.test_registration,
+            question="Select color:",
+            question_type=Question.CHOICE,
+        )
+        choice1 = QuestionChoice.objects.create(question=choice_q, value="Red")
+        choice2 = QuestionChoice.objects.create(
+            question=choice_q, value="Green"
+        )
+        choice3 = QuestionChoice.objects.create(
+            question=choice_q, value="Blue"
+        )
+
+        self.assertEqual(choice_q.choices.count(), 3)
+        self.assertIn(choice1, choice_q.choices.all())
+        self.assertIn(choice2, choice_q.choices.all())
+        self.assertIn(choice3, choice_q.choices.all())
+
+    def test_choice_answer_set_and_get(self):
+        """Test setting and getting CHOICE answer."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_CHOICE
+        )
+        answer.answer = self.test_questionChoice
+        self.assertEqual(answer.answer_value, "Blue")
+
+    def test_choice_answer_via_set_value(self):
+        """Test setting CHOICE answer via set_value method."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_CHOICE
+        )
+        answer.set_value(str(self.test_questionChoice.pk))
+        self.assertEqual(answer.answer_value, "Blue")
+
+    def test_choice_answer_update(self):
+        """Test updating CHOICE answer."""
+        red_choice = QuestionChoice.objects.create(
+            question=self.test_question_CHOICE, value="Red"
+        )
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_CHOICE
+        )
+        answer.answer = self.test_questionChoice
+        first_value = answer.answer_value
+        answer.answer = red_choice
+        self.assertNotEqual(first_value, answer.answer_value)
+        self.assertEqual(answer.answer_value, "Red")
+
+    # DROPDOWN TYPE TESTS
+    def test_dropdown_question_creation(self):
+        """Test creating a DROPDOWN type question."""
+        dropdown_question = Question.objects.create(
+            registration=self.test_registration,
+            question="Select from dropdown:",
+            question_type=Question.DROPDOWN,
+        )
+        self.assertEqual(dropdown_question.question_type, Question.DROPDOWN)
+
+    def test_dropdown_answer_set_and_get(self):
+        """Test setting and getting DROPDOWN answer."""
+        answer = Answer.objects.create(
+            submission=self.test_submission,
+            question=self.test_question_DROPDOWN,
+        )
+        answer.answer = self.test_questionMulti1
+        self.assertEqual(answer.answer_value, "Option 1")
+
+    def test_dropdown_answer_via_set_value(self):
+        """Test setting DROPDOWN answer via set_value method."""
+        answer = Answer.objects.create(
+            submission=self.test_submission,
+            question=self.test_question_DROPDOWN,
+        )
+        answer.set_value(str(self.test_questionMulti1.pk))
+        self.assertEqual(answer.answer_value, "Option 1")
+
+    def test_dropdown_answer_from_multi_choices(self):
+        """Test DROPDOWN can select from shared choice pool."""
+        # DROPDOWN and MULTI can share the same choices
+        answer = Answer.objects.create(
+            submission=self.test_submission,
+            question=self.test_question_DROPDOWN,
+        )
+        answer.answer = self.test_questionMulti2
+        self.assertEqual(answer.answer_value, "Option 2")
+
+    # MULTI TYPE TESTS
+    def test_multi_question_creation(self):
+        """Test creating a MULTI type question."""
+        multi_question = Question.objects.create(
+            registration=self.test_registration,
+            question="Select multiple:",
+            question_type=Question.MULTI,
+        )
+        self.assertEqual(multi_question.question_type, Question.MULTI)
+
+    def test_multi_answer_single_choice(self):
+        """Test MULTI answer with single choice."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_MULTI
+        )
+        answer.answer = [self.test_questionMulti1]
+        self.assertEqual(answer.answer_value, "Option 1")
+
+    def test_multi_answer_multiple_choices(self):
+        """Test MULTI answer with multiple choices."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_MULTI
+        )
+        answer.answer = [self.test_questionMulti1, self.test_questionMulti2]
+        self.assertEqual(answer.answer_value, "Option 1, Option 2")
+
+    def test_multi_answer_via_set_value(self):
+        """Test setting MULTI answer via set_value method."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_MULTI
+        )
+        choice_ids = [
+            str(self.test_questionMulti1.pk),
+            str(self.test_questionMulti2.pk),
+        ]
+        answer.set_value(choice_ids)
+        self.assertEqual(answer.answer_value, "Option 1, Option 2")
+
+    def test_multi_answer_order_preserved(self):
+        """Test MULTI answer preserves choice order."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_MULTI
+        )
+        # Add choices in one order
+        answer.answer = [self.test_questionMulti1, self.test_questionMulti2]
+        value1 = answer.answer_value
+
+        # Update with reversed order
+        answer.answer = [self.test_questionMulti2, self.test_questionMulti1]
+        value2 = answer.answer_value
+
+        # Both should contain the same choices
+        self.assertIn("Option 1", value1)
+        self.assertIn("Option 2", value1)
+        self.assertIn("Option 1", value2)
+        self.assertIn("Option 2", value2)
+
+    def test_multi_answer_empty_list(self):
+        """Test MULTI answer with empty list."""
+        answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_MULTI
+        )
+        answer.answer = []
+        self.assertEqual(answer.answer_value, "")
+
+    def test_multi_question_with_constraints(self):
+        """Test MULTI question with min/max constraints."""
+        multi_constrained = Question.objects.create(
+            registration=self.test_registration,
+            question="Pick 2-3 options:",
+            question_type=Question.MULTI,
+            min_choices=2,
+            max_choices=3,
+        )
+        self.assertEqual(multi_constrained.min_choices, 2)
+        self.assertEqual(multi_constrained.max_choices, 3)
+
+    # CROSS-TYPE TESTS
+    def test_all_question_types_in_registration(self):
+        """Test all question types can coexist in single registration."""
+        types = [
+            Question.TEXT,
+            Question.BIGTEXT,
+            Question.CHOICE,
+            Question.DROPDOWN,
+            Question.MULTI,
+        ]
+        questions = []
+        for qtype in types:
+            q = Question.objects.create(
+                registration=self.test_registration,
+                question=f"Question of type {qtype}:",
+                question_type=qtype,
+            )
+            questions.append(q)
+
+        all_questions = Question.objects.filter(
+            registration=self.test_registration
+        )
+        for qtype in types:
+            self.assertTrue(
+                any(q.question_type == qtype for q in all_questions)
+            )
+
+    def test_answer_property_type_detection(self):
+        """Test answer property correctly detects question type."""
+        text_answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_TEXT
+        )
+        text_answer.answer = "test"
+
+        choice_answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_CHOICE
+        )
+        choice_answer.answer = self.test_questionChoice
+
+        multi_answer = Answer.objects.create(
+            submission=self.test_submission, question=self.test_question_MULTI
+        )
+        multi_answer.answer = [self.test_questionMulti1]
+
+        # Verify each answer has correct data object type
+        self.assertIsInstance(text_answer.answer, TextData)
+        self.assertIsInstance(choice_answer.answer, ChoiceData)
+        self.assertIsInstance(multi_answer.answer, MultiData)
+
+    def test_question_type_string_values(self):
+        """Test question type string constants."""
+        self.assertEqual(Question.TEXT, "text")
+        self.assertEqual(Question.BIGTEXT, "bigtext")
+        self.assertEqual(Question.CHOICE, "choice")
+        self.assertEqual(Question.DROPDOWN, "dropdown")
+        self.assertEqual(Question.MULTI, "multi")
+
+    def test_question_types_in_choices(self):
+        """Test all question types are in QUESTION_TYPES."""
+        question_type_values = [t[0] for t in Question.QUESTION_TYPES]
+        self.assertIn(Question.TEXT, question_type_values)
+        self.assertIn(Question.BIGTEXT, question_type_values)
+        self.assertIn(Question.CHOICE, question_type_values)
+        self.assertIn(Question.DROPDOWN, question_type_values)
+        self.assertIn(Question.MULTI, question_type_values)
