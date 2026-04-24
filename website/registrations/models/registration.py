@@ -150,7 +150,7 @@ class Question(models.Model):
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
-    label = models.CharField(max_length=50, choices=[(a, b) for a, b, _ in QUESTION_LABELS])
+    label = models.CharField(max_length=50, choices=[(a, b) for a, b, _ in QUESTION_LABELS], blank=True, null=True)
     optional = models.BooleanField(default=False)
 
     parent_choice = models.ForeignKey(
