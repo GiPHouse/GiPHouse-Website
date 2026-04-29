@@ -1,0 +1,1 @@
+This folder is meant to host code for the satsolver pipeline that does not belong with other things.
