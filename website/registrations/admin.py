@@ -12,7 +12,7 @@ from django.urls import path, reverse
 from django.views import View
 from django.utils.safestring import mark_safe
 from django.forms.models import BaseInlineFormSet
-from django.core.exceptions import ValidationError
+#from django.core.exceptions import ValidationError
 
 from courses.models import Semester, Course
 
@@ -42,11 +42,11 @@ class QuestionInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
 
-        required_labels = {
-            label
-            for (label, _, must_be_set) in Question.QUESTION_LABELS
-            if must_be_set
-        }
+        # required_labels = {
+        #     label
+        #     for (label, _, must_be_set) in Question.QUESTION_LABELS
+        #     if must_be_set
+        # }
 
         used_labels = set()
 
@@ -60,7 +60,7 @@ class QuestionInlineFormSet(BaseInlineFormSet):
             if label:
                 used_labels.add(label)
 
-        missing = required_labels - used_labels
+        #missing = required_labels - used_labels
         # if missing:
         #     raise ValidationError(
         #         f"Missing required labels: {', '.join(missing)}"

@@ -47,11 +47,11 @@ class Registrations(models.Model):
         if not self.pk:
             return
 
-        required_labels = {
-            label
-            for (label, _, must_be_set) in Question.QUESTION_LABELS
-            if must_be_set
-        }
+        # required_labels = {
+        #     label
+        #     for (label, _, must_be_set) in Question.QUESTION_LABELS
+        #     if must_be_set
+        # }
 
         used_labels = set(
             self.question_set.values_list("label", flat=True)
