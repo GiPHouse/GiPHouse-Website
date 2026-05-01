@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase
 
@@ -22,6 +23,48 @@ from registrations.models import Employee, Registration
 from tasks.models import Task
 
 User: Employee = get_user_model()
+
+
+class GetProjectsStaffStatusTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.staff_password = "hunter1"
+        cls.staff = User.objects._create_user(
+            github_id=0,
+            is_staff=True,
+            is_superuser=False
+        )
+
+        cls.view_permission = Permission.objects.get(codename="view_project")
+        cls.staff.user_permissions.add(cls.view_permission)
+
+    def setUp(self):
+        site = AdminSite
+        self.project_admin = ProjectAdmin(Project, site)
+        self.client = Client()
+        self.client.force_login(self.staff)
+
+    def test_sync_button_hidden_without_permission(self):
+        response = self.client.get(
+            reverse("admin:projects_project_changelist")
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Synchronize projects of the current semester to GitHub")
+
+    def test_no_sync_without_permission(self):
+        """
+        A staff user can still try and sync using the link,
+        but that is prevented in the backend. This is tested here.
+        """
+        backup = self.project_admin.synchronise_to_GitHub
+        self.project_admin.synchronise_to_GitHub = MagicMock()
+
+        response = self.client.get("/admin/projects/project/sync-to-github/")
+        # expect Permission Denied
+        self.assertEqual(response.status_code, 403)
+        self.project_admin.synchronise_to_GitHub.assert_not_called()
+
+        self.project_admin.synchronise_to_GitHub = backup
 
 
 class GetProjectsTest(TestCase):
@@ -144,6 +187,18 @@ class GetProjectsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(Project.objects.get(name="Test project"))
+
+    def test_sync_button_shown_with_permission(self):
+        """
+        The tests are set up such that the user making the
+        requests is a superuser, hence the button should
+        appear for them.
+        """
+        response = self.client.get(
+            reverse("admin:projects_project_changelist")
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Synchronize projects of the current semester to GitHub")
 
     def test_create_mail_is_valid(self):
         p1 = Project.objects.create(
@@ -275,6 +330,16 @@ class GetProjectsTest(TestCase):
             list(Project.objects.all()),
         )
         self.sync_mock.perform_asynchronous_sync.assert_called_once()
+
+    def test_sync_button_has_effect(self):
+        backup = self.project_admin.synchronise_to_GitHub
+        self.project_admin.synchronise_to_GitHub = MagicMock()
+
+        response = self.client.get("/admin/projects/project/sync-to-github/")
+        # expect no exception thrown
+        self.assertNotEqual(response.status_code, 403)
+
+        self.project_admin.synchronise_to_GitHub = backup
 
     @freeze_time("2020-06-01")
     def test_synchronise_current_projects_to_GitHub(self):

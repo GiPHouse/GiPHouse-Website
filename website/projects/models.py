@@ -38,6 +38,10 @@ class Project(models.Model):
         ordering = ["semester", "name"]
         unique_together = [["name", "semester"], ["slug", "semester"]]
 
+        permissions = [
+            ("can_sync_to_github", "Can synchronize project(s) to GitHub"),
+        ]
+
     name = models.CharField("name", max_length=50)
     slug = models.SlugField("slug", max_length=50, blank=False, null=False)
 
