@@ -14,6 +14,7 @@ wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
 User: Employee = get_user_model()
 logger = logging.getLogger(__name__)
 
+
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
 
@@ -45,7 +46,7 @@ class Step2Form(forms.Form):
 
         if github_id is None or github_username is None:
             raise ValueError("GitHub session info is incomplete")
-        
+
         self.fields["github_id"].initial = github_id
         self.fields["github_username"].initial = github_username
 
@@ -65,7 +66,7 @@ class Step2Form(forms.Form):
         logger.warning(
             "Step2 loaded registration %s with %s questions",
             current_registration.title,
-            current_registration.question_set.count()
+            current_registration.question_set.count(),
         )
 
         all_questions = list(
@@ -76,24 +77,26 @@ class Step2Form(forms.Form):
 
         self.dynamic_questions = all_questions
         self.questions_by_id = {q.id: q for q in all_questions}
-        root_questions = [q for q in all_questions if q.parent_choice_id is None]
-        
+        root_questions = [
+            q for q in all_questions if q.parent_choice_id is None
+        ]
+
         logger.warning(
             "Dynamic questions: %s",
-            [(q.id, q.question) for q in all_questions]
+            [(q.id, q.question) for q in all_questions],
         )
         logger.warning(
-            "Questions by ID: %s",
-            {q.id: q.question for q in all_questions}
+            "Questions by ID: %s", {q.id: q.question for q in all_questions}
         )
-        logger.warning( 
-            "Root questions: %s",
-            [(q.id, q.question) for q in root_questions]
+        logger.warning(
+            "Root questions: %s", [(q.id, q.question) for q in root_questions]
         )
 
         self.ordered_question_list = self.ordered_questions()
         source_data = self.data if self.is_bound else self.initial
-        self.active_questions_ids_list = self._get_active_question_ids(source_data)
+        self.active_questions_ids_list = self._get_active_question_ids(
+            source_data
+        )
 
         for q in self.ordered_question_list:
             logger.warning(
@@ -106,7 +109,9 @@ class Step2Form(forms.Form):
                 q.id,
                 q.registration_id,
                 q.parent_choice_id,
-                q.parent_choice.question.id if q.parent_choice and q.parent_choice.question else None,
+                q.parent_choice.question.id
+                if q.parent_choice and q.parent_choice.question
+                else None,
                 q.question_type,
                 q.optional,
                 q.min_choices,
@@ -124,8 +129,12 @@ class Step2Form(forms.Form):
             }
             if is_follow_up:
                 widget_attrs["parent-choice-id"] = str(q.parent_choice_id)
-                widget_attrs["parent-question-id"] = str(q.parent_choice.question_id)
-                widget_attrs["follow-up-required"] = ("1" if not q.optional else "0")
+                widget_attrs["parent-question-id"] = str(
+                    q.parent_choice.question_id
+                )
+                widget_attrs["follow-up-required"] = (
+                    "1" if not q.optional else "0"
+                )
 
             if q.question_type == registration.Question.TEXT:
                 self.fields[field_name] = forms.CharField(
@@ -181,11 +190,10 @@ class Step2Form(forms.Form):
         if ignore_warnings_field is not None:
             self.fields["ignore_warnings"] = ignore_warnings_field
 
-    
     def ordered_questions(self):
         ordered = []
         added_ids = set()
-        
+
         follow_ups_by_parent_choice = {}
         for q in self.dynamic_questions:
             if q.parent_choice_id is not None:
@@ -195,9 +203,12 @@ class Step2Form(forms.Form):
 
         logger.warning(
             "Follow-ups by parent: %s",
-            {parent_id: [(q.id, q.question) for q in follow_ups] for parent_id, follow_ups in follow_ups_by_parent_choice.items()}
+            {
+                parent_id: [(q.id, q.question) for q in follow_ups]
+                for parent_id, follow_ups in follow_ups_by_parent_choice.items()
+            },
         )
-        
+
         def add_question_and_follow_ups(q):
             if q.id in added_ids:
                 return
@@ -213,12 +224,11 @@ class Step2Form(forms.Form):
                 add_question_and_follow_ups(q)
 
         logger.warning(
-            "Ordered questions: %s",
-            [(q.id, q.question) for q in ordered]
+            "Ordered questions: %s", [(q.id, q.question) for q in ordered]
         )
 
         return ordered
-    
+
     def clean_email(self):
         email = self.cleaned_data.get("email")
         github_id = self.cleaned_data.get("github_id")
@@ -229,10 +239,14 @@ class Step2Form(forms.Form):
                 .filter(email=email)
                 .exists()
             ):
-                raise ValidationError("Email address already in use.", code="exists")
+                raise ValidationError(
+                    "Email address already in use.", code="exists"
+                )
 
             if wrong_email_regex.match(email) is not None:
-                raise ValidationError("Non-existent email address.", code="invalid")
+                raise ValidationError(
+                    "Non-existent email address.", code="invalid"
+                )
 
         return email
 
@@ -251,10 +265,12 @@ class Step2Form(forms.Form):
             .filter(student_number=student_number)
             .exists()
         ):
-            raise ValidationError("Student Number already in use.", code="exists")
-        
+            raise ValidationError(
+                "Student Number already in use.", code="exists"
+            )
+
         return student_number
-    
+
     def _get_active_question_ids(self, data):
         active_ids = set()
 
@@ -264,11 +280,11 @@ class Step2Form(forms.Form):
             else:
                 parent_field = f"question_{q.parent_choice.question_id}"
                 parent_value = data.get(parent_field)
-                
+
                 if parent_value is not None:
                     if str(q.parent_choice_id) == str(parent_value):
                         active_ids.add(q.id)
-                        
+
         return active_ids
 
     def clean(self):
@@ -287,16 +303,26 @@ class Step2Form(forms.Form):
                         answer = cleaned_data.get(field_name)
                         is_follow_up = question.parent_choice_id is not None
 
-                        if is_follow_up and not question.optional and not answer:
+                        if (
+                            is_follow_up
+                            and not question.optional
+                            and not answer
+                        ):
                             self.add_error(
-                                field_name, 
-                                "This field is required."
+                                field_name, "This field is required."
                             )
-                        else:   
-                            if question.question_type == registration.Question.MULTI and answer:
+                        else:
+                            if (
+                                question.question_type
+                                == registration.Question.MULTI
+                                and answer
+                            ):
                                 selected_count = len(answer)
 
-                                if question.min_choices is not None and selected_count < question.min_choices:
+                                if (
+                                    question.min_choices is not None
+                                    and selected_count < question.min_choices
+                                ):
                                     self.warnings.append(
                                         (
                                             field_name,
@@ -304,7 +330,10 @@ class Step2Form(forms.Form):
                                         )
                                     )
 
-                                if question.max_choices is not None and selected_count > question.max_choices:
+                                if (
+                                    question.max_choices is not None
+                                    and selected_count > question.max_choices
+                                ):
                                     self.warnings.append(
                                         (
                                             field_name,
@@ -313,10 +342,12 @@ class Step2Form(forms.Form):
                                     )
 
                                 if question.warnings:
-                                    self.warnings.append((field_name, question.warnings.strip()))
+                                    self.warnings.append(
+                                        (field_name, question.warnings.strip())
+                                    )
 
         if self.warnings and not self.cleaned_data.get("ignore_warnings"):
             for field_name, message in self.warnings:
                 self.add_error(field_name, message)
-        
+
         return cleaned_data

@@ -124,6 +124,7 @@ class FollowUpQuestionInline(NestedTabularInline):
     exclude = ["parent_choice", "registration"]
     inlines = [FollowUpQuestionChoiceInline]
 
+
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 0
