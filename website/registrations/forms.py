@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 from registrations.models import Employee, registration
+from courses.models import Course
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
@@ -19,7 +20,7 @@ class Step2Form(forms.Form):
 
     first_name = forms.CharField()
     last_name = forms.CharField()
-    # course = forms.ModelChoiceField(queryset=Course.objects.all(), empty_label=None)
+    course = forms.ModelChoiceField(queryset=Course.objects.all(), empty_label=None)
     email = forms.EmailField()
     github_username = forms.CharField(disabled=True)
     github_id = forms.IntegerField(disabled=True)
