@@ -384,72 +384,99 @@ class UserAdmin(NestedModelAdmin):
         writer = csv.writer(
             content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
         )
-        writer.writerow(
-            [
-                "First name",
-                "Last name",
-                "Student number",
-                "GitHub username",
-                "Course",
-                "1st project preference",
-                "2nd project preference",
-                "3rd project preference",
-                "1st partner preference",
-                "2nd partner preference",
-                "3rd partner preference",
-                "Dev Experience",
-                "Git Experience",
-                "Scrum Experience",
-                "Management Interest",
-                "Non-dutch",
-                "Available during scheduled timeslot 1",
-                "Available during scheduled timeslot 2",
-                "Available during scheduled timeslot 3",
-                "Available during scheduled timeslot 4",
-                "Available during scheduled timeslot 5",
-                "Available during scheduled timeslot 6",
-                "Available during scheduled timeslot 7",
-                "Available during scheduled timeslot 8",
-                "Available during scheduled timeslot 9",
-                "Available during scheduled timeslot 10",
-                "Has problems with signing an NDA",
-                "Registration Comments",
-            ]
-        )
+
+        # Static registration field headers
+        static_headers = [
+            "First name",
+            "Last name",
+            "Student number",
+            "GitHub username",
+            "Course",
+            "1st project preference",
+            "2nd project preference",
+            "3rd project preference",
+            "1st partner preference",
+            "2nd partner preference",
+            "3rd partner preference",
+            "Dev Experience",
+            "Git Experience",
+            "Scrum Experience",
+            "Management Interest",
+            "Non-dutch",
+            "Available during scheduled timeslot 1",
+            "Available during scheduled timeslot 2",
+            "Available during scheduled timeslot 3",
+            "Available during scheduled timeslot 4",
+            "Available during scheduled timeslot 5",
+            "Available during scheduled timeslot 6",
+            "Available during scheduled timeslot 7",
+            "Available during scheduled timeslot 8",
+            "Available during scheduled timeslot 9",
+            "Available during scheduled timeslot 10",
+            "Has problems with signing an NDA",
+            "Registration Comments",
+        ]
+
+        # Get all unique dynamic questions from RegistrationSubmission
+        dynamic_questions = Question.objects.filter(
+            registration__registrationsubmission__participant__in=queryset
+        ).distinct().order_by("id")
+
+        # Combine headers
+        headers = static_headers + [q.question for q in dynamic_questions]
+        writer.writerow(headers)
+
+        # Write data rows
         for user in queryset:
             registration = user.registration_set.first()
-            writer.writerow(
-                [
-                    user.first_name,
-                    user.last_name,
-                    user.student_number,
-                    user.github_username,
-                    registration.course,
-                    registration.preference1,
-                    registration.preference2,
-                    registration.preference3,
-                    registration.partner_preference1,
-                    registration.partner_preference2,
-                    registration.partner_preference3,
-                    registration.dev_experience,
-                    registration.git_experience,
-                    registration.scrum_experience,
-                    registration.management_interest,
-                    registration.is_international,
-                    registration.available_during_scheduled_timeslot_1,
-                    registration.available_during_scheduled_timeslot_2,
-                    registration.available_during_scheduled_timeslot_3,
-                    registration.available_during_scheduled_timeslot_4,
-                    registration.available_during_scheduled_timeslot_5,
-                    registration.available_during_scheduled_timeslot_6,
-                    registration.available_during_scheduled_timeslot_7,
-                    registration.available_during_scheduled_timeslot_8,
-                    registration.available_during_scheduled_timeslot_9,
-                    registration.available_during_scheduled_timeslot_10,
-                    registration.has_problems_with_signing_an_nda,
-                    registration.comments,
-                ]
-            )
+            
+            # Static registration data
+            static_row = [
+                user.first_name,
+                user.last_name,
+                user.student_number,
+                user.github_username,
+                registration.course,
+                registration.preference1,
+                registration.preference2,
+                registration.preference3,
+                registration.partner_preference1,
+                registration.partner_preference2,
+                registration.partner_preference3,
+                registration.dev_experience,
+                registration.git_experience,
+                registration.scrum_experience,
+                registration.management_interest,
+                registration.is_international,
+                registration.available_during_scheduled_timeslot_1,
+                registration.available_during_scheduled_timeslot_2,
+                registration.available_during_scheduled_timeslot_3,
+                registration.available_during_scheduled_timeslot_4,
+                registration.available_during_scheduled_timeslot_5,
+                registration.available_during_scheduled_timeslot_6,
+                registration.available_during_scheduled_timeslot_7,
+                registration.available_during_scheduled_timeslot_8,
+                registration.available_during_scheduled_timeslot_9,
+                registration.available_during_scheduled_timeslot_10,
+                registration.has_problems_with_signing_an_nda,
+                registration.comments,
+            ]
+
+            # Dynamic registration submission data
+            dynamic_row = []
+            submission = user.registrationsubmission_set.first()
+            if submission:
+                for question in dynamic_questions:
+                    try:
+                        answer = submission.answer_set.get(question=question)
+                        dynamic_row.append(answer.answer_value)
+                    except Answer.DoesNotExist:
+                        dynamic_row.append("")
+            else:
+                # If no submission exists, fill with empty strings
+                dynamic_row = [""] * len(dynamic_questions)
+
+            writer.writerow(static_row + dynamic_row)
 
         response = HttpResponse(
             content.getvalue(), content_type="application/x-zip-compressed"
