@@ -11,6 +11,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import path
+from django.utils.text import slugify
 
 from courses.models import Semester
 
@@ -123,8 +124,10 @@ class ProjectAdmin(admin.ModelAdmin):
         # This automatically appends the year of the semester to the slug when saving
         super().save_model(request, obj, form, change)
         
-        obj.slug = obj.slug + f"{obj.semester.year}"
-        obj.save(update_fields=['slug'])
+        new_slug = slugify(f"{obj.name}-{obj.semester.year}")
+        if obj.slug != new_slug:
+            obj.slug = new_slug
+            obj.save(update_fields=['slug'])
 
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
