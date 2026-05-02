@@ -36,13 +36,13 @@ class Project(models.Model):
         """Meta class for Project model."""
 
         ordering = ["semester", "name"]
-        unique_together = [["name", "semester"], ["slug", "semester"]]
+        unique_together = [["name", "semester"]]
 
     name = models.CharField("name", max_length=50)
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
-    slug = models.SlugField("slug", max_length=50, blank=False, null=False)
+    slug = models.SlugField("slug", max_length=50, blank=False, null=False, unique=True)
 
     description = HTMLField()
     client = models.ForeignKey(
