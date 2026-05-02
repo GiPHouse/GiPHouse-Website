@@ -119,6 +119,13 @@ class ProjectAdmin(admin.ModelAdmin):
 
     prepopulated_fields = {"slug": ("name",)}
 
+    def save_model(self, request, obj, form, change):
+        # This automatically appends the year of the semester to the slug when saving
+        super().save_model(request, obj, form, change)
+        
+        obj.slug = obj.slug + f"{obj.semester.year}"
+        obj.save(update_fields=['slug'])
+
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
         return instance.is_archived != Repository.Archived.NOT_ARCHIVED
