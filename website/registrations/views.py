@@ -139,7 +139,9 @@ class Step2View(FormView):
                 return self.form_invalid(form)
 
             submission = registration.RegistrationSubmission.objects.create(
-                registration=submitted_registration, participant=user
+                registration=submitted_registration, 
+                participant=user,
+                course=form.cleaned_data["course"],
             )
             # TO DO: Validate dynamic parts of the form and save the answers to the database
             registration.Answer.save_from_cleaned_data(
