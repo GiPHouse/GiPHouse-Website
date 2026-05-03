@@ -355,7 +355,7 @@ class UserAdminManagementFilter(UserAdminAnswerFilter):
     label = "management"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminInternationalFilter(UserAdminAnswerFilter):
@@ -364,7 +364,7 @@ class UserAdminInternationalFilter(UserAdminAnswerFilter):
     label = "nondutch"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot1Filter(UserAdminAnswerFilter):
@@ -373,7 +373,7 @@ class UserAdminTimeslot1Filter(UserAdminAnswerFilter):
     label = "timeslot1"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot2Filter(UserAdminAnswerFilter):
@@ -382,7 +382,7 @@ class UserAdminTimeslot2Filter(UserAdminAnswerFilter):
     label = "timeslot2"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot3Filter(UserAdminAnswerFilter):
@@ -391,7 +391,7 @@ class UserAdminTimeslot3Filter(UserAdminAnswerFilter):
     label = "timeslot3"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 class UserAdminTimeslot4Filter(UserAdminAnswerFilter):
     title = "Timeslot 4"
@@ -399,7 +399,7 @@ class UserAdminTimeslot4Filter(UserAdminAnswerFilter):
     label = "timeslot4"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
     
 class UserAdminTimeslot5Filter(UserAdminAnswerFilter):
     title = "Timeslot 5"
@@ -407,7 +407,7 @@ class UserAdminTimeslot5Filter(UserAdminAnswerFilter):
     label = "timeslot5"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
     
 class UserAdminTimeslot6Filter(UserAdminAnswerFilter):
     title = "Timeslot 6"
@@ -415,7 +415,7 @@ class UserAdminTimeslot6Filter(UserAdminAnswerFilter):
     label = "timeslot6"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
     
 class UserAdminTimeslot7Filter(UserAdminAnswerFilter):
     title = "Timeslot 7"
@@ -423,7 +423,7 @@ class UserAdminTimeslot7Filter(UserAdminAnswerFilter):
     label = "timeslot7"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
     
 class UserAdminTimeslot8Filter(UserAdminAnswerFilter):
     title = "Timeslot 8"
@@ -431,7 +431,7 @@ class UserAdminTimeslot8Filter(UserAdminAnswerFilter):
     label = "timeslot8"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 class UserAdminTimeslot9Filter(UserAdminAnswerFilter):
     title = "Timeslot 9"
@@ -439,7 +439,7 @@ class UserAdminTimeslot9Filter(UserAdminAnswerFilter):
     label = "timeslot9"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
     
 class UserAdminTimeslot10Filter(UserAdminAnswerFilter):
     title = "Timeslot 10"
@@ -447,7 +447,7 @@ class UserAdminTimeslot10Filter(UserAdminAnswerFilter):
     label = "timeslot10"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 class UserAdminNdaFilter(UserAdminAnswerFilter):
     title = "Has problems with NDA"
@@ -455,7 +455,7 @@ class UserAdminNdaFilter(UserAdminAnswerFilter):
     label = "nonda"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class RegistrationInline(NestedTabularInline):
