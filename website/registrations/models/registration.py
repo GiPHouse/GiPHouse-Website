@@ -100,6 +100,7 @@ class Question(models.Model):
     GITHUB_USERNAME = "github_username"
     GITHUB_ID   = "github_id"
     STUDENT_NUMBER = "student_number"
+    COURSE     = "course"
 
     PROJECT1    = "project1"
     PROJECT2    = "project2"
@@ -134,6 +135,7 @@ class Question(models.Model):
         (GITHUB_USERNAME, "GitHub username", False),
         (GITHUB_ID, "GitHub ID", False),
         (STUDENT_NUMBER, "Student number", True),
+        (COURSE, "Course", True),
         (PROJECT1, "1st project preference", True),
         (PROJECT2, "2nd project preference", True),
         (PROJECT3, "3rd project preference", True),

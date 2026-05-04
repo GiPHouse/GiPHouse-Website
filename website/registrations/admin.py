@@ -178,6 +178,7 @@ class RegistrationsAdmin(NestedModelAdmin):
             ("last_name",   "Last name", Question.TEXT),
             ("email",      "Email", Question.TEXT),
             ("student_number", "Student number", Question.TEXT),
+            ("course",     "Course", Question.DROPDOWN, ["Course A", "Course B", "Course C"]),
 
             ("project1",   "1st project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
             ("project2",   "2nd project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
