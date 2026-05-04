@@ -118,13 +118,13 @@ class Step2View(FormView):
         """Register new user if the form is valid."""
         with transaction.atomic():
             user, _ = User.objects.get_or_create(
-                github_id=self.request.session["github_id"]
+                github_id=self.request.session["github_id"],
+                github_username=self.request.session["github_username"]
             )
 
             user.first_name = form.cleaned_data["first_name"]
             user.last_name = form.cleaned_data["last_name"]
             user.email = form.cleaned_data["email"]
-            user.github_username = form.cleaned_data["github_username"]
             user.student_number = form.cleaned_data["student_number"]
             user.save()
 

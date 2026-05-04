@@ -16,18 +16,25 @@ logger = logging.getLogger(__name__)
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
 
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    #course = forms.ModelChoiceField(queryset=Course.objects.all(), empty_label=None)
-    email = forms.EmailField()
-    github_username = forms.CharField(disabled=True)
-    github_id = forms.IntegerField(disabled=True)
-    student_number = forms.CharField()
+    # first_name = forms.CharField()
+    # last_name = forms.CharField()
+    # #course = forms.ModelChoiceField(queryset=Course.objects.all(), empty_label=None)
+    # email = forms.EmailField()
+    # github_username = forms.CharField(disabled=True)
+    # github_id = forms.IntegerField(disabled=True)
+    # student_number = forms.CharField()
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
         required=False,
         initial=False,
     )
+
+    def get_field_name(self, question, dynamic_user_fields):
+        """"Set field names for dynamic questions based on their label"""
+        if question.label in dynamic_user_fields:
+            return f"{question.label}"
+        else:
+            return f"question_{question.id}"
 
     class Media:
         js = ("js/question_type_toggle_step2.js",)
@@ -40,12 +47,10 @@ class Step2Form(forms.Form):
 
         github_id = session["github_id"]
         github_username = session["github_username"]
+        dynamic_user_fields = {"first_name", "last_name", "email", "student_number"}
 
         if github_id is None or github_username is None:
             raise ValueError("GitHub session info is incomplete")
-        
-        self.fields["github_id"].initial = github_id
-        self.fields["github_username"].initial = github_username
 
         self.github_id = github_id
         self.github_username = github_username
@@ -114,7 +119,7 @@ class Step2Form(forms.Form):
                 list(q.choices.values_list("id", "value", "follow_up")),
             )
 
-            field_name = f"question_{q.id}"
+            field_name = self.get_field_name(q, dynamic_user_fields)
             is_follow_up = q.parent_choice_id is not None
             widget_attrs = {
                 "question-id": str(q.id),

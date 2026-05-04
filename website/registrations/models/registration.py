@@ -113,6 +113,7 @@ class Question(models.Model):
     MANAGEMENT  = "management"
     NONDUTCH    = "nondutch"
 
+    TIMESLOTS   = "timeslots"
     TIMESLOT1   = "timeslot1"
     TIMESLOT2   = "timeslot2"
     TIMESLOT3   = "timeslot3"
@@ -142,16 +143,7 @@ class Question(models.Model):
         (DEVEXP, "Dev Experience", True),
         (MANAGEMENT, "Management Interest", True),
         (NONDUTCH, "Non-dutch", True),
-        (TIMESLOT1, "Available during scheduled timeslot 1", True),
-        (TIMESLOT2, "Available during scheduled timeslot 2", True),
-        (TIMESLOT3, "Available during scheduled timeslot 3", True),
-        (TIMESLOT4, "Available during scheduled timeslot 4", True),
-        (TIMESLOT5, "Available during scheduled timeslot 5", True),
-        (TIMESLOT6, "Available during scheduled timeslot 6", True),
-        (TIMESLOT7, "Available during scheduled timeslot 7", True),
-        (TIMESLOT8, "Available during scheduled timeslot 8", True),
-        (TIMESLOT9, "Available during scheduled timeslot 9", True),
-        (TIMESLOT10, "Available during scheduled timeslot 10", True),
+        (TIMESLOTS, "Timeslot availability", False),
         (NONDA, "Has problems with signing an NDA", True),
     ]
 
