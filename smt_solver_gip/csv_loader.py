@@ -158,6 +158,8 @@ def verify_row(row):
     
     return name, errors
 
+friend_data = []
+
 def load_registrations(filename):
     all_errors = []
 
@@ -171,7 +173,7 @@ def load_registrations(filename):
                 all_errors.append((name, errors))
             elif row['Course'] == 'Software Engineering':
                 engineer_data.add_student(
-                    row["First name"] + " " + row["Last name"],
+                    name,
                     parse_exp(row["Dev Experience"]),
                     parse_booleans(row["Management Interest"]),
                     parse_booleans(row["Non-dutch"]),
@@ -179,6 +181,9 @@ def load_registrations(filename):
                     parse_timetable(row),
                     [row["1st project preference"], row["2nd project preference"], row["3rd project preference"]]
                 )
+                partners = [row["1st partner preference"], row["2nd partner preference"], row["3rd partner preference"]]
+                while "" in partners: partners.remove("")
+                friend_data.append((name,partners))
 
     if all_errors:
         print(f"{RED}The following students have errors in their registration:{RESET}")
@@ -187,6 +192,9 @@ def load_registrations(filename):
             for error in errors:
                 print(f"{RED}    - {error}{RESET}")
         sys.exit(1)
+
+def get_friend_data():
+    return friend_data
 
 
 def print_registrations(registrations):

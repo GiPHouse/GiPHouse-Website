@@ -49,6 +49,61 @@ if datetime.now().year != 2026:
 
 ########## STEP 2: reading the engineer data ##########
 
-registrations = csv_loader.load_registrations("test_registrations.csv")
+csv_loader.load_registrations("test_registrations.csv") 
+
+# if you see any problems with the student registrations, you can fix them here by directly editing
+# the engineer data
+
+#engineer_data.remove_student("man man man") # manager accidentally registered as engineer
+#engineer_data.set_management_interest("Let Tim Cook", True)  # has experience with Scrum
+#engineer_data.set_level("Permitted Student", engineer_data.JUNIOR) # failed OOP
+#engineer_data.set_level("Regular Absentee", engineer_data.JUNIOR) # is abroad for most of the semester
+#engineer_data.set_level("Linus Torvalds", engineer_data.PRETTY_GOOD) # codes in free time
+
+# when you are happy, change the year; you can always come back later!
+if datetime.now().year != 2026:
+  engineer_data.print_students(range(engineer_data.num_students), "")
+  engineer_data.print_statistics()
+  sys.exit(0)
+
+########## STEP 3: storing friends ##########
+
+# fix friend names and remove names for unregistered people until the friend-storing code below
+# succeeds!
+
+friend_data = csv_loader.get_friend_data()
+
+def friend_rename(given_name, real_name):
+  for i in range(len(friend_data)):
+    for j in range(len(friend_data[i][1])):
+      if friend_data[i][1][j] == given_name:
+        friend_data[i][1][j] = real_name
+
+def friend_remove(given_name):
+  for i in range(len(friend_data)):
+    if given_name in friend_data[i][1]:
+      friend_data[i][1].remove(given_name)
+
+def add_friend(student, friend):
+  for i in range(len(friend_data)):
+    if friend_data[i][0] == student:
+      friend_data[i][1].append(friend)
+
+# rename incorrect names; these are often caused by typos in the registration form
+# friend_rename("Alice Johson", "Alice Johnson")
+
+# remove unregistered referrals
+friend_remove("Alice Johson")
+
+# this person indicated additional friends in their comments
+add_friend("from", "to")
+
+# friend-storing code; this probably does not need to be altered
+failed_friends_registration = False
+for (student_name, friend_list) in friend_data:
+  for friend in friend_list:
+    if not engineer_data.register_friend(student_name, friend):
+      failed_friends_registration = True
+if failed_friends_registration: sys.exit(1)
 
 engineer_data.print_students(range(engineer_data.num_students), " * ")

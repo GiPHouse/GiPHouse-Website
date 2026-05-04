@@ -51,7 +51,7 @@ if datetime.now().year != 2026:
 
 # put in the right filename for the CSV file containing the engineer data
 grid = []
-with open("registrations.csv") as csvfile:
+with open("test_registrations.csv") as csvfile:
   tablereader = csv.reader(csvfile, delimiter=",")
   for row in tablereader: grid.append([entry.strip("\"") for entry in row])
 
