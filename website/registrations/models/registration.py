@@ -3,6 +3,7 @@ from difflib import SequenceMatcher
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.functional import cached_property
+from django.core.exceptions import ValidationError
 
 from courses.models import Course, Semester
 
@@ -32,22 +33,133 @@ class Registrations(models.Model):
     title = models.CharField(max_length=200)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
+    projects = models.ManyToManyField(Project, blank=True)
+
     objects = RegistrationManager()
 
     def __str__(self):
         """Return title + semester."""
         return f"{self.title} ({self.semester})"
+    
+    def clean(self):
+        """Make sure all labels that must be set are present in the questions"""
+        
+        if not self.pk:
+            return
+
+        required_labels = {
+            label
+            for (label, _, must_be_set) in Question.QUESTION_LABELS
+            if must_be_set
+        }
+
+        used_labels = set(
+            self.question_set.values_list("label", flat=True)
+        )
+
+        # missing = required_labels - used_labels
+        # if missing:
+        #     raise ValidationError(
+        #         {"questions": f"Missing required labels: {', '.join(missing)}"}
+        #     )
+        
+    def get_projects(self):
+        """Get all the projects of a registration."""
+        return self.projects.all()
+
+    def has_projects(self):
+        """Returns true if there is at least one project."""
+        return self.projects.all().count() != 0
+
+    def remove_projects(self):
+        """Remove all the projects of a registration."""
+        return self.projects.set([])
+
+    def add_project(self, value):
+        """Set the projects of a registration."""
+        self.projects.add(value)
+
 
 
 class RegistrationSubmission(models.Model):
     """Submission of a Registration by a user."""
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
+    #Change participant to user after removing Registration class and its dependencies
     participant = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    projects = models.ManyToManyField(Project)
+    course = models.ForeignKey(Course, null=True, blank=True, on_delete=models.CASCADE)
 
     submitted = models.BooleanField(default=True)
 
     created = models.DateTimeField(auto_now_add=True)
+    
+    def get_answer(self, question_label):
+        """Get the answer for a question with the given label."""
+        answer = self.answer_set.filter(question__label=question_label).first()
+        if answer is None:
+            return ""
+        return answer.answer_value
+    
+    def get_projects(self):
+        """Get all the projects of a registration."""
+        return self.projects.all()
+
+    def has_projects(self):
+        """Returns true if there is at least one project."""
+        return self.projects.all().count() != 0
+
+    def remove_projects(self):
+        """Remove all the projects of a registration."""
+        return self.projects.set([])
+
+    def add_project(self, value):
+        """Set the projects of a registration."""
+        self.projects.add(value)
+
+    @property
+    def is_director(self):
+        """Check if a registration is a director."""
+        return (
+            self.projects.all().count() == 0
+            and self.course == Course.objects.sdm()
+        )
+
+    def _match_partner_name_to_user(self, name):
+        """
+        Match a string to a user.
+
+        Find the most similar user name to the given name.
+        """
+        if name is None:
+            return None
+
+        ratios = {}
+        for user in User.objects.filter(
+            registration__semester=self.registration.semester
+        ).all():
+            ratio = SequenceMatcher(None, name, user.get_full_name()).ratio()
+            if ratio > 0.5:
+                ratios[user] = ratio
+
+        if ratios:
+            return max(ratios, key=lambda k: ratios[k])
+        return None
+
+    @cached_property
+    def partner_preference1_user(self):
+        """Get the user most similar to the first partner preference."""
+        return self._match_partner_name_to_user(self.partner_preference1)
+
+    @cached_property
+    def partner_preference2_user(self):
+        """Get the user most similar to the second partner preference."""
+        return self._match_partner_name_to_user(self.partner_preference2)
+
+    @cached_property
+    def partner_preference3_user(self):
+        """Get the user most similar to the third partner preference."""
+        return self._match_partner_name_to_user(self.partner_preference3)
 
     def __str__(self):
         """Return string representation of the submission."""
@@ -71,9 +183,69 @@ class Question(models.Model):
         (DROPDOWN, "Dropdown"),
     ]
 
+    FIRSTNAME   = "firstname"
+    LASTNAME    = "lastname"
+
+    PROJECT1    = "project1"
+    PROJECT2    = "project2"
+    PROJECT3    = "project3"
+
+    COURSE      = "course"
+
+    PARTNER1    = "partner1"
+    PARTNER2    = "partner2"
+    PARTNER3    = "partner3"
+
+    DEVEXP      = "devexp"
+    MANAGEMENT  = "management"
+    NONDUTCH    = "nondutch"
+
+    TIMESLOT1   = "timeslot1"
+    TIMESLOT2   = "timeslot2"
+    TIMESLOT3   = "timeslot3"
+    TIMESLOT4   = "timeslot4"
+    TIMESLOT5   = "timeslot5"
+    TIMESLOT6   = "timeslot6"
+    TIMESLOT7   = "timeslot7"
+    TIMESLOT8   = "timeslot8"
+    TIMESLOT9   = "timeslot9"
+    TIMESLOT10  = "timeslot10"
+
+    NONDA       = "nonda"
+
+    COMMENTS    = "comments"
+
+    QUESTION_LABELS = [
+        (FIRSTNAME, "First name", False),
+        (LASTNAME, "Last name", False),
+        (PROJECT1, "1st project preference", True),
+        (PROJECT2, "2nd project preference", True),
+        (PROJECT3, "3rd project preference", True),
+        (COURSE, "Course", True),
+        (PARTNER1, "1st partner preference", True),
+        (PARTNER2, "2nd partner preference", True),
+        (PARTNER3, "3rd partner preference", True),
+        (DEVEXP, "Dev Experience", True),
+        (MANAGEMENT, "Management Interest", True),
+        (NONDUTCH, "Non-dutch", True),
+        (TIMESLOT1, "Available during scheduled timeslot 1", True),
+        (TIMESLOT2, "Available during scheduled timeslot 2", True),
+        (TIMESLOT3, "Available during scheduled timeslot 3", True),
+        (TIMESLOT4, "Available during scheduled timeslot 4", True),
+        (TIMESLOT5, "Available during scheduled timeslot 5", True),
+        (TIMESLOT6, "Available during scheduled timeslot 6", True),
+        (TIMESLOT7, "Available during scheduled timeslot 7", True),
+        (TIMESLOT8, "Available during scheduled timeslot 8", True),
+        (TIMESLOT9, "Available during scheduled timeslot 9", True),
+        (TIMESLOT10, "Available during scheduled timeslot 10", True),
+        (NONDA, "Has problems with signing an NDA", True),
+        (COMMENTS, "Comments", True),
+    ]
+
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
+    label = models.CharField(max_length=50, choices=[(a, b) for a, b, _ in QUESTION_LABELS])
     optional = models.BooleanField(default=False)
 
     parent_choice = models.ForeignKey(
@@ -203,7 +375,7 @@ class Answer(models.Model):
                 answer=self, defaults={"value": raw_value}
             )
 
-        elif qtype == Question.CHOICE:
+        elif qtype in (Question.CHOICE, Question.DROPDOWN):
             choice = QuestionChoice.objects.get(pk=int(raw_value))
             ChoiceData.objects.update_or_create(
                 answer=self, defaults={"choice": choice}
