@@ -264,8 +264,17 @@ class AnswerInline(NestedTabularInline):
 
 @admin.register(RegistrationSubmission)
 class RegistrationSubmissionAdmin(admin.ModelAdmin):
-    list_display = ("registration", "participant", "submitted", "created")
+    list_display = ("registration", "participant", "participant_github_id", "participant_github_username", "submitted", "created")
+    readonly_fields = ("participant_github_id", "participant_github_username")
     inlines = [AnswerInline]
+
+    def participant_github_id(self, obj):
+        return obj.participant.github_id
+    participant_github_id.short_description = "GitHub ID"
+
+    def participant_github_username(self, obj):
+        return obj.participant.github_username
+    participant_github_username.short_description = "GitHub Username"
 
 
 class UserAdminSemesterFilter(AutocompleteFilter):
