@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 from registrations.models import Employee, registration
-from courses.models import Course
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
@@ -25,13 +24,13 @@ class Step2Form(forms.Form):
     )
 
     def get_field_name(self, question, dynamic_user_fields):
-        """"Set field names for dynamic questions based on their label"""
+        """ "Set field names for dynamic questions based on their label"""
         base = f"question_{question.id}"
         if question.label in dynamic_user_fields:
             return f"{base}_{question.label}"
-        
+
         return base
-    
+
     def get_user_field(self, label):
         return self.cleaned_data[self.user_fields[label]]
 
@@ -46,7 +45,12 @@ class Step2Form(forms.Form):
 
         github_id = session["github_id"]
         github_username = session["github_username"]
-        dynamic_user_fields = {"first_name", "last_name", "email", "student_number"}
+        dynamic_user_fields = {
+            "first_name",
+            "last_name",
+            "email",
+            "student_number",
+        }
 
         if github_id is None or github_username is None:
             raise ValueError("GitHub session info is incomplete")

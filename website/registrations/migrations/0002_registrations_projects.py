@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0001_initial'),
-        ('registrations', '0001_initial'),
+        ("projects", "0001_initial"),
+        ("registrations", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='registrations',
-            name='projects',
-            field=models.ManyToManyField(blank=True, to='projects.project'),
+            model_name="registrations",
+            name="projects",
+            field=models.ManyToManyField(blank=True, to="projects.project"),
         ),
     ]

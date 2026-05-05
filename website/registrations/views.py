@@ -1,4 +1,3 @@
-from cProfile import label
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
@@ -141,11 +140,11 @@ class Step2View(FormView):
                 return self.form_invalid(form)
 
             submission = registration.RegistrationSubmission.objects.create(
-                registration=submitted_registration, 
+                registration=submitted_registration,
                 participant=user,
                 course=form.cleaned_data["course"],
             )
-            
+
             registration.Answer.save_from_cleaned_data(
                 submission, form.cleaned_data
             )

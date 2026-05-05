@@ -12,7 +12,7 @@ from django.urls import path, reverse
 from django.views import View
 from django.utils.safestring import mark_safe
 from django.forms.models import BaseInlineFormSet
-#from django.core.exceptions import ValidationError
+# from django.core.exceptions import ValidationError
 
 from courses.models import Semester, Course
 
@@ -38,6 +38,7 @@ User: Employee = get_user_model()
 "The following four classes provide the logic behind the admin"
 "interface for Registrationss with the proper inlines."
 
+
 class QuestionInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
@@ -60,11 +61,12 @@ class QuestionInlineFormSet(BaseInlineFormSet):
             if label:
                 used_labels.add(label)
 
-        #missing = required_labels - used_labels
+        # missing = required_labels - used_labels
         # if missing:
         #     raise ValidationError(
         #         f"Missing required labels: {', '.join(missing)}"
         #     )
+
 
 class QuestionAdminForm(forms.ModelForm):
     class Meta:
@@ -78,7 +80,7 @@ class QuestionAdminForm(forms.ModelForm):
         max_choices = cleaned_data.get("max_choices")
 
         errors = []
-    
+
         if question_type == Question.MULTI:
             if min_choices is not None and min_choices < 0:
                 errors.append("min_choices cannot be negative.")
@@ -174,38 +176,73 @@ class RegistrationsAdmin(NestedModelAdmin):
         )
 
         sample_questions = [
-            ("first_name",  "First name", Question.TEXT),
-            ("last_name",   "Last name", Question.TEXT),
-            ("email",      "Email", Question.TEXT),
+            ("first_name", "First name", Question.TEXT),
+            ("last_name", "Last name", Question.TEXT),
+            ("email", "Email", Question.TEXT),
             ("student_number", "Student number", Question.TEXT),
-            ("course",     "Course", Question.DROPDOWN, ["Course A", "Course B", "Course C"]),
-
-            ("project1",   "1st project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
-            ("project2",   "2nd project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
-            ("project3",   "3rd project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
-
-            ("partner1",   "1st partner preference", Question.TEXT),
-            ("partner2",   "2nd partner preference", Question.TEXT),
-            ("partner3",   "3rd partner preference", Question.TEXT),
-
-            ("devexp",     "Dev Experience", Question.CHOICE, ["None", "Little", "Some", "A lot"]),
-            ("management", "Management Interest", Question.CHOICE, ["Yes", "No"]),
-            ("nondutch",   "Non-dutch", Question.CHOICE, ["Yes", "No"]),
-
-            ("timeslots",  "Timeslot availability", Question.MULTI, [
-                "Available during scheduled timeslot 1",
-                "Available during scheduled timeslot 2",
-                "Available during scheduled timeslot 3",
-                "Available during scheduled timeslot 4",
-                "Available during scheduled timeslot 5",
-                "Available during scheduled timeslot 6",
-                "Available during scheduled timeslot 7",
-                "Available during scheduled timeslot 8",
-                "Available during scheduled timeslot 9",
-                "Available during scheduled timeslot 10",
-            ]),
-
-            ("nonda",      "Has problems with signing an NDA", Question.CHOICE, ["Yes", "No"]),
+            (
+                "course",
+                "Course",
+                Question.DROPDOWN,
+                ["Course A", "Course B", "Course C"],
+            ),
+            (
+                "project1",
+                "1st project preference",
+                Question.DROPDOWN,
+                ["Project A", "Project B", "Project C"],
+            ),
+            (
+                "project2",
+                "2nd project preference",
+                Question.DROPDOWN,
+                ["Project A", "Project B", "Project C"],
+            ),
+            (
+                "project3",
+                "3rd project preference",
+                Question.DROPDOWN,
+                ["Project A", "Project B", "Project C"],
+            ),
+            ("partner1", "1st partner preference", Question.TEXT),
+            ("partner2", "2nd partner preference", Question.TEXT),
+            ("partner3", "3rd partner preference", Question.TEXT),
+            (
+                "devexp",
+                "Dev Experience",
+                Question.CHOICE,
+                ["None", "Little", "Some", "A lot"],
+            ),
+            (
+                "management",
+                "Management Interest",
+                Question.CHOICE,
+                ["Yes", "No"],
+            ),
+            ("nondutch", "Non-dutch", Question.CHOICE, ["Yes", "No"]),
+            (
+                "timeslots",
+                "Timeslot availability",
+                Question.MULTI,
+                [
+                    "Available during scheduled timeslot 1",
+                    "Available during scheduled timeslot 2",
+                    "Available during scheduled timeslot 3",
+                    "Available during scheduled timeslot 4",
+                    "Available during scheduled timeslot 5",
+                    "Available during scheduled timeslot 6",
+                    "Available during scheduled timeslot 7",
+                    "Available during scheduled timeslot 8",
+                    "Available during scheduled timeslot 9",
+                    "Available during scheduled timeslot 10",
+                ],
+            ),
+            (
+                "nonda",
+                "Has problems with signing an NDA",
+                Question.CHOICE,
+                ["Yes", "No"],
+            ),
         ]
 
         for item in sample_questions:
@@ -224,24 +261,27 @@ class RegistrationsAdmin(NestedModelAdmin):
             )
 
             for choice_text in choices:
-                QuestionChoice.objects.create(
-                    question=q,
-                    value=choice_text
-                )
+                QuestionChoice.objects.create(question=q, value=choice_text)
 
-
-        url = reverse("admin:registrations_registrations_change", args=[reg.pk])
+        url = reverse(
+            "admin:registrations_registrations_change", args=[reg.pk]
+        )
         return redirect(url)
 
     # Set changelist to add button that calls create_sample_registration
     change_list_template = "admin/registrations/change_list.html"
 
 
-
 @admin.register(Question)
 class QuestionAdmin(NestedModelAdmin):
     form = QuestionAdminForm
-    list_display = ("question", "registration", "question_type", "label", "optional")
+    list_display = (
+        "question",
+        "registration",
+        "question_type",
+        "label",
+        "optional",
+    )
     inlines = [QuestionChoiceInline]
 
 
@@ -264,16 +304,25 @@ class AnswerInline(NestedTabularInline):
 
 @admin.register(RegistrationSubmission)
 class RegistrationSubmissionAdmin(admin.ModelAdmin):
-    list_display = ("registration", "participant", "participant_github_id", "participant_github_username", "submitted", "created")
+    list_display = (
+        "registration",
+        "participant",
+        "participant_github_id",
+        "participant_github_username",
+        "submitted",
+        "created",
+    )
     readonly_fields = ("participant_github_id", "participant_github_username")
     inlines = [AnswerInline]
 
     def participant_github_id(self, obj):
         return obj.participant.github_id
+
     participant_github_id.short_description = "GitHub ID"
 
     def participant_github_username(self, obj):
         return obj.participant.github_username
+
     participant_github_username.short_description = "GitHub Username"
 
 
@@ -287,7 +336,9 @@ class UserAdminSemesterFilter(AutocompleteFilter):
     def queryset(self, request, queryset):
         """Filter semesters."""
         if self.value():
-            return queryset.filter(registrationsubmission__registration__semester=self.value())
+            return queryset.filter(
+                registrationsubmission__registration__semester=self.value()
+            )
         else:
             return queryset
 
@@ -305,13 +356,14 @@ class UserAdminProjectFilter(AutocompleteFilter):
             return queryset.filter(registrations__projects=self.value())
         return queryset
 
+
 class UserAdminCourseFilter(admin.SimpleListFilter):
     title = "Course"
     parameter_name = "course"
 
     def lookups(self, request, model_admin):
         return [(c.id, c.name) for c in Course.objects.all()]
-    
+
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(
@@ -322,6 +374,7 @@ class UserAdminCourseFilter(admin.SimpleListFilter):
 
 class UserAdminAnswerFilter(admin.SimpleListFilter):
     """Base class for filtering by answer value."""
+
     label = None
 
     def lookups(self, request, model_admin):
@@ -331,7 +384,7 @@ class UserAdminAnswerFilter(admin.SimpleListFilter):
         if self.value():
             return queryset.filter(
                 registrationsubmission__answer__question__label=self.label,
-                registrationsubmission__answer__choicedata__choice__value=self.value()
+                registrationsubmission__answer__choicedata__choice__value=self.value(),
             ).distinct()
         return queryset
 
@@ -342,7 +395,11 @@ class UserAdminDevExpFilter(UserAdminAnswerFilter):
     label = "devexp"
 
     def lookups(self, request, model_admin):
-        return [("Beginner", "Beginner"), ("Intermediate", "Intermediate"), ("Advanced", "Advanced")]
+        return [
+            ("Beginner", "Beginner"),
+            ("Intermediate", "Intermediate"),
+            ("Advanced", "Advanced"),
+        ]
 
 
 class UserAdminGitExpFilter(UserAdminAnswerFilter):
@@ -351,7 +408,11 @@ class UserAdminGitExpFilter(UserAdminAnswerFilter):
     label = "gitexp"
 
     def lookups(self, request, model_admin):
-        return [("Beginner", "Beginner"), ("Intermediate", "Intermediate"), ("Advanced", "Advanced")]
+        return [
+            ("Beginner", "Beginner"),
+            ("Intermediate", "Intermediate"),
+            ("Advanced", "Advanced"),
+        ]
 
 
 class UserAdminScrumExpFilter(UserAdminAnswerFilter):
@@ -360,7 +421,11 @@ class UserAdminScrumExpFilter(UserAdminAnswerFilter):
     label = "scrumexp"
 
     def lookups(self, request, model_admin):
-        return [("Beginner", "Beginner"), ("Intermediate", "Intermediate"), ("Advanced", "Advanced")]
+        return [
+            ("Beginner", "Beginner"),
+            ("Intermediate", "Intermediate"),
+            ("Advanced", "Advanced"),
+        ]
 
 
 class UserAdminManagementFilter(UserAdminAnswerFilter):
@@ -407,6 +472,7 @@ class UserAdminTimeslot3Filter(UserAdminAnswerFilter):
     def lookups(self, request, model_admin):
         return [("Yes", "Yes"), ("No", "No")]
 
+
 class UserAdminTimeslot4Filter(UserAdminAnswerFilter):
     title = "Timeslot 4"
     parameter_name = "timeslot4"
@@ -414,7 +480,8 @@ class UserAdminTimeslot4Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("Yes", "Yes"), ("No", "No")]
-    
+
+
 class UserAdminTimeslot5Filter(UserAdminAnswerFilter):
     title = "Timeslot 5"
     parameter_name = "timeslot5"
@@ -422,7 +489,8 @@ class UserAdminTimeslot5Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("Yes", "Yes"), ("No", "No")]
-    
+
+
 class UserAdminTimeslot6Filter(UserAdminAnswerFilter):
     title = "Timeslot 6"
     parameter_name = "timeslot6"
@@ -430,7 +498,8 @@ class UserAdminTimeslot6Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("Yes", "Yes"), ("No", "No")]
-    
+
+
 class UserAdminTimeslot7Filter(UserAdminAnswerFilter):
     title = "Timeslot 7"
     parameter_name = "timeslot7"
@@ -438,7 +507,8 @@ class UserAdminTimeslot7Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("Yes", "Yes"), ("No", "No")]
-    
+
+
 class UserAdminTimeslot8Filter(UserAdminAnswerFilter):
     title = "Timeslot 8"
     parameter_name = "timeslot8"
@@ -447,6 +517,7 @@ class UserAdminTimeslot8Filter(UserAdminAnswerFilter):
     def lookups(self, request, model_admin):
         return [("Yes", "Yes"), ("No", "No")]
 
+
 class UserAdminTimeslot9Filter(UserAdminAnswerFilter):
     title = "Timeslot 9"
     parameter_name = "timeslot9"
@@ -454,7 +525,8 @@ class UserAdminTimeslot9Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("Yes", "Yes"), ("No", "No")]
-    
+
+
 class UserAdminTimeslot10Filter(UserAdminAnswerFilter):
     title = "Timeslot 10"
     parameter_name = "timeslot10"
@@ -462,6 +534,7 @@ class UserAdminTimeslot10Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("Yes", "Yes"), ("No", "No")]
+
 
 class UserAdminNdaFilter(UserAdminAnswerFilter):
     title = "Has problems with NDA"
@@ -562,8 +635,10 @@ class UserAdmin(NestedModelAdmin):
 
         if not submission:
             return None
-        
-        return mark_safe("<br>".join(str(p) for p in submission.get_projects()))
+
+        return mark_safe(
+            "<br>".join(str(p) for p in submission.get_projects())
+        )
 
     get_current_project.short_description = "Project"
 
@@ -635,7 +710,9 @@ class UserAdmin(NestedModelAdmin):
 
         current_registration = Registrations.objects.current_registration()
         for user in queryset:
-            submission = user.registrationsubmission_set.filter(registration=current_registration).first()
+            submission = user.registrationsubmission_set.filter(
+                registration=current_registration
+            ).first()
 
             print("USER:", user)
             print("REGISTRATION:", submission)
@@ -777,7 +854,7 @@ class ImportAssignmentAdminView(View):
                     registration__semester=semester,
                     course__name=csv_course,
                 )
-                    
+
             except RegistrationSubmission.DoesNotExist:
                 raise ValueError(
                     f"No registration was found for {csv_first_name} {csv_last_name} with student number "

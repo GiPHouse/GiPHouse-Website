@@ -3,7 +3,7 @@ from difflib import SequenceMatcher
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.functional import cached_property
-#from django.core.exceptions import ValidationError
+# from django.core.exceptions import ValidationError
 
 from courses.models import Course, Semester
 
@@ -40,10 +40,10 @@ class Registrations(models.Model):
     def __str__(self):
         """Return title + semester."""
         return f"{self.title} ({self.semester})"
-    
+
     def clean(self):
         """Make sure all labels that must be set are present in the questions"""
-        
+
         if not self.pk:
             return
 
@@ -62,7 +62,7 @@ class Registrations(models.Model):
         #     raise ValidationError(
         #         {"questions": f"Missing required labels: {', '.join(missing)}"}
         #     )
-        
+
     def get_projects(self):
         """Get all the projects of a registration."""
         return self.projects.all()
@@ -80,27 +80,28 @@ class Registrations(models.Model):
         self.projects.add(value)
 
 
-
 class RegistrationSubmission(models.Model):
     """Submission of a Registration by a user."""
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
-    #Change participant to user after removing Registration class and its dependencies
+    # Change participant to user after removing Registration class and its dependencies
     participant = models.ForeignKey(Employee, on_delete=models.CASCADE)
     projects = models.ManyToManyField(Project)
-    course = models.ForeignKey(Course, null=True, blank=True, on_delete=models.CASCADE)
+    course = models.ForeignKey(
+        Course, null=True, blank=True, on_delete=models.CASCADE
+    )
 
     submitted = models.BooleanField(default=True)
 
     created = models.DateTimeField(auto_now_add=True)
-    
+
     def get_answer(self, question_label):
         """Get the answer for a question with the given label."""
         answer = self.answer_set.filter(question__label=question_label).first()
         if answer is None:
             return ""
         return answer.answer_value
-    
+
     def get_projects(self):
         """Get all the projects of a registration."""
         return self.projects.all()
@@ -183,41 +184,41 @@ class Question(models.Model):
         (DROPDOWN, "Dropdown"),
     ]
 
-    FIRSTNAME   = "first_name"
-    LASTNAME    = "last_name"
-    EMAIL       = "email"
+    FIRSTNAME = "first_name"
+    LASTNAME = "last_name"
+    EMAIL = "email"
     GITHUB_USERNAME = "github_username"
-    GITHUB_ID   = "github_id"
+    GITHUB_ID = "github_id"
     STUDENT_NUMBER = "student_number"
-    COURSE     = "course"
+    COURSE = "course"
 
-    PROJECT1    = "project1"
-    PROJECT2    = "project2"
-    PROJECT3    = "project3"
+    PROJECT1 = "project1"
+    PROJECT2 = "project2"
+    PROJECT3 = "project3"
 
-    PARTNER1    = "partner1"
-    PARTNER2    = "partner2"
-    PARTNER3    = "partner3"
+    PARTNER1 = "partner1"
+    PARTNER2 = "partner2"
+    PARTNER3 = "partner3"
 
-    DEVEXP      = "devexp"
-    MANAGEMENT  = "management"
-    NONDUTCH    = "nondutch"
+    DEVEXP = "devexp"
+    MANAGEMENT = "management"
+    NONDUTCH = "nondutch"
 
-    TIMESLOTS   = "timeslots"
-    TIMESLOT1   = "timeslot1"
-    TIMESLOT2   = "timeslot2"
-    TIMESLOT3   = "timeslot3"
-    TIMESLOT4   = "timeslot4"
-    TIMESLOT5   = "timeslot5"
-    TIMESLOT6   = "timeslot6"
-    TIMESLOT7   = "timeslot7"
-    TIMESLOT8   = "timeslot8"
-    TIMESLOT9   = "timeslot9"
-    TIMESLOT10  = "timeslot10"
+    TIMESLOTS = "timeslots"
+    TIMESLOT1 = "timeslot1"
+    TIMESLOT2 = "timeslot2"
+    TIMESLOT3 = "timeslot3"
+    TIMESLOT4 = "timeslot4"
+    TIMESLOT5 = "timeslot5"
+    TIMESLOT6 = "timeslot6"
+    TIMESLOT7 = "timeslot7"
+    TIMESLOT8 = "timeslot8"
+    TIMESLOT9 = "timeslot9"
+    TIMESLOT10 = "timeslot10"
 
-    NONDA       = "nonda"
+    NONDA = "nonda"
 
-    COMMENTS    = "comments"
+    COMMENTS = "comments"
 
     QUESTION_LABELS = [
         (FIRSTNAME, "First name", False),
@@ -245,7 +246,12 @@ class Question(models.Model):
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
-    label = models.CharField(max_length=50, choices=[(a, b) for a, b, _ in QUESTION_LABELS], blank=True, null=True)
+    label = models.CharField(
+        max_length=50,
+        choices=[(a, b) for a, b, _ in QUESTION_LABELS],
+        blank=True,
+        null=True,
+    )
     optional = models.BooleanField(default=False)
 
     parent_choice = models.ForeignKey(
