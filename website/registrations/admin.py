@@ -174,8 +174,11 @@ class RegistrationsAdmin(NestedModelAdmin):
         )
 
         sample_questions = [
-            ("firstname",  "First name", Question.TEXT),
-            ("lastname",   "Last name", Question.TEXT),
+            ("first_name",  "First name", Question.TEXT),
+            ("last_name",   "Last name", Question.TEXT),
+            ("email",      "Email", Question.TEXT),
+            ("student_number", "Student number", Question.TEXT),
+            ("course",     "Course", Question.DROPDOWN, ["Course A", "Course B", "Course C"]),
 
             ("project1",   "1st project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
             ("project2",   "2nd project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
@@ -185,20 +188,22 @@ class RegistrationsAdmin(NestedModelAdmin):
             ("partner2",   "2nd partner preference", Question.TEXT),
             ("partner3",   "3rd partner preference", Question.TEXT),
 
-            ("devexp",     "Dev Experience", Question.CHOICE),
+            ("devexp",     "Dev Experience", Question.CHOICE, ["None", "Little", "Some", "A lot"]),
             ("management", "Management Interest", Question.CHOICE, ["Yes", "No"]),
             ("nondutch",   "Non-dutch", Question.CHOICE, ["Yes", "No"]),
 
-            ("timeslot1",  "Available during scheduled timeslot 1", Question.CHOICE),
-            ("timeslot2",  "Available during scheduled timeslot 2", Question.CHOICE),
-            ("timeslot3",  "Available during scheduled timeslot 3", Question.CHOICE),
-            ("timeslot4",  "Available during scheduled timeslot 4", Question.CHOICE),
-            ("timeslot5",  "Available during scheduled timeslot 5", Question.CHOICE),
-            ("timeslot6",  "Available during scheduled timeslot 6", Question.CHOICE),
-            ("timeslot7",  "Available during scheduled timeslot 7", Question.CHOICE),
-            ("timeslot8",  "Available during scheduled timeslot 8", Question.CHOICE),
-            ("timeslot9",  "Available during scheduled timeslot 9", Question.CHOICE),
-            ("timeslot10", "Available during scheduled timeslot 10", Question.CHOICE),
+            ("timeslots",  "Timeslot availability", Question.MULTI, [
+                "Available during scheduled timeslot 1",
+                "Available during scheduled timeslot 2",
+                "Available during scheduled timeslot 3",
+                "Available during scheduled timeslot 4",
+                "Available during scheduled timeslot 5",
+                "Available during scheduled timeslot 6",
+                "Available during scheduled timeslot 7",
+                "Available during scheduled timeslot 8",
+                "Available during scheduled timeslot 9",
+                "Available during scheduled timeslot 10",
+            ]),
 
             ("nonda",      "Has problems with signing an NDA", Question.CHOICE, ["Yes", "No"]),
         ]

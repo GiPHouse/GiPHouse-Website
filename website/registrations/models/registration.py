@@ -183,14 +183,17 @@ class Question(models.Model):
         (DROPDOWN, "Dropdown"),
     ]
 
-    FIRSTNAME   = "firstname"
-    LASTNAME    = "lastname"
+    FIRSTNAME   = "first_name"
+    LASTNAME    = "last_name"
+    EMAIL       = "email"
+    GITHUB_USERNAME = "github_username"
+    GITHUB_ID   = "github_id"
+    STUDENT_NUMBER = "student_number"
+    COURSE     = "course"
 
     PROJECT1    = "project1"
     PROJECT2    = "project2"
     PROJECT3    = "project3"
-
-    COURSE      = "course"
 
     PARTNER1    = "partner1"
     PARTNER2    = "partner2"
@@ -200,6 +203,7 @@ class Question(models.Model):
     MANAGEMENT  = "management"
     NONDUTCH    = "nondutch"
 
+    TIMESLOTS   = "timeslots"
     TIMESLOT1   = "timeslot1"
     TIMESLOT2   = "timeslot2"
     TIMESLOT3   = "timeslot3"
@@ -218,6 +222,11 @@ class Question(models.Model):
     QUESTION_LABELS = [
         (FIRSTNAME, "First name", False),
         (LASTNAME, "Last name", False),
+        (EMAIL, "Email", True),
+        (GITHUB_USERNAME, "GitHub username", False),
+        (GITHUB_ID, "GitHub ID", False),
+        (STUDENT_NUMBER, "Student number", True),
+        (COURSE, "Course", True),
         (PROJECT1, "1st project preference", True),
         (PROJECT2, "2nd project preference", True),
         (PROJECT3, "3rd project preference", True),
@@ -228,16 +237,7 @@ class Question(models.Model):
         (DEVEXP, "Dev Experience", True),
         (MANAGEMENT, "Management Interest", True),
         (NONDUTCH, "Non-dutch", True),
-        (TIMESLOT1, "Available during scheduled timeslot 1", True),
-        (TIMESLOT2, "Available during scheduled timeslot 2", True),
-        (TIMESLOT3, "Available during scheduled timeslot 3", True),
-        (TIMESLOT4, "Available during scheduled timeslot 4", True),
-        (TIMESLOT5, "Available during scheduled timeslot 5", True),
-        (TIMESLOT6, "Available during scheduled timeslot 6", True),
-        (TIMESLOT7, "Available during scheduled timeslot 7", True),
-        (TIMESLOT8, "Available during scheduled timeslot 8", True),
-        (TIMESLOT9, "Available during scheduled timeslot 9", True),
-        (TIMESLOT10, "Available during scheduled timeslot 10", True),
+        (TIMESLOTS, "Timeslot availability", False),
         (NONDA, "Has problems with signing an NDA", True),
         (COMMENTS, "Comments", True),
     ]
@@ -245,7 +245,7 @@ class Question(models.Model):
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
-    label = models.CharField(max_length=50, choices=[(a, b) for a, b, _ in QUESTION_LABELS])
+    label = models.CharField(max_length=50, choices=[(a, b) for a, b, _ in QUESTION_LABELS], blank=True, null=True)
     optional = models.BooleanField(default=False)
 
     parent_choice = models.ForeignKey(

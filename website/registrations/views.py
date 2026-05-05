@@ -1,3 +1,5 @@
+from cProfile import label
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.db import transaction
@@ -118,14 +120,14 @@ class Step2View(FormView):
         """Register new user if the form is valid."""
         with transaction.atomic():
             user, _ = User.objects.get_or_create(
-                github_id=self.request.session["github_id"]
+                github_id=self.request.session["github_id"],
+                github_username=self.request.session["github_username"],
             )
 
-            user.first_name = form.cleaned_data["first_name"]
-            user.last_name = form.cleaned_data["last_name"]
-            user.email = form.cleaned_data["email"]
-            user.github_username = form.cleaned_data["github_username"]
-            user.student_number = form.cleaned_data["student_number"]
+            user.first_name = form.get_user_field("first_name")
+            user.last_name = form.get_user_field("last_name")
+            user.email = form.get_user_field("email")
+            user.student_number = form.get_user_field("student_number")
             user.save()
 
             submitted_registration = (
@@ -143,7 +145,7 @@ class Step2View(FormView):
                 participant=user,
                 course=form.cleaned_data["course"],
             )
-            # TO DO: Validate dynamic parts of the form and save the answers to the database
+            
             registration.Answer.save_from_cleaned_data(
                 submission, form.cleaned_data
             )
