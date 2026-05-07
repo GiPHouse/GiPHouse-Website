@@ -169,6 +169,10 @@ class GitHubAPITalkerTest(TestCase):
 class GitHubSyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
+        Course.objects.create(name="System Development Management")
+        Course.objects.create(name="Software Development Entrepreneurship")
+
         cls.semester = Semester.objects.create(year=2020, season=Semester.FALL)
         cls.project1 = Project.objects.create(
             name="test1", github_team_id="87654321", semester=cls.semester
@@ -297,12 +301,12 @@ class GitHubSyncTest(TestCase):
 
     def test_sync_team_member__not_in_project(self):
         reg = Registration.objects.get(user=self.employee1)
-        # field first_project does not currently exist
-        reg.first_project = None
         reg.save()
+
         return_value = self.sync.sync_team_member(
             self.employee1, self.project1
         )
+
         self.talker.get_user.assert_not_called()
         self.github_team.add_membership.assert_not_called()
         self.assertFalse(return_value)

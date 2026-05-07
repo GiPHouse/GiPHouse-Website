@@ -58,12 +58,18 @@ class Step1Test(TestCase):
         self.assertFalse(response.context["user"].is_authenticated)
 
     def test_step1_no_semester(self):
+        """Uncomment a branch of the dispatch() method of
+        the Step1View Class for this test to pass."""
+
         response = self.client.get("/register/step1", follow=True)
 
         self.assertRedirects(response, reverse("home"))
         self.assertContains(response, "Registrations are currently not open")
 
     def test_step1_semester_without_registrations(self):
+        """Uncomment a branch of the dispatch() method of
+         the Step1View Class for this test to pass."""
+
         Semester.objects.get_or_create_current_semester()
 
         response = self.client.get("/register/step1", follow=True)
@@ -72,6 +78,9 @@ class Step1Test(TestCase):
         self.assertContains(response, "Registrations are currently not open")
 
     def test_step1_current_semester_closed_registration(self):
+        """Uncomment a branch of the dispatch() method of
+        the Step1View Class for this test to pass."""
+
         semester = Semester.objects.get_or_create_current_semester()
         semester.registration_start = timezone.now() - timezone.timedelta(
             days=2
