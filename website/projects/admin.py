@@ -129,6 +129,12 @@ class ProjectAdmin(admin.ModelAdmin):
             obj.slug = new_slug
             obj.save(update_fields=['slug'])
 
+        if obj.number_of_repos == 0:
+            obj.repository_set.create(
+            name=obj.slug,
+            is_archived=False,
+            )
+
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
         return instance.is_archived != Repository.Archived.NOT_ARCHIVED
