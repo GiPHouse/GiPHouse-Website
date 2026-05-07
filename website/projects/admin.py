@@ -132,7 +132,6 @@ class ProjectAdmin(admin.ModelAdmin):
         if obj.number_of_repos == 0:
             obj.repository_set.create(
             name=obj.slug,
-            is_archived=False,
             )
 
     def is_archived(self, instance):

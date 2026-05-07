@@ -42,7 +42,7 @@ class Project(models.Model):
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
-    slug = models.SlugField("slug", max_length=50, blank=False, null=False, unique=True)
+    slug = models.SlugField("slug", max_length=50, blank=False, null=False, unique=True, help_text="The year of the semester is appended to the slug upon saving.")
 
     description = HTMLField()
     client = models.ForeignKey(
