@@ -231,7 +231,6 @@ class Question(models.Model):
         (PROJECT1, "1st project preference", True),
         (PROJECT2, "2nd project preference", True),
         (PROJECT3, "3rd project preference", True),
-        (COURSE, "Course", True),
         (PARTNER1, "1st partner preference", True),
         (PARTNER2, "2nd partner preference", True),
         (PARTNER3, "3rd partner preference", True),
