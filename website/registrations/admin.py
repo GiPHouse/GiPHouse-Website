@@ -357,8 +357,6 @@ class UserAdminSemesterFilter(admin.SimpleListFilter):
             )
         else:
             return queryset
-        else:
-            return queryset.filter(registration__semester_id=self.value())
 
 
 class UserAdminProjectFilter(AutocompleteFilter):
