@@ -129,7 +129,7 @@ class ProjectAdmin(admin.ModelAdmin):
             obj.slug = new_slug
             obj.save(update_fields=['slug'])
 
-        if obj.number_of_repos == 0:
+        if obj.number_of_repos == 0 and obj.default_repo:
             obj.repository_set.create(
             name=obj.slug,
             )

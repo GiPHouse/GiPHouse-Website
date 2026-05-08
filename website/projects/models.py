@@ -44,6 +44,8 @@ class Project(models.Model):
 
     slug = models.SlugField("slug", max_length=50, blank=False, null=False, unique=True, help_text="The year of the semester is appended to the slug upon saving.")
 
+    default_repo = models.BooleanField(blank=False, default=True, help_text="Whether a default repo should be created using the slug name")
+
     description = HTMLField()
     client = models.ForeignKey(
         Client, on_delete=models.SET_NULL, blank=True, null=True
