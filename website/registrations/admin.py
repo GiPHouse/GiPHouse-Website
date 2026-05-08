@@ -30,7 +30,6 @@ from registrations.models.registration import (
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    # TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
@@ -326,7 +325,24 @@ class RegistrationSubmissionAdmin(admin.ModelAdmin):
     participant_github_username.short_description = "GitHub Username"
 
 
-class UserAdminSemesterFilter(AutocompleteFilter):
+class AnswerInline(NestedTabularInline):
+    model = Answer
+    extra = 0
+    readonly_fields = ("question_text", "answer_value")
+    exclude = ("question",)
+
+    def question_text(self, obj):
+        return obj.question.question
+
+    question_text.short_description = "Question"
+
+    def answer_value(self, obj):
+        return obj.answer_value
+
+    answer_value.short_description = "Answer"
+
+
+class UserAdminSemesterFilter(admin.SimpleListFilter):
     """Filter class to filter Semester objects."""
 
     title = "Semester"
@@ -341,6 +357,8 @@ class UserAdminSemesterFilter(AutocompleteFilter):
             )
         else:
             return queryset
+        else:
+            return queryset.filter(registration__semester_id=self.value())
 
 
 class UserAdminProjectFilter(AutocompleteFilter):
@@ -558,6 +576,24 @@ class RegistrationSubmissionInline(NestedTabularInline):
     model = RegistrationSubmission
     extra = 0
     inlines = [AnswerInline]
+
+
+class CollapsedRelatedFieldFilter(admin.RelatedFieldListFilter):
+    """Class to collapse related field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedChoicesFieldFilter(admin.ChoicesFieldListFilter):
+    """Class to collapse choices field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedBooleanFieldFilter(admin.BooleanFieldListFilter):
+    """Class to collapse boolean field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
 
 
 @admin.register(User)
