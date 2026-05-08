@@ -27,6 +27,7 @@ initialise_colours()
 with open("projects.txt", 'r', encoding="utf-8") as file:
   project_data.add_projects([ f.strip() for f in file.read().splitlines() ])
 
+
 # now set short names for the projects; this is not strictly necessary, but is convenient for
 # printing, since otherwise student preferences may for instance get very long
 # you will also afterwards be able to refer to a project by its short name
@@ -49,7 +50,7 @@ if datetime.now().year != 2026:
 
 ########## STEP 2: reading the engineer data ##########
 
-csv_loader.load_registrations("test_registrations.csv") 
+csv_loader.load_registrations("test_registrations.csv")
 
 # if you see any problems with the student registrations, you can fix them here by directly editing
 # the engineer data
@@ -107,3 +108,4 @@ for (student_name, friend_list) in friend_data:
 if failed_friends_registration: sys.exit(1)
 
 engineer_data.print_students(range(engineer_data.num_students), " * ")
+

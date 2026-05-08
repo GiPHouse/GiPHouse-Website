@@ -196,7 +196,6 @@ def load_registrations(filename):
 def get_friend_data():
     return friend_data
 
-
 def print_registrations(registrations):
     for reg in registrations:
         print(reg)
