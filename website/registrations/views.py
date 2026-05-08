@@ -1,4 +1,3 @@
-
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.db import transaction
@@ -122,7 +121,7 @@ class Step2View(FormView):
                 github_id=self.request.session["github_id"],
                 github_username=self.request.session["github_username"],
             )
-            
+
             user.first_name = form.get_user_field("first_name")
             user.last_name = form.get_user_field("last_name")
             user.email = form.get_user_field("email")
@@ -138,9 +137,11 @@ class Step2View(FormView):
                     None, "No registration form found for this semester."
                 )
                 return self.form_invalid(form)
-            
+
             course_id = form.get_user_field("course")
-            course_name = registration.QuestionChoice.objects.get(id=course_id).value
+            course_name = registration.QuestionChoice.objects.get(
+                id=course_id
+            ).value
             course = Course.objects.get(name=course_name)
 
             submission = registration.RegistrationSubmission.objects.create(
