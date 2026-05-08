@@ -183,7 +183,7 @@ class RegistrationsAdmin(NestedModelAdmin):
                 "course",
                 "Course",
                 Question.DROPDOWN,
-                ["Course A", "Course B", "Course C"],
+                [course.name for course in Course.objects.all()],
             ),
             (
                 "project1",

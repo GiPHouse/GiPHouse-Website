@@ -50,6 +50,7 @@ class Step2Form(forms.Form):
             "last_name",
             "email",
             "student_number",
+            "course",
         }
 
         if github_id is None or github_username is None:
