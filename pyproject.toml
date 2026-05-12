@@ -29,7 +29,7 @@ requires-python = ">=3.14"
 license = "AGPL-3.0-only"
 dependencies = [
     "Django>=6.0",
-    "requests>=2.33.1",
+    "requests>=2.34.0",
     "libsass>=0.23.0",
     "django>=6.0.5",
     "django-sass-processor>=1.4.2",
