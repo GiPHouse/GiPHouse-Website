@@ -48,7 +48,7 @@ dependencies = [
     "django-bleach>=3.1.0",
     "django-nested-admin>=4.1.6",
     "gunicorn>=25.3.0",
-    "django-components>=0.148.0",
+    "django-components>=0.150.0",
 ]
 
 [project.optional-dependencies]
