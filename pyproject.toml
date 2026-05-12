@@ -47,13 +47,13 @@ dependencies = [
     "django-tinymce>=5.0.0",
     "django-bleach>=3.1.0",
     "django-nested-admin>=4.1.6",
-    "gunicorn>=25.3.0",
+    "gunicorn>=26.0.0",
     "django-components>=0.150.0",
 ]
 
 [project.optional-dependencies]
 production = [
-    "gunicorn>=25.3.0",
+    "gunicorn>=26.0.0",
     "psycopg2-binary>=2.9.3",
 ]
 
