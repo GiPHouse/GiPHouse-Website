@@ -62,22 +62,26 @@ class ProjectAdminForm(forms.ModelForm):
         widget=widgets.FilteredSelectMultiple("Engineers", False),
     )
 
+    class Media:
+        js = ("js/slug.js",)
+
     def clean(self):
         """Validate form data and handle semester changes."""
         cleaned_data = super().clean()
         name = cleaned_data.get('name')
         semester = cleaned_data.get('semester')
         
-        expected_slug = slugify(f"{name}-{semester.year}")
+        if semester and name:    
+            expected_slug = slugify(f"{name}-{semester.year}")
         
-        existing_project = Project.objects.filter(
-            slug=expected_slug
-        ).exclude(pk=self.instance.pk if self.instance.pk else None)
+            existing_project = Project.objects.filter(
+                slug=expected_slug
+            ).exclude(pk=self.instance.pk if self.instance.pk else None)
         
-        if existing_project.exists():
-            raise ValidationError(
-                f'A project with slug "{expected_slug}" already exists please choose a different name'
-            )
+            if existing_project.exists():
+                raise ValidationError(
+                    f'A project with slug "{expected_slug}" already exists please choose a different name'
+                )
 
     def save_m2m(self):
         """Add the users to the Project and remove other users from the Project."""

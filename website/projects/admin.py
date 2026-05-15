@@ -118,8 +118,6 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
 
-    prepopulated_fields = {"slug": ("name",)}
-
     def save_model(self, request, obj, form, change):
         # This automatically appends the year of the semester to the slug when saving
         super().save_model(request, obj, form, change)

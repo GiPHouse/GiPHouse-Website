@@ -42,7 +42,7 @@ class Project(models.Model):
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
-    slug = models.SlugField("slug", max_length=50, blank=False, null=False, unique=True, help_text="The year of the semester is appended to the slug upon saving.")
+    slug = models.SlugField("slug", max_length=50, blank=True, null=False, unique=True)
 
     default_repo = models.BooleanField(blank=False, default=True, help_text="Whether a default repo should be created using the slug name")
 
