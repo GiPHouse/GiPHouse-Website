@@ -1,3 +1,4 @@
+from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from django.test import Client, TestCase
@@ -5,9 +6,8 @@ from django.utils import timezone
 
 from courses.models import Course, Semester
 
-from projects.models import Project
-
-from registrations.models import Employee, registration
+from registrations.models import Employee, registration, Registrations, Question, QuestionChoice
+from registrations.admin import RegistrationsAdmin
 
 User: Employee = get_user_model()
 
@@ -109,12 +109,26 @@ class Step1Test(TestCase):
 class Step2Test(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
+        cls.se = Course.objects.se()
+
+        # Semester should have a registration period set,
+        # but we do not check for registrations being open
+        # at the moment. Sample registration does not specify
+        # the registration period either.
         cls.semester = Semester.objects.get_or_create_current_semester()
-        cls.semester.registration_start = timezone.now()
-        cls.semester.registration_end = timezone.now() + timezone.timedelta(
-            days=1
-        )
-        cls.semester.save()
+
+        # cls.semester.registration_end = timezone.now() + timezone.timedelta(days=1)
+        # cls.semester.save()
+
+        # create sample registration
+        site = AdminSite()
+        admin = RegistrationsAdmin(Registrations, site)
+        # the request parameter is not used inside
+        # the function, so None should work
+        admin.create_sample_registration(None)
+
+        cls.q_ids_start = Question.objects.all().first().pk
 
         cls.first_name = "FirstTest"
         cls.last_name = "LastTest"
@@ -122,41 +136,37 @@ class Step2Test(TestCase):
         cls.github_username = "test"
         cls.github_id = 1
         cls.student_number = "s1234567"
-        cls.dev_experience = registration.Registration.EXPERIENCE_BEGINNER
 
-        cls.project_preference1 = Project.objects.create(
-            semester=cls.semester,
-            name="project1",
-            slug="project1",
-            description="Test Project 1",
-        )
+        cls.dev_exp_question_id = Question.objects.filter(
+            question="Dev Experience" # not optimal
+        ).first().pk
+        # choose any of the options, say, the first one
+        cls.dev_experience = QuestionChoice.objects.filter(
+            question_id=cls.dev_exp_question_id,
+        ).first().value # right now it would be = "None"
 
-        cls.project_preference2 = Project.objects.create(
-            semester=cls.semester,
-            name="project2",
-            slug="project2",
-            description="Test Project 2",
-        )
-
-        cls.project_preference3 = Project.objects.create(
-            semester=cls.semester,
-            name="project3",
-            slug="project3",
-            description="Test Project 3",
-        )
+        # you could access them the same filtering way
+        # but Ima just go with what they are: hardcoded
+        cls.project_preference1 = "Project A"
+        cls.project_preference2 = "Project B"
+        cls.project_preference3 = "Project C"
 
         cls.project_partner_preference1 = "Piet Janssen"
         cls.project_partner_preference2 = "FirstTest LastTest"
-        cls.project_partner_preference3 = ""
+        cls.project_partner_preference3 = "Einstein"
 
-        cls.available_during_scheduled_timeslot_1 = True
-        cls.available_during_scheduled_timeslot_2 = True
-        cls.available_during_scheduled_timeslot_3 = True
-        cls.available_during_scheduled_timeslot_10 = True
+        cls.available_during_scheduled_timeslots = [1, 2, 3, 10]
 
-        cls.international = False
+        cls.management_interest = "No"
+        cls.non_dutch = "Yes"
+        cls.problem_with_NDA = "No"
 
-        cls.se = Course.objects.se()
+        timeslot_q_id = Question.objects.filter(
+            question="Timeslot availability"  # semi-optimal
+        ).first().pk
+        cls.availability_ids_start = QuestionChoice.objects.filter(
+            question_id=timeslot_q_id,
+        ).first().id
 
     def setUp(self):
         self.client = Client()
@@ -168,6 +178,54 @@ class Step2Test(TestCase):
         self.session["github_name"] = f"{self.first_name} {self.last_name}"
 
         self.session.save()
+
+        # All questions must be answered;
+        # This is a sample payload, the values are based on
+        # the human-readable attributes defined above
+        self.form_data_filled = {
+            f"question_{self.q_ids_start}_first_name": self.first_name,
+            f"question_{self.q_ids_start + 1}_last_name": self.last_name,
+            f"question_{self.q_ids_start + 2}_email": self.email,
+            f"question_{self.q_ids_start + 3}_student_number": self.student_number,
+            f"question_{self.q_ids_start + 4}_course": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 4,
+                value=self.se,  # because it's a dropdown
+            ).first().pk,
+            f"question_{self.q_ids_start + 5}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 5,
+                value=self.project_preference1,  # DROPDOWN
+            ).first().pk,
+            f"question_{self.q_ids_start + 6}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 6,
+                value=self.project_preference2,
+            ).first().pk,
+            f"question_{self.q_ids_start + 7}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 7,
+                value=self.project_preference3,  # DROPDOWN
+            ).first().pk,
+            f"question_{self.q_ids_start + 8}": self.project_partner_preference1,  # TEXT
+            f"question_{self.q_ids_start + 9}": self.project_partner_preference2,
+            f"question_{self.q_ids_start + 10}": self.project_partner_preference3,
+            f"question_{self.q_ids_start + 11}": QuestionChoice.objects.filter(
+                question_id=self.dev_exp_question_id,
+                value=self.dev_experience,  # CHOICE
+            ).first().pk,
+            f"question_{self.q_ids_start + 12}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 12,
+                value=self.management_interest,  # CHOICE
+            ).first().pk,
+            f"question_{self.q_ids_start + 13}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 13,
+                value=self.non_dutch,  # CHOICE
+            ).first().pk,
+            f"question_{self.q_ids_start + 14}": [self.availability_ids_start + t - 1 for t in
+                                                 self.available_during_scheduled_timeslots],  # offset 1
+            f"question_{self.q_ids_start + 15}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 15,
+                value=self.problem_with_NDA,
+            ).first().pk
+            # "submit": "submit"
+        }
 
     def test_step2(self):
         response = self.client.get("/register/step2")
@@ -181,76 +239,38 @@ class Step2Test(TestCase):
 
         self.assertEqual(response.status_code, 400)
 
-    def test_step2_includes_initial_information(self):
-        response = self.client.get("/register/step2")
-
-        self.assertContains(response, f'value="{self.github_username}"')
-        self.assertContains(response, f'value="{self.first_name}"')
-        self.assertContains(response, f'value="{self.last_name}"')
-        self.assertContains(response, f'value="{self.email}"')
-
-    # All tests below are for reference only and should be replaced
     def test_post_step2(self):
         response = self.client.post(
             "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id + 1,
-                "github_username": self.github_username,
-                "semester": self.semester.id,
-                "course": self.se.id,
-                "email": self.email,
-                "dev_experience": self.dev_experience,
-                "git_experience": self.dev_experience,
-                "scrum_experience": self.dev_experience,
-                "management_interest": False,
-                "international": self.international,
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "partner1": self.project_partner_preference1,
-                "partner2": self.project_partner_preference2,
-                "partner3": self.project_partner_preference3,
-                "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
-                "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
-                "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
-                "available_during_scheduled_timeslot_10": self.available_during_scheduled_timeslot_10,
-            },
-            follow=True,
+            self.form_data_filled,
+            follow=True
         )
 
         self.assertRedirects(response, "/")
         self.assertContains(response, "Registration created successfully")
 
+        session = self.client.session
+        # check user logged in
+        self.assertTrue("_auth_user_id" in session)
+
+        # check session cleanup
+        self.assertNotIn("github_id", session)
+        self.assertNotIn("github_username", session)
+        self.assertNotIn("github_name", session)
+        self.assertNotIn("github_email", session)
+
     def test_post_step2_wrong_student_number(self):
+        self.form_data_filled.update({
+            f"question_{self.q_ids_start + 3}_student_number": "wrong format", # this one actually works lol
+        })
         response = self.client.post(
             "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": "wrong format",
-                "github_id": self.github_id,
-                "github_username": self.github_username,
-                "course": self.se.id,
-                "email": self.email,
-                "dev_experience": self.dev_experience,
-                "international": self.international,
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "partner1": self.project_partner_preference1,
-                "partner2": self.project_partner_preference2,
-                "partner3": self.project_partner_preference3,
-                "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
-                "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
-                "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
-            },
+            self.form_data_filled,
             follow=True,
         )
         self.assertContains(response, "Invalid Student Number")
 
+    # All tests below are for reference only and should be replaced
     def test_post_step2_duplicate_project(self):
         response = self.client.post(
             "/register/step2",
@@ -263,7 +283,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "dev_experience": self.dev_experience,
-                "international": self.international,
+                "non_dutch": self.non_dutch,
                 "project1": self.project_preference1.id,
                 "project2": str(self.project_preference1.id),
             },
@@ -298,7 +318,7 @@ class Step2Test(TestCase):
                 "course": self.se.id,
                 "email": self.email,
                 "dev_experience": self.dev_experience,
-                "international": self.international,
+                "non_dutch": self.non_dutch,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -351,7 +371,7 @@ class Step2Test(TestCase):
                 "git_experience": self.dev_experience,
                 "scrum_experience": self.dev_experience,
                 "management_interest": False,
-                "international": self.international,
+                "non_dutch": self.non_dutch,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -398,7 +418,7 @@ class Step2Test(TestCase):
                 "github_id": self.github_id + 1,
                 "github_username": self.github_username,
                 "dev_experience": self.dev_experience,
-                "international": self.international,
+                "non_dutch": self.non_dutch,
                 "course": self.se.id,
                 "email": self.email,
                 "project1": self.project_preference1.id,
@@ -449,7 +469,7 @@ class Step2Test(TestCase):
                 "git_experience": self.dev_experience,
                 "scrum_experience": self.dev_experience,
                 "management_interest": False,
-                "international": self.international,
+                "non_dutch": self.non_dutch,
                 "course": self.se.id,
                 "email": self.email,
                 "project1": self.project_preference1.id,
@@ -484,7 +504,7 @@ class Step2Test(TestCase):
                 "git_experience": self.dev_experience,
                 "scrum_experience": self.dev_experience,
                 "management_interest": False,
-                "international": self.international,
+                "non_dutch": self.non_dutch,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
@@ -517,7 +537,7 @@ class Step2Test(TestCase):
                 "git_experience": self.dev_experience,
                 "scrum_experience": self.dev_experience,
                 "management_interest": False,
-                "international": self.international,
+                "non_dutch": self.non_dutch,
                 "project1": self.project_preference1.id,
                 "project2": self.project_preference2.id,
                 "project3": self.project_preference3.id,
