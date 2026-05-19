@@ -63,7 +63,7 @@ dev = [
     "pydocstyle>=6.3.0",
     "freezegun>=1.5.5",
     "Faker>=40.4.0",
-    "ruff>=0.15.12",
+    "ruff>=0.15.13",
 ]
 
 [tool.uv]
