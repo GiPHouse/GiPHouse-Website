@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const default_repo = document.getElementById("id_default_repo");
     const save = document.querySelector('[name="_save"]');
     const end_body = document.getElementById("django-admin-form-add-constants")
-    var count_invalid = 0;
 
     if (!name || !semester || !slug) {
         return;
@@ -33,46 +32,93 @@ document.addEventListener("DOMContentLoaded", () => {
         slug.value = slugify(`${nameValue}-${semesterText}`);
     }
 
-    name.addEventListener("input", updateSlug);
-    semester.addEventListener("input", updateSlug);
+    name.addEventListener("input", update);
+    semester.addEventListener("input", update);
 
     updateSlug();
+
+    function validRepoNames(){
+        if(default_repo.checked && slug.value != ""){
+            const invalid = [];
+
+            const repo_names = document.querySelectorAll(
+                '[id^="id_repository_set-"][id$="-name"]'
+            );
+
+            for(const repo_name of repo_names){
+                if(repo_name.value == slug.value){
+                    invalid.push(repo_name);
+                }
+            }
+
+            return invalid;
+        }
+        return [];
+    }
+
+    function repoErrorUpdate(){
+        const invalid_repo_names = validRepoNames();
+
+        if(invalid_repo_names.length > 0){
+            save.disabled = true;
+            clear();
+
+            if(!document.getElementById("default_repo_copy")){
+                const error = createErrorMessage("Naming a repo the same as the slug is not allowed when default repo is enabled.");
+                error.id = "default_repo_copy";
+                end_body.before(error);
+            }
+
+            for(const repo_name of invalid_repo_names){
+                repo_name.style.border = "1px solid #e35f5f";
+                const parent = repo_name.closest(".form-row.field-name");
+                const error = createErrorMessage("Invalid repo name");
+                error.classList.add("repo-error");
+                parent.before(error);
+            }
+        }
+        else{
+            clear();
+            save.disabled = false;
+            document.querySelector("#default_repo_copy")?.remove();
+        }
+    }
+
+    function createErrorMessage(message){
+        const error = document.createElement("ul");
+        error.className = "errorlist";
+        const li = document.createElement("li");
+        li.textContent = message;
+        error.appendChild(li);
+
+        return error;
+    }
+
+    function clear(){
+        const repo_names = document.querySelectorAll('[id^="id_repository_set-"][id$="-name"]');
+
+        for(const repo_name of repo_names){
+            repo_name.style.border = "";
+        }
+
+        const error_messages = document.querySelectorAll(".repo-error");
+
+        for(const error_message of error_messages){
+            error_message.remove();
+        }
+    }
+
+    function update(){
+        updateSlug();
+        repoErrorUpdate();
+    }
 
     const repositoryFieldset = document.querySelector(
         "#repository_set-group"
     );
 
     if (repositoryFieldset) {
-        repositoryFieldset.addEventListener("input", (event) => {
-            const target = event.target;
-
-            if (!(target instanceof HTMLInputElement)) {
-                return;
-            }
-
-            if(default_repo.checked && target.value == slug.value){
-                count_invalid++;
-                save.disabled = true;
-                
-                if(count_invalid == 1){
-                    target.style.border = "1px solid var(--error-fg)";
-                    const error = document.createElement("ul");
-                    error.className = "errorlist";
-                    error.id = "default_repo_copy";
-                    const li = document.createElement("li");
-                    li.textContent = "Naming a repo the same as the slug is not allowed when default repo is enabled.";
-                    error.appendChild(li);
-                    end_body.before(error);
-                }
-            }
-            else{
-                target.style.border = "";
-                count_invalid--;
-                if(count_invalid == 0){
-                    save.disabled = false;
-                    document.querySelector("#default_repo_copy")?.remove();
-                }
-            }
-        });
+        repositoryFieldset.addEventListener("input", repoErrorUpdate);
     }
+    default_repo.addEventListener("change", repoErrorUpdate);
 });
