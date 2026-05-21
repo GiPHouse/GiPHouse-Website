@@ -175,10 +175,14 @@ class Question(models.Model):
     MULTI = "multi"
     BIGTEXT = "bigtext"
     DROPDOWN = "dropdown"
+    TEXTLIST = "textlist"
+    CHOICELIST = "choicelist"
 
     QUESTION_TYPES = [
         (TEXT, "Text"),
         (BIGTEXT, "Big text"),
+        (TEXTLIST, "Text list"),
+        (CHOICELIST, "Choice list"),
         (CHOICE, "Single choice"),
         (MULTI, "Multiple choice"),
         (DROPDOWN, "Dropdown"),
@@ -192,10 +196,12 @@ class Question(models.Model):
     STUDENT_NUMBER = "student_number"
     COURSE = "course"
 
+    PROJECTS = "projects"
     PROJECT1 = "project1"
     PROJECT2 = "project2"
     PROJECT3 = "project3"
 
+    PARTNERS = "partners"
     PARTNER1 = "partner1"
     PARTNER2 = "partner2"
     PARTNER3 = "partner3"
@@ -220,20 +226,17 @@ class Question(models.Model):
 
     COMMENTS = "comments"
 
+    # Label choices for questions. The boolean indicates whether the question with this label must be set at least once for a registration to be valid.
     QUESTION_LABELS = [
-        (FIRSTNAME, "First name", False),
-        (LASTNAME, "Last name", False),
+        (FIRSTNAME, "First name", True),
+        (LASTNAME, "Last name", True),
         (EMAIL, "Email", True),
         (GITHUB_USERNAME, "GitHub username", False),
         (GITHUB_ID, "GitHub ID", False),
         (STUDENT_NUMBER, "Student number", True),
         (COURSE, "Course", True),
-        (PROJECT1, "1st project preference", True),
-        (PROJECT2, "2nd project preference", True),
-        (PROJECT3, "3rd project preference", True),
-        (PARTNER1, "1st partner preference", True),
-        (PARTNER2, "2nd partner preference", True),
-        (PARTNER3, "3rd partner preference", True),
+        (PROJECTS, "Project preferences", True),
+        (PARTNERS, "Partner preferences", True),
         (DEVEXP, "Dev Experience", True),
         (MANAGEMENT, "Management Interest", True),
         (NONDUTCH, "Non-dutch", True),
@@ -290,13 +293,13 @@ class Answer(models.Model):
         """Return the correct answer data object depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
+        if qtype in (Question.TEXT, Question.BIGTEXT):
             try:
                 return self.textdata
             except TextData.DoesNotExist:
                 return None
 
-        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
+        elif qtype in (Question.CHOICE, Question.DROPDOWN):
             try:
                 return self.choicedata
             except ChoiceData.DoesNotExist:
@@ -313,14 +316,14 @@ class Answer(models.Model):
         """Set the correct answer value depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
+        if qtype in (Question.TEXT, Question.BIGTEXT):
             try:
                 self.textdata.value = value
             except TextData.DoesNotExist:
                 self.textdata = TextData(answer=self, value=value)
             self.textdata.save()
 
-        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
+        elif qtype in (Question.CHOICE, Question.DROPDOWN):
             try:
                 self.choicedata.choice = value
             except ChoiceData.DoesNotExist:
@@ -341,38 +344,39 @@ class Answer(models.Model):
         """Return the human-readable answer depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
+        if qtype in (Question.TEXT, Question.BIGTEXT):
             return getattr(self.textdata, "value", "")
 
-        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
+        elif qtype in (Question.CHOICE, Question.DROPDOWN):
             return getattr(self.choicedata.choice, "value", "")
 
-        elif qtype == Question.MULTI:
+        else:
             try:
                 return ", ".join(c.value for c in self.multidata.choices.all())
             except MultiData.DoesNotExist:
                 return ""
 
-        return ""
 
     @classmethod
     def save_from_cleaned_data(cls, submission, cleaned_data):
-        "Create Answer objects for all question_* fields."
-
+        answers = {}
         for key, raw_value in cleaned_data.items():
             if not key.startswith("question_"):
                 continue
 
             question_id = int(key.split("_")[1])
-            question = Question.objects.get(pk=question_id)
+            answers.setdefault(question_id, []).append(raw_value)
 
+        for question_id, raw_values in answers.items():
+            question = Question.objects.get(pk=question_id)
             answer = cls.objects.create(
                 submission=submission, question=question
             )
+
+            raw_value = raw_values[0] if len(raw_values) == 1 else raw_values
             answer.set_value(raw_value)
 
     def set_value(self, raw_value):
-        """Store the answer depending on the question type."""
         qtype = self.question.question_type
 
         if qtype in (Question.TEXT, Question.BIGTEXT):
@@ -386,7 +390,31 @@ class Answer(models.Model):
                 answer=self, defaults={"choice": choice}
             )
 
-        elif qtype == Question.MULTI:
+        elif qtype == Question.CHOICELIST:
+            choice_ids = [int(v) for v in raw_value]
+            choices = self.question.choices.filter(pk__in=choice_ids)
+
+            multi, _ = MultiData.objects.get_or_create(answer=self)
+            multi.choices.set(choices)
+            multi.save()
+
+        elif qtype == Question.TEXTLIST:
+            values = [
+                v for v in raw_value
+                if v is not None and str(v).strip() != ""
+            ]
+            choices = []
+            for value in values:
+                choice, _ = QuestionChoice.objects.get_or_create(
+                    question=self.question, value=value
+                )
+                choices.append(choice)
+
+            multi, _ = MultiData.objects.get_or_create(answer=self)
+            multi.choices.set(choices)
+            multi.save()
+
+        else:
             choice_ids = [int(v) for v in raw_value]
             choices = self.question.choices.filter(pk__in=choice_ids)
 
