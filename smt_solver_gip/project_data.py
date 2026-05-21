@@ -3,6 +3,7 @@
 # to distinguish projects using both short names, full names and identifier.                      #
 ###################################################################################################
 
+import csv_loader
 from colour_codes import *
 
 num_projects = 0
@@ -63,8 +64,7 @@ def get_project_identifier(name):
   if len(matches) == 1: return matches[0]
   matches = [i for i in range(num_projects) if full_names[i] in name]
   if len(matches) == 1: return matches[0]
-  # if name != "": 
-  print(RED + "The project \"" + name + "\" could not be (uniquely) identified.")
+  # if name != "": print(RED + "The project \"" + name + "\" could not be (uniquely) identified.")
   return None
 
 # returns the short project name for the project with the given identifier (which must exist)

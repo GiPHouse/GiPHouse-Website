@@ -4,6 +4,7 @@ import sys
 import engineer_data
 import project_data
 from colour_codes import *
+from collections import defaultdict
 
 EXPECTED_COLUMNS = [
     "First name",
@@ -159,10 +160,9 @@ def verify_row(row):
     return name, errors
 
 friend_data = []
+all_errors = defaultdict(list)
 
 def load_registrations(filename):
-    all_errors = []
-
     with open(filename, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         header = reader.fieldnames
@@ -170,8 +170,8 @@ def load_registrations(filename):
         for row in reader:
             name, errors = verify_row(row)
             if errors:
-                all_errors.append((name, errors))
-            elif row['Course'] == 'Software Engineering':
+                all_errors[name].extend(errors)
+            if row['Course'] == 'Software Engineering':
                 engineer_data.add_student(
                     name,
                     parse_exp(row["Dev Experience"]),
@@ -186,12 +186,10 @@ def load_registrations(filename):
                 friend_data.append((name,partners))
 
     if all_errors:
-        print(f"{RED}The following students have errors in their registration:{RESET}")
-        for name, errors in all_errors:
+        for name, errors in all_errors.items():
             print(f"{RED}  {name}:{RESET}")
             for error in errors:
                 print(f"{RED}    - {error}{RESET}")
-        sys.exit(1)
 
 def get_friend_data():
     return friend_data
