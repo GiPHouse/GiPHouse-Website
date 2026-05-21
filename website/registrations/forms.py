@@ -192,7 +192,7 @@ class Step2Form(forms.Form):
                     required=not q.optional,
                     widget=forms.Select,
                 )
-            
+
             elif q.question_type == registration.Question.TEXTLIST:
                 n_fields = q.max_choices if q.max_choices is not None else 1
                 for i in range(n_fields):

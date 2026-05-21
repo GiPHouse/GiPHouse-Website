@@ -356,7 +356,6 @@ class Answer(models.Model):
             except MultiData.DoesNotExist:
                 return ""
 
-
     @classmethod
     def save_from_cleaned_data(cls, submission, cleaned_data):
         answers = {}
@@ -400,8 +399,7 @@ class Answer(models.Model):
 
         elif qtype == Question.TEXTLIST:
             values = [
-                v for v in raw_value
-                if v is not None and str(v).strip() != ""
+                v for v in raw_value if v is not None and str(v).strip() != ""
             ]
             choices = []
             for value in values:
