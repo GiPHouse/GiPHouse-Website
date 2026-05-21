@@ -193,6 +193,28 @@ class Step2Form(forms.Form):
                     widget=forms.Select,
                 )
 
+            elif q.question_type == registration.Question.TEXTLIST:
+                n_fields = q.max_choices if q.max_choices is not None else 1
+                for i in range(n_fields):
+                    self.fields[f"{field_name}_{i}"] = forms.CharField(
+                        label=f"{q.question} {i + 1}",
+                        required=not q.optional,
+                        widget=forms.TextInput(attrs=widget_attrs),
+                    )
+
+            elif q.question_type == registration.Question.CHOICELIST:
+                choices = registration.QuestionChoice.objects.filter(
+                    question=q
+                ).values_list("id", "value")
+                n_fields = q.max_choices if q.max_choices is not None else 1
+                for i in range(n_fields):
+                    self.fields[f"{field_name}_{i}"] = forms.ChoiceField(
+                        label=f"{q.question} {i + 1}",
+                        choices=choices,
+                        required=not q.optional,
+                        widget=forms.Select(attrs=widget_attrs),
+                    )
+
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
 
