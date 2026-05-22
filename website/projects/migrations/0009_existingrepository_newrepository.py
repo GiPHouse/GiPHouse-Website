@@ -4,36 +4,33 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0008_alter_project_options'),
+        ("projects", "0008_alter_project_options"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ExistingRepository',
-            fields=[
-            ],
+            name="ExistingRepository",
+            fields=[],
             options={
-                'verbose_name': 'Existing Repository',
-                'verbose_name_plural': 'Existing Repositories',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Existing Repository",
+                "verbose_name_plural": "Existing Repositories",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('projects.repository',),
+            bases=("projects.repository",),
         ),
         migrations.CreateModel(
-            name='NewRepository',
-            fields=[
-            ],
+            name="NewRepository",
+            fields=[],
             options={
-                'verbose_name': 'New Repository',
-                'verbose_name_plural': 'New Repositories',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "New Repository",
+                "verbose_name_plural": "New Repositories",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('projects.repository',),
+            bases=("projects.repository",),
         ),
     ]

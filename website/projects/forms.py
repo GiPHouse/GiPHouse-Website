@@ -5,7 +5,7 @@ from django.db.models import Q
 
 from courses.models import Course, Semester
 
-from projects.models import Project, Repository, ExistingRepository
+from projects.models import Project, Repository
 
 from registrations.models import Employee, Registration
 
@@ -89,9 +89,7 @@ class NewRepositoryInlineForm(forms.ModelForm):
         """Limit the choices of is_archived."""
         super().__init__(*args, **kwargs)
 
-        self.fields["is_archived"].choices = Repository.Archived.choices[
-            :-1
-        ]
+        self.fields["is_archived"].choices = Repository.Archived.choices[:-1]
         self.fields[
             "is_archived"
         ].help_text = "Setting this to 'To be archived' will archive this repository during the next GitHub sync."
@@ -104,23 +102,27 @@ class ExistingRepositoryInlineForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Limit the choices of is_archived.
-        if self.instance and self.instance.pk: # existing obj
+        if self.instance and self.instance.pk:  # existing obj
             if self.instance.is_archived == Repository.Archived.CONFIRMED:
                 self.fields["is_archived"].disabled = True
                 self.fields[
                     "is_archived"
                 ].help_text = "This repository is already archived on GitHub. It is currently not possible to unarchive them."
             else:
-                self.fields["is_archived"].choices = Repository.Archived.choices[
-                    :-1
-                ]
+                self.fields[
+                    "is_archived"
+                ].choices = Repository.Archived.choices[:-1]
                 self.fields[
                     "is_archived"
                 ].help_text = "Setting this to 'To be archived' will archive this repository during the next GitHub sync."
 
         # Set other fields' statuses (on/off) and help texts.
-        if self.instance and self.instance.pk: # existing obj
+        if self.instance and self.instance.pk:  # existing obj
             self.fields["github_repo_id"].disabled = True
-            self.fields["github_repo_id"].help_text = f"If you want to provide a different id, create a new Existing Repository object.<br>Forcefully changing this field will avoid proper deletion flow and is not supported."
+            self.fields[
+                "github_repo_id"
+            ].help_text = "If you want to provide a different id, create a new Existing Repository object.<br>Forcefully changing this field will avoid proper deletion flow and is not supported."
 
-        self.fields["github_repo_id"].widget.attrs["class"] = "github_repo_id-field"
+        self.fields["github_repo_id"].widget.attrs["class"] = (
+            "github_repo_id-field"
+        )

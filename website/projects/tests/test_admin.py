@@ -30,9 +30,7 @@ class GetProjectsStaffStatusTest(TestCase):
     def setUpTestData(cls):
         cls.staff_password = "hunter1"
         cls.staff = User.objects._create_user(
-            github_id=0,
-            is_staff=True,
-            is_superuser=False
+            github_id=0, is_staff=True, is_superuser=False
         )
 
         cls.view_permission = Permission.objects.get(codename="view_project")
@@ -49,7 +47,9 @@ class GetProjectsStaffStatusTest(TestCase):
             reverse("admin:projects_project_changelist")
         )
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Synchronize projects of the current semester to GitHub")
+        self.assertNotContains(
+            response, "Synchronize projects of the current semester to GitHub"
+        )
 
     def test_no_sync_without_permission(self):
         """
@@ -198,7 +198,9 @@ class GetProjectsTest(TestCase):
             reverse("admin:projects_project_changelist")
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Synchronize projects of the current semester to GitHub")
+        self.assertContains(
+            response, "Synchronize projects of the current semester to GitHub"
+        )
 
     def test_create_mail_is_valid(self):
         p1 = Project.objects.create(

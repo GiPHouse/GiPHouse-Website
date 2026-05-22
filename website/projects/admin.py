@@ -20,9 +20,19 @@ from courses.models import Semester
 from mailing_lists.models import MailingList
 
 from projects.apps import ProjectsConfig
-from projects.forms import ProjectAdminForm, NewRepositoryInlineForm, ExistingRepositoryInlineForm
+from projects.forms import (
+    ProjectAdminForm,
+    NewRepositoryInlineForm,
+    ExistingRepositoryInlineForm,
+)
 from projects.githubsync import GitHubSync, GitHubAPITalker
-from projects.models import Client, Project, Repository, NewRepository, ExistingRepository
+from projects.models import (
+    Client,
+    Project,
+    Repository,
+    NewRepository,
+    ExistingRepository,
+)
 
 from registrations.models import Employee
 
@@ -88,8 +98,8 @@ class NewRepositoryInline(admin.StackedInline):
         return qs.filter(github_repo_id__isnull=True)
 
     # def get_extra(self, request, obj=None, **kwargs):
-        # """Only show an extra inline if none exist."""
-        # return 0 if obj else 1
+    # """Only show an extra inline if none exist."""
+    # return 0 if obj else 1
 
 
 class ExistingRepositoryInline(admin.StackedInline):
@@ -138,7 +148,11 @@ class ProjectAdmin(admin.ModelAdmin):
         "archive_all_repositories",
         "export_project_members",
     ]
-    inlines = [NewRepositoryInline, ExistingRepositoryInline, MailinglistInline]
+    inlines = [
+        NewRepositoryInline,
+        ExistingRepositoryInline,
+        MailinglistInline,
+    ]
 
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
@@ -247,7 +261,9 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def synchronise_current_projects_to_GitHub(self, request):
         """Synchronise project(teams) of the current semester to GitHub."""
-        if not request.user.has_perm(f"{ProjectsConfig.label}.can_sync_to_github"):
+        if not request.user.has_perm(
+            f"{ProjectsConfig.label}.can_sync_to_github"
+        ):
             raise PermissionDenied
 
         return self.synchronise_to_GitHub(
@@ -265,17 +281,24 @@ class ProjectAdmin(admin.ModelAdmin):
         repo_id = request.GET.get("github_repo_id")
 
         if not repo_id:
-            return JsonResponse({"error": "missing github_repo_id"}, status=400)
+            return JsonResponse(
+                {"error": "missing github_repo_id"}, status=400
+            )
 
         if not repo_id.isdigit():
-            return JsonResponse({"error": "github_repo_id must be an integer"}, status=400)
+            return JsonResponse(
+                {"error": "github_repo_id must be an integer"}, status=400
+            )
         repo_id = int(repo_id)
 
         talker = GitHubAPITalker()
         try:
             repo: GithubRepository = talker.get_repo(repo_id)
         except UnknownObjectException:
-            return JsonResponse({"error": "repository with provided id does not exist"}, status=404)
+            return JsonResponse(
+                {"error": "repository with provided id does not exist"},
+                status=404,
+            )
         except GithubException as e:
             return JsonResponse({"error": e.message}, status=500)
 
@@ -283,11 +306,9 @@ class ProjectAdmin(admin.ModelAdmin):
         if repo.archived:
             archived = Repository.Archived.CONFIRMED
 
-        return JsonResponse({
-            "name": repo.name,
-            "private": repo.private,
-            "archived": archived
-        })
+        return JsonResponse(
+            {"name": repo.name, "private": repo.private, "archived": archived}
+        )
 
     def get_urls(self):
         """Get admin urls."""
@@ -302,10 +323,8 @@ class ProjectAdmin(admin.ModelAdmin):
             ),
             path(
                 "fetch-repo/",
-                self.admin_site.admin_view(
-                    self.fetch_repo
-                ),
-                name="fetch_repo"
+                self.admin_site.admin_view(self.fetch_repo),
+                name="fetch_repo",
             ),
         ]
         return custom_urls + urls
