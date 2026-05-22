@@ -132,36 +132,6 @@ class ProjectAdmin(admin.ModelAdmin):
                 name=obj.slug,
             )
 
-    # def clean_name(self):
-    #     name = self.cleaned_data.get("name")
-    #     if Project.objects.filter(slug=self.instance.slug) is not None:
-    #         print("yop")
-    #     else:
-    #         print("yay")
-
-
-    def save_model(self, request, obj, form, change):
-        # This automatically appends the year of the semester to the slug when saving
-        super().save_model(request, obj, form, change)
-        
-        # if obj.semester.season == Semester.SPRING:
-        #     #new_slug = slugify(f"{obj.name}-S{obj.semester.year}")
-        #     new_slug = slugify(f"{obj.name})") + "-S" + str(obj.semester.year)
-        # else:
-        #     new_slug = slugify(f"{obj.name})") + "-F" + str(obj.semester.year)
-
-        new_slug = slugify(f"{obj.name}-{obj.semester.year}")
-
-        #if obj.slug != new_slug:
-        obj.slug = new_slug
-        obj.save(update_fields=['slug'])
-
-        if obj.number_of_repos == 0:
-            obj.repository_set.create(
-            name=obj.slug,
-            is_archived=False,
-            )
-
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
         return instance.is_archived != Repository.Archived.NOT_ARCHIVED
