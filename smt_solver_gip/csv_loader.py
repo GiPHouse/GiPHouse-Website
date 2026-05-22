@@ -159,6 +159,7 @@ def verify_row(row):
     
     return name, errors
 
+managers = []
 friend_data = []
 all_errors = defaultdict(list)
 
@@ -171,7 +172,7 @@ def load_registrations(filename):
             name, errors = verify_row(row)
             if errors:
                 all_errors[name].extend(errors)
-            if row['Course'] == 'Software Engineering':
+            elif row['Course'] == 'Software Engineering':
                 engineer_data.add_student(
                     name,
                     parse_exp(row["Dev Experience"]),
@@ -179,20 +180,61 @@ def load_registrations(filename):
                     parse_booleans(row["Non-dutch"]),
                     parse_booleans(row["Has problems with signing an NDA"]),
                     parse_timetable(row),
-                    [row["1st project preference"], row["2nd project preference"], row["3rd project preference"]]
+                    [p for p in [row["1st project preference"],
+                                row["2nd project preference"],
+                                row["3rd project preference"]] if p != ""]
                 )
-                partners = [row["1st partner preference"], row["2nd partner preference"], row["3rd partner preference"]]
+                partners = [row["1st partner preference"],
+                            row["2nd partner preference"],
+                            row["3rd partner preference"]]
                 while "" in partners: partners.remove("")
-                friend_data.append((name,partners))
+                friend_data.append((name, partners))
+            else:
+                managers.append(row)
 
     if all_errors:
+        print(f"{RED}The following students were skipped due to invalid data:{RESET}")
         for name, errors in all_errors.items():
             print(f"{RED}  {name}:{RESET}")
             for error in errors:
                 print(f"{RED}    - {error}{RESET}")
 
+        skipped = set(all_errors.keys())
+        for i in range(len(friend_data)):
+            friend_data[i] = (friend_data[i][0], 
+                            [f for f in friend_data[i][1] if f not in skipped])
+
 def get_friend_data():
     return friend_data
+
+def print_manager(manager, prestring, highlight):
+    col = BROWN
+    if highlight: col = YELLOW
+    name = manager['First name'] + " " + manager['Last name']
+    print(prestring + col + name + RESET + " likes", end="")
+    prefs = [manager['1st project preference'], manager['2nd project preference'], manager['3rd project preference']]
+    prefs = [p for p in prefs if p != ""]
+    for i in range(len(prefs)):
+        if i != 0: print(",", end="")
+        print(" " + prefs[i], end="")
+    ccode = ""
+    exp = parse_exp(manager['Dev Experience'])
+    if exp >= engineer_data.ADVANCED: ccode = GREEN
+    elif exp >= engineer_data.INTERMEDIATE: ccode = DARKGREEN
+    print(" ; " + ccode + "lvl " + str(exp) + RESET, end="")
+    if manager['Management Interest'] == 'True': print(" ; " + CYAN + "management" + RESET, end="")
+    if manager['Non-dutch'] == 'True': print(" ; " + PURPLE + "international" + RESET, end="")
+    if manager['Has problems with signing an NDA'] == 'True': print(" ; " + BRED + "no NDA" + RESET, end="")
+    print("; available: ", end="")
+    slots = parse_timetable(manager)
+    for pair in slots: print(pair[0] + str(pair[1]), end=" ")
+    print()
+
+def get_managers():
+    return managers
+
+def print_managers(lst, prestring):
+    for manager in lst: print_manager(manager, prestring, False)
 
 def print_registrations(registrations):
     for reg in registrations:

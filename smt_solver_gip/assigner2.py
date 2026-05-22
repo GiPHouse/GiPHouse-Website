@@ -8,7 +8,6 @@
 import project_data
 import engineer_data
 import assignment_info
-import smt_maker
 import csv_loader
 from colour_codes import *
 
@@ -16,7 +15,6 @@ import csv
 import sys
 import math
 from datetime import datetime
-from z3 import *
 
 initialise_colours()
 
@@ -107,5 +105,6 @@ for (student_name, friend_list) in friend_data:
       failed_friends_registration = True
 if failed_friends_registration: sys.exit(1)
 
-engineer_data.print_students(range(engineer_data.num_students), " * ")
+# engineer_data.print_students(range(engineer_data.num_students), " * ")
 
+csv_loader.print_managers(csv_loader.get_managers(), " * ")
