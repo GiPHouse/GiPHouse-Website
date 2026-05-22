@@ -1,14 +1,39 @@
 document.addEventListener("DOMContentLoaded", () => {
+    function ensureFollowUpQuestionExists(choiceTbody, followUpPanel) {
+        const followUpGroup = followUpPanel?.querySelector(
+            ".inline-group[data-inline-model='registrations-question']"
+        );
+        if (!followUpGroup) return;
+
+        const existingFollowUpRows = followUpGroup.querySelectorAll(
+            "tbody[data-inline-model='registrations-question']:not(.djn-empty-form)"
+        );
+        if (existingFollowUpRows.length > 0) return;
+
+        if (choiceTbody.dataset.autoAddingFollowUp === "true") return;
+
+        const addFollowUpLink = followUpGroup.querySelector(
+            "a.djn-add-handler.djn-model-registrations-question"
+        );
+        if (!addFollowUpLink) return;
+
+        choiceTbody.dataset.autoAddingFollowUp = "true";
+        addFollowUpLink.click();
+
+        setTimeout(() => {
+            choiceTbody.dataset.autoAddingFollowUp = "false";
+        }, 0);
+    }
+
     function validateQuestionRow(questionTbody) {
         
         const questionType = questionTbody.querySelector("select[name$='-question_type']")?.value;
-
-        if (!questionType) return;
 
         const choicesPanel = questionTbody.querySelector("tr.djn-tr:not(.form-row)");
 
         const isMulti = questionType === "multi";
         const isChoice = questionType === "choice";
+        const isDropdown = questionType === "dropdown";
         const isFollowUp = isFollowUpTbody(questionTbody);
 
         [
@@ -25,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (choicesPanel) {
-            choicesPanel.style.display = (isMulti || isChoice) ? "" : "none";
+            choicesPanel.style.display = (isMulti || isChoice || isDropdown) ? "" : "none";
         }
     }
 
@@ -35,28 +60,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const followUpPanel = choiceTbody.querySelector("tr.djn-tr:not(.form-row)");
         const followUpTd = choiceTbody.querySelector("td.field-follow_up");
 
-        console.log("Validating choice row:", choiceTbody);
-
-        console.log("followUpCheckBox:", followUpCheckBox);
-        console.log("followUpPanel:", followUpPanel);
-        console.log("followUpTd:", followUpTd);
-
         const parentQuestionTbody = choiceTbody.closest("tbody[data-inline-model='registrations-question']");
         const questionType = parentQuestionTbody?.querySelector("select[name$='-question_type']")?.value;
 
         const isChoice = questionType === "choice";
         const parentIsFollowUp = isFollowUpTbody(parentQuestionTbody);
 
-        console.log("Parent question tbody:", parentQuestionTbody);
-        console.log("Parent question type:", questionType);
-        console.log("isChoice:", isChoice);
-        console.log("parentIsFollowUp:", parentIsFollowUp);
-
         if (followUpTd) {
             followUpTd.style.visibility = (isChoice && !parentIsFollowUp) ? "visible" : "hidden";
         }
 
         if (followUpCheckBox && followUpPanel) {
+            if (followUpCheckBox.checked) {
+                ensureFollowUpQuestionExists(choiceTbody, followUpPanel);
+            }
             followUpPanel.style.display = followUpCheckBox.checked ? "" : "none";
         }
     }
@@ -78,22 +95,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function attachListeners() {
-        document.querySelectorAll("select[name$='-question_type']").forEach(el => {
-            if (el.dataset.warningListenerAttached) return;
-            el.dataset.warningListenerAttached = "true";
-            el.addEventListener("change", () => {
-                const tbody = getQuestionTbody(el);
-                if (tbody) validateQuestionRow(tbody);
-            });
-        });
+        if (document.body.dataset.questionTypeToggleDelegated === "true") {
+            return;
+        }
 
-        document.querySelectorAll("input[name$='-follow_up']").forEach(el => {
-            if (el.dataset.followUpListenerAttached) return;
-            el.dataset.followUpListenerAttached = "true";
-            el.addEventListener("change", () => {
-                const tbody = getChoiceTbody(el);
+        document.body.dataset.questionTypeToggleDelegated = "true";
+
+        document.addEventListener("change", event => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+
+            if (target.matches("select[name$='-question_type']")) {
+                const tbody = getQuestionTbody(target);
+                if (tbody) validateQuestionRow(tbody);
+            }
+
+            if (target.matches("input[name$='-follow_up']")) {
+                const tbody = getChoiceTbody(target);
                 if (tbody) validateChoiceRow(tbody);
-            });
+            }
         });
     }
 
