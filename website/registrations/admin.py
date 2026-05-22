@@ -175,6 +175,9 @@ class RegistrationsAdmin(NestedModelAdmin):
             semester=Semester.objects.get_or_create_current_semester(),
         )
 
+        current_semester = Semester.objects.get_or_create_current_semester()
+        reg.projects.set(Project.objects.filter(semester=current_semester))
+
         sample_questions = [
             ("first_name", "First name", Question.TEXT),
             ("last_name", "Last name", Question.TEXT),
@@ -187,22 +190,10 @@ class RegistrationsAdmin(NestedModelAdmin):
                 [course.name for course in Course.objects.all()],
             ),
             (
-                "project1",
-                "1st project preference",
-                Question.DROPDOWN,
-                ["Project A", "Project B", "Project C"],
-            ),
-            (
-                "project2",
-                "2nd project preference",
-                Question.DROPDOWN,
-                ["Project A", "Project B", "Project C"],
-            ),
-            (
-                "project3",
-                "3rd project preference",
-                Question.DROPDOWN,
-                ["Project A", "Project B", "Project C"],
+                "projects",
+                "Project preferences",
+                Question.CHOICELIST,
+                [],
             ),
             ("partner1", "1st partner preference", Question.TEXT),
             ("partner2", "2nd partner preference", Question.TEXT),

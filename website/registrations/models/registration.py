@@ -79,6 +79,16 @@ class Registrations(models.Model):
         """Set the projects of a registration."""
         self.projects.add(value)
 
+    def sync_project_choices(self):
+        """Sync project question choices from projects linked to this registration."""
+        project_questions = self.question_set.filter(label__startswith="project")
+        for question in project_questions:
+            question.choices.all().delete()
+            for project in self.get_projects():
+                QuestionChoice.objects.create(
+                    question=question, value=project.name
+                )
+
 
 class RegistrationSubmission(models.Model):
     """Submission of a Registration by a user."""
@@ -390,12 +400,13 @@ class Answer(models.Model):
             )
 
         elif qtype == Question.CHOICELIST:
-            choice_ids = [int(v) for v in raw_value]
-            choices = self.question.choices.filter(pk__in=choice_ids)
-
-            multi, _ = MultiData.objects.get_or_create(answer=self)
-            multi.choices.set(choices)
-            multi.save()
+            project_names = []
+            for project_id in raw_value:
+                project = Project.objects.get(pk=int(project_id))
+                project_names.append(project.name)
+            TextData.objects.update_or_create(
+                answer=self, defaults={"value": ", ".join(project_names)}
+            )
 
         elif qtype == Question.TEXTLIST:
             values = [
