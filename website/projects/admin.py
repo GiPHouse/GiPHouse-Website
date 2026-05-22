@@ -11,6 +11,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import path
+from django.utils.text import slugify
 
 from courses.models import Semester
 
@@ -76,7 +77,7 @@ class RepositoryInline(admin.StackedInline):
     form = RepositoryInlineForm
     model = Repository
 
-    #readonly_fields = ("github_repo_id",)
+    readonly_fields = ("github_repo_id",)
 
     def get_extra(self, request, obj=None, **kwargs):
         """Only show an extra inline if none exist."""
@@ -118,6 +119,36 @@ class ProjectAdmin(admin.ModelAdmin):
     readonly_fields = ("github_team_id",)
 
     prepopulated_fields = {"slug": ("name",)}
+
+    # def clean_name(self):
+    #     name = self.cleaned_data.get("name")
+    #     if Project.objects.filter(slug=self.instance.slug) is not None:
+    #         print("yop")
+    #     else:
+    #         print("yay")
+
+
+    def save_model(self, request, obj, form, change):
+        # This automatically appends the year of the semester to the slug when saving
+        super().save_model(request, obj, form, change)
+        
+        # if obj.semester.season == Semester.SPRING:
+        #     #new_slug = slugify(f"{obj.name}-S{obj.semester.year}")
+        #     new_slug = slugify(f"{obj.name})") + "-S" + str(obj.semester.year)
+        # else:
+        #     new_slug = slugify(f"{obj.name})") + "-F" + str(obj.semester.year)
+
+        new_slug = slugify(f"{obj.name}-{obj.semester.year}")
+
+        #if obj.slug != new_slug:
+        obj.slug = new_slug
+        obj.save(update_fields=['slug'])
+
+        if obj.number_of_repos == 0:
+            obj.repository_set.create(
+            name=obj.slug,
+            is_archived=False,
+            )
 
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""

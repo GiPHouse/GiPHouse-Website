@@ -36,10 +36,11 @@ class Project(models.Model):
         """Meta class for Project model."""
 
         ordering = ["semester", "name"]
-        unique_together = [["name", "semester"], ["slug", "semester"]]
+        unique_together = [["name", "semester"]] #,["slug", "semester"]] # second not matter if slug unique?
+        #unique_together = [["name", "semester"]]
 
     name = models.CharField("name", max_length=50)
-    slug = models.SlugField("slug", max_length=50, blank=False, null=False)
+    slug = models.SlugField("slug", max_length=50, blank=False, null=False, unique=True,  help_text="Year is appended to slug after saving.")
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
     description = HTMLField()
@@ -130,6 +131,7 @@ class Repository(models.Model):
         unique=True,
         max_length=55,
         validators=[validators.validate_slug],
+        help_text="If no name is given, a repository is made with the slug as name."
     )
     project = models.ForeignKey(
         Project, blank=True, null=True, on_delete=models.CASCADE
@@ -139,7 +141,7 @@ class Repository(models.Model):
         null=True,
         blank=True,
         unique=True,
-        help_text="This is the id of the GitHub repository. Leave empty if a new repository should be created.",
+        help_text="This is the id of the GitHub repository.",
     )
 
     class Archived(models.IntegerChoices):
