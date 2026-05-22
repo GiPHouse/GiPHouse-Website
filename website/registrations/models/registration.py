@@ -3,7 +3,7 @@ from difflib import SequenceMatcher
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.functional import cached_property
-from django.core.exceptions import ValidationError
+#from django.core.exceptions import ValidationError
 
 from courses.models import Course, Semester
 
@@ -47,15 +47,15 @@ class Registrations(models.Model):
         if not self.pk:
             return
 
-        required_labels = {
-            label
-            for (label, _, must_be_set) in Question.QUESTION_LABELS
-            if must_be_set
-        }
+        # required_labels = {
+        #     label
+        #     for (label, _, must_be_set) in Question.QUESTION_LABELS
+        #     if must_be_set
+        # }
 
-        used_labels = set(
-            self.question_set.values_list("label", flat=True)
-        )
+        # used_labels = set(
+        #     self.question_set.values_list("label", flat=True)
+        # )
 
         # missing = required_labels - used_labels
         # if missing:

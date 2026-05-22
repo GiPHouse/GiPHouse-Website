@@ -7,6 +7,9 @@ import github
 from giphousewebsite.settings.base import *
 
 from .base import *
+
+MAXNUMFIELDS = 10000
+
 ROOT_URLCONF = 'giphousewebsite.urls'
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -99,3 +102,5 @@ GSUITE_ADMIN_CREDENTIALS = base64.urlsafe_b64decode(
     GSUITE_ADMIN_CREDENTIALS_BASE64
 )
 GSUITE_ADMIN_CREDENTIALS = json.loads(GSUITE_ADMIN_CREDENTIALS)
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = MAXNUMFIELDS
