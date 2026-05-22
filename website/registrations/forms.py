@@ -7,8 +7,6 @@ from django.core.exceptions import ValidationError
 
 from registrations.models import Employee, registration
 
-from projects.models import Project
-
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
 
@@ -367,8 +365,8 @@ class Step2Form(forms.Form):
                                 checked_choicelists.add(question.id)
                                 values = []
                                 empty_subfields = []
-                                i = 0
-                                while True:
+                                n_fields = question.max_choices if question.max_choices is not None else 1
+                                for i in range(n_fields):
                                     subfield = f"question_{question_id}_{i}"
                                     if subfield not in cleaned_data:
                                         break
@@ -377,9 +375,8 @@ class Step2Form(forms.Form):
                                         values.append((subfield, val))
                                     else:
                                         empty_subfields.append(subfield)
-                                    i += 1
 
-                                all_subfields = [f"question_{question_id}_{j}" for j in range(i)]
+                                all_subfields = [f"question_{question_id}_{j}" for j in range(n_fields)]
                                 for j, (subfield, val) in enumerate(values):
                                     cleaned_data[all_subfields[j]] = val
                                 for j in range(len(values), len(all_subfields)):
