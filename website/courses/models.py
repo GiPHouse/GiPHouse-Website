@@ -20,16 +20,16 @@ class CourseManager(models.Manager):
     """Manager for the Course model."""
 
     def se(self):
-        """Create Software Engineering course."""
-        return self.get(name="Software Engineering")
+        """Get or create Software Engineering course."""
+        return self.get_or_create(name="Software Engineering")[0]
 
     def sdm(self):
-        """Create System Development Management course."""
-        return self.get(name="System Development Management")
+        """Get or create System Development Management course."""
+        return self.get_or_create(name="System Development Management")[0]
 
     def sde(self):
-        """Create Software Development Entrepreneurship course."""
-        return self.get(name="Software Development Entrepreneurship")
+        """Get or create Software Development Entrepreneurship course."""
+        return self.get_or_create(name="Software Development Entrepreneurship")[0]
 
 
 class Course(models.Model):
