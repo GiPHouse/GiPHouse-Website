@@ -207,30 +207,16 @@ class Question(models.Model):
     COURSE = "course"
 
     PROJECTS = "projects"
-    PROJECT1 = "project1"
-    PROJECT2 = "project2"
-    PROJECT3 = "project3"
 
     PARTNERS = "partners"
-    PARTNER1 = "partner1"
-    PARTNER2 = "partner2"
-    PARTNER3 = "partner3"
 
     DEVEXP = "devexp"
+    GITEXP = "gitexp"
+    SCRUMEXP = "scrumexp"
     MANAGEMENT = "management"
     NONDUTCH = "nondutch"
 
     TIMESLOTS = "timeslots"
-    TIMESLOT1 = "timeslot1"
-    TIMESLOT2 = "timeslot2"
-    TIMESLOT3 = "timeslot3"
-    TIMESLOT4 = "timeslot4"
-    TIMESLOT5 = "timeslot5"
-    TIMESLOT6 = "timeslot6"
-    TIMESLOT7 = "timeslot7"
-    TIMESLOT8 = "timeslot8"
-    TIMESLOT9 = "timeslot9"
-    TIMESLOT10 = "timeslot10"
 
     NONDA = "nonda"
 
@@ -245,14 +231,16 @@ class Question(models.Model):
         (GITHUB_ID, "GitHub ID", False),
         (STUDENT_NUMBER, "Student number", True),
         (COURSE, "Course", True),
-        (PROJECTS, "Project preferences", True),
-        (PARTNERS, "Partner preferences", True),
+        (PROJECTS, "Project preferences", False),
+        (PARTNERS, "Partner preferences", False),
         (DEVEXP, "Dev Experience", True),
+        (GITEXP, "Git Experience", True),
+        (SCRUMEXP, "Scrum Experience", True),
         (MANAGEMENT, "Management Interest", True),
         (NONDUTCH, "Non-dutch", True),
-        (TIMESLOTS, "Timeslot availability", False),
+        (TIMESLOTS, "Timeslot availability", True),
         (NONDA, "Has problems with signing an NDA", True),
-        (COMMENTS, "Comments", True),
+        (COMMENTS, "Comments", False),
     ]
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
@@ -303,7 +291,7 @@ class Answer(models.Model):
         """Return the correct answer data object depending on question type."""
         qtype = self.question.question_type
 
-        if qtype in (Question.TEXT, Question.BIGTEXT):
+        if qtype in (Question.TEXT, Question.BIGTEXT, Question.CHOICELIST):
             try:
                 return self.textdata
             except TextData.DoesNotExist:
@@ -326,7 +314,7 @@ class Answer(models.Model):
         """Set the correct answer value depending on question type."""
         qtype = self.question.question_type
 
-        if qtype in (Question.TEXT, Question.BIGTEXT):
+        if qtype in (Question.TEXT, Question.BIGTEXT, Question.CHOICELIST):
             try:
                 self.textdata.value = value
             except TextData.DoesNotExist:

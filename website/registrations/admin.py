@@ -34,6 +34,9 @@ from registrations.team_assignment import (
 
 User: Employee = get_user_model()
 
+SAMPLE_MIN_CHOICES = 0
+SAMPLE_MAX_CHOICES = 3
+
 "The following four classes provide the logic behind the admin"
 "interface for Registrationss with the proper inlines."
 
@@ -192,11 +195,13 @@ class RegistrationsAdmin(NestedModelAdmin):
                 "projects",
                 "Project preferences",
                 Question.CHOICELIST,
-                [],
+                [project.name for project in Project.objects.filter(semester=reg.semester)],
             ),
-            ("partner1", "1st partner preference", Question.TEXT),
-            ("partner2", "2nd partner preference", Question.TEXT),
-            ("partner3", "3rd partner preference", Question.TEXT),
+            (
+                "partners",
+                "Partner preferences",
+                Question.TEXTLIST,
+            ),
             (
                 "devexp",
                 "Dev Experience",
@@ -249,6 +254,11 @@ class RegistrationsAdmin(NestedModelAdmin):
                 question=text,
                 question_type=qtype,
             )
+
+            if qtype in [Question.TEXTLIST, Question.CHOICELIST]:
+                q.min_choices = SAMPLE_MIN_CHOICES
+                q.max_choices = SAMPLE_MAX_CHOICES
+                q.save()
 
             for choice_text in choices:
                 QuestionChoice.objects.create(question=q, value=choice_text)
