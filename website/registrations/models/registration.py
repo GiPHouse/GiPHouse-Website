@@ -354,7 +354,7 @@ class Answer(models.Model):
         """Return the human-readable answer depending on question type."""
         qtype = self.question.question_type
 
-        if qtype in (Question.TEXT, Question.BIGTEXT):
+        if qtype in (Question.TEXT, Question.BIGTEXT, Question.CHOICELIST):
             return getattr(self.textdata, "value", "")
 
         elif qtype in (Question.CHOICE, Question.DROPDOWN):

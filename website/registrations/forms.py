@@ -380,14 +380,12 @@ class Step2Form(forms.Form):
                             if question.warnings:
                                 self.warnings.append((f"question_{question_id}_0", question.warnings.strip()))
 
-                            # compact — shift non-empty values to fill gaps
                             all_subfields = [f"question_{question_id}_{j}" for j in range(n_fields)]
                             for j, (subfield, val) in enumerate(values):
                                 cleaned_data[all_subfields[j]] = val
                             for j in range(len(values), n_fields):
                                 cleaned_data[all_subfields[j]] = ""
 
-                            # duplicate check
                             if len(values) >= 2:
                                 seen = set()
                                 for subfield, val in values:
