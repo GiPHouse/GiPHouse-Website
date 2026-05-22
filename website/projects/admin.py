@@ -131,6 +131,8 @@ class ProjectAdmin(admin.ModelAdmin):
             obj.repository_set.create(
                 name=obj.slug,
             )
+            obj.default_repo = False
+            obj.save(update_fields=["default_repo"])
 
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
