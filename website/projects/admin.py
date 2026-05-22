@@ -99,6 +99,8 @@ class ExistingRepositoryInline(admin.StackedInline):
 
     template = "admin/existing_repository_inline.html"
 
+    #
+
     class Media:
         js = ("admin/js/fetch_repo.js",)
 
