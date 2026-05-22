@@ -1,14 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
     const name = document.getElementById("id_name");
     const semester = document.getElementById("id_semester");
-    const slug = document.getElementById("id_slug")
-    const repoName = document.getElementById("id_repository_set-0-name")
-    var defrepo = document.getElementById("id_default_repo")
-    var saveButton = document.getElementsByName("_save")
-    
-    
+    const slug = document.getElementById("id_slug");
+    const default_repo = document.getElementById("id_default_repo");
+    const save = document.querySelector('[name="_save"]');
+    const end_body = document.getElementById("django-admin-form-add-constants")
 
-    if (!name || !semester || !slug || !repoName) {
+    if (!name || !semester || !slug) {
         return;
     }
 
@@ -34,57 +32,93 @@ document.addEventListener("DOMContentLoaded", () => {
         slug.value = slugify(`${nameValue}-${semesterText}`);
     }
 
-    name.addEventListener("input", updateSlug);
-    semester.addEventListener("input", updateSlug);
+    name.addEventListener("input", update);
+    semester.addEventListener("input", update);
 
     updateSlug();
 
-    
-    
+    function validRepoNames(){
+        if(default_repo.checked && slug.value != ""){
+            const invalid = [];
 
-    // function uniqueRepo() {
-    // //     // als def repo == true, dan als een van repo zelfde naam als slug, throw console.error();
-    // //     //saveButton.disabled = true;
-    // //     //window.alert("TESTTEST");
-    // //     if (!saveButton) {
-    // //         window.alert("No button :(");
-    // //     } else if (saveButton) {
-    // //         window.alert("Yes Button! :)");
-    // //         console.log("YOHO OVER HERE");
-    // //         console.log(saveButton);
-    // //         saveButton.disabled = true;
-    // //         console.log("AFter");
-    // //         console.log(saveButton);
-    // //     } else {
-    // //         window.alert("WTF IS GOIN ON");
-    // //     }
-    // //     if (defrepo && repoName.value == slug.value) {
-    // //         saveButton.disabled = true;
-    // //         window.alert("Can't add a new repo with slug as name when default repo is checked.");
-    // //         //return false;
-    // //     } else {
-    // //         saveButton.disabled = false;
-    // //     }
-    //     console.log(defrepo.value);
-    //     console.log(defrepo.value == "on");
+            const repo_names = document.querySelectorAll(
+                '[id^="id_repository_set-"][id$="-name"]'
+            );
 
-    //     if (defrepo.value == "on") {
-    //         console.log("YOLO");
-    //         repoName.value = slug.value;
-    //         repoName.readOnly = true;
-    //     } else {
-    //         repoName.value = slug.value;
-    //         repoName.readOnly = false;
-    //         //repoName.value = "";
-    //     }
-    // }
+            for(const repo_name of repo_names){
+                if(repo_name.value == slug.value){
+                    invalid.push(repo_name);
+                }
+            }
 
-    // defrepo.addEventListener("input", uniqueRepo);
-    // // repoName.addEventListener("input", uniqueRepo);
-    // // saveButton.addEventListener("input", function(e) {
-    // //     e.preventDefault();
-    // // });
+            return invalid;
+        }
+        return [];
+    }
 
+    function repoErrorUpdate(){
+        const invalid_repo_names = validRepoNames();
 
-    // uniqueRepo();
+        if(invalid_repo_names.length > 0){
+            save.disabled = true;
+            clear();
+
+            if(!document.getElementById("default_repo_copy")){
+                const error = createErrorMessage("Naming a repo the same as the slug is not allowed when default repo is enabled.");
+                error.id = "default_repo_copy";
+                end_body.before(error);
+            }
+
+            for(const repo_name of invalid_repo_names){
+                repo_name.style.border = "1px solid #e35f5f";
+                const parent = repo_name.closest(".form-row.field-name");
+                const error = createErrorMessage("Invalid repo name");
+                error.classList.add("repo-error");
+                parent.before(error);
+            }
+        }
+        else{
+            clear();
+            save.disabled = false;
+            document.querySelector("#default_repo_copy")?.remove();
+        }
+    }
+
+    function createErrorMessage(message){
+        const error = document.createElement("ul");
+        error.className = "errorlist";
+        const li = document.createElement("li");
+        li.textContent = message;
+        error.appendChild(li);
+
+        return error;
+    }
+
+    function clear(){
+        const repo_names = document.querySelectorAll('[id^="id_repository_set-"][id$="-name"]');
+
+        for(const repo_name of repo_names){
+            repo_name.style.border = "";
+        }
+
+        const error_messages = document.querySelectorAll(".repo-error");
+
+        for(const error_message of error_messages){
+            error_message.remove();
+        }
+    }
+
+    function update(){
+        updateSlug();
+        repoErrorUpdate();
+    }
+
+    const repositoryFieldset = document.querySelector(
+        "#repository_set-group"
+    );
+
+    if (repositoryFieldset) {
+        repositoryFieldset.addEventListener("input", repoErrorUpdate);
+    }
+    default_repo.addEventListener("change", repoErrorUpdate);
 });

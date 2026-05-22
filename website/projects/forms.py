@@ -68,10 +68,10 @@ class ProjectAdminForm(forms.ModelForm):
     def clean(self):
         """Validate form data and handle semester changes."""
         cleaned_data = super().clean()
-        name = cleaned_data.get('name')
-        semester = cleaned_data.get('semester')
+        name = cleaned_data.get("name")
+        semester = cleaned_data.get("semester")
 
-        if semester and name:    
+        if semester and name:
             expected_slug = slugify(f"{name}-{semester.year}")
 
             existing_project = Project.objects.filter(
@@ -82,7 +82,6 @@ class ProjectAdminForm(forms.ModelForm):
                 raise ValidationError(
                     f'A project with slug "{expected_slug}" already exists please choose a different name'
                 )
-
 
     def save_m2m(self):
         """Add the users to the Project and remove other users from the Project."""

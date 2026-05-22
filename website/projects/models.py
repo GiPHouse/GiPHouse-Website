@@ -36,13 +36,22 @@ class Project(models.Model):
         """Meta class for Project model."""
 
         ordering = ["semester", "name"]
-        unique_together = [["name", "semester"]] #,["slug", "semester"]] # second not matter if slug unique?
-        #unique_together = [["name", "semester"]]
+        unique_together = [["name", "semester"]]
 
     name = models.CharField("name", max_length=50)
-    slug = models.SlugField("slug", max_length=50, blank=False, null=False, unique=True,  help_text="Year is appended to slug after saving.")
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+
+    slug = models.SlugField(
+        "slug", max_length=50, blank=True, null=False, unique=True
+    )
+
+    default_repo = models.BooleanField(
+        blank=False,
+        default=True,
+        help_text="Whether a default repo should be created using the slug name",
+    )
+
     description = HTMLField()
     client = models.ForeignKey(
         Client, on_delete=models.SET_NULL, blank=True, null=True
