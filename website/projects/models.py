@@ -140,7 +140,6 @@ class Repository(models.Model):
         unique=True,
         max_length=55,
         validators=[validators.validate_slug],
-        help_text="If no name is given, a repository is made with the slug as name."
     )
     project = models.ForeignKey(
         Project, blank=True, null=True, on_delete=models.CASCADE
