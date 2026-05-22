@@ -1,4 +1,5 @@
 from django.core import validators
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
@@ -164,6 +165,26 @@ class Repository(models.Model):
     def __str__(self):
         """Return repository name."""
         return self.name
+
+
+class NewRepository(Repository):
+    class Meta:
+        proxy = True
+        verbose_name = "New Repository"
+        verbose_name_plural = "New Repositories"
+
+
+class ExistingRepository(Repository):
+    class Meta:
+        proxy = True
+        verbose_name = "Existing Repository"
+        verbose_name_plural = "Existing Repositories"
+
+    def clean(self):
+        super().clean()
+
+        if not self.pk and (self.github_repo_id and not self.name):
+            raise ValidationError("Press \"Fetch Info\" to fill in missing fields.")
 
 
 class RepositoryToBeDeleted(models.Model):
