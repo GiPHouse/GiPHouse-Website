@@ -200,7 +200,7 @@ class Step2Form(forms.Form):
                 for i in range(n_fields):
                     self.fields[f"{field_name}_{i}"] = forms.CharField(
                         label=f"{q.question} {i + 1}",
-                        required=not q.optional,
+                        required=False,
                         widget=forms.TextInput(attrs=widget_attrs),
                     )
 
@@ -318,11 +318,42 @@ class Step2Form(forms.Form):
                         active_ids.add(q.id)
 
         return active_ids
+    
+    def check_subfield_list(self, question_id, question, cleaned_data):
+        """Shared validation for CHOICELIST and TEXTLIST subfield questions."""
+        n_fields = question.max_choices if question.max_choices is not None else 1
+        values = []
+        for i in range(n_fields):
+            subfield = f"question_{question_id}_{i}"
+            val = cleaned_data.get(subfield, "")
+            if val:
+                values.append((subfield, val))
+
+        if question.min_choices is not None and len(values) < question.min_choices:
+            self.warnings.append((f"question_{question_id}_0", f"At least {question.min_choices} values are required."))
+
+        all_subfields = [f"question_{question_id}_{j}" for j in range(n_fields)]
+        for j, (subfield, val) in enumerate(values):
+            cleaned_data[all_subfields[j]] = val
+        for j in range(len(values), n_fields):
+            cleaned_data[all_subfields[j]] = ""
+
+        if len(values) >= 2:
+            seen = set()
+            for subfield, val in values:
+                if val in seen:
+                    self.warnings.append((subfield, "You cannot enter the same value twice."))
+                seen.add(val)
+
+        if question.warnings:
+            self.warnings.append((f"question_{question_id}_0", question.warnings.strip()))
+
+        return values
 
     def clean(self):
         cleaned_data = super().clean()
         active_ids = self._get_active_question_ids(cleaned_data)
-        checked_choicelists = set()
+        checked_subfield_questions = set()
 
         for field_name in list(self.fields):
             if field_name.startswith("question_"):
@@ -361,37 +392,10 @@ class Step2Form(forms.Form):
                             if question.warnings:
                                 self.warnings.append((field_name, question.warnings.strip()))
 
-                        if question.question_type == registration.Question.CHOICELIST and question.id not in checked_choicelists:
-                            checked_choicelists.add(question.id)
-                            values = []
-                            n_fields = question.max_choices if question.max_choices is not None else 1
-                            for i in range(n_fields):
-                                subfield = f"question_{question_id}_{i}"
-                                val = cleaned_data.get(subfield, "")
-                                if val:
-                                    values.append((subfield, val))
+                        elif question.question_type in [registration.Question.CHOICELIST, registration.Question.TEXTLIST] and question.id not in checked_subfield_questions:
+                            checked_subfield_questions.add(question.id)
+                            self.check_subfield_list(question_id, question, cleaned_data)
 
-                            if question.min_choices is not None and len(values) < question.min_choices:
-                                self.warnings.append((f"question_{question_id}_0", f"At least {question.min_choices} choices are required."))
-
-                            if question.max_choices is not None and len(values) > question.max_choices:
-                                self.warnings.append((f"question_{question_id}_0", f"No more than {question.max_choices} choices are allowed."))
-
-                            if question.warnings:
-                                self.warnings.append((f"question_{question_id}_0", question.warnings.strip()))
-
-                            all_subfields = [f"question_{question_id}_{j}" for j in range(n_fields)]
-                            for j, (subfield, val) in enumerate(values):
-                                cleaned_data[all_subfields[j]] = val
-                            for j in range(len(values), n_fields):
-                                cleaned_data[all_subfields[j]] = ""
-
-                            if len(values) >= 2:
-                                seen = set()
-                                for subfield, val in values:
-                                    if val in seen:
-                                        self.warnings.append((subfield, "You cannot select the same project twice."))
-                                    seen.add(val)
 
         if self.warnings and not self.cleaned_data.get("ignore_warnings"):
             for field_name, message in self.warnings:

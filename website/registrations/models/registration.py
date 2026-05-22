@@ -303,7 +303,7 @@ class Answer(models.Model):
         """Return the correct answer data object depending on question type."""
         qtype = self.question.question_type
 
-        if qtype in (Question.TEXT, Question.BIGTEXT):
+        if qtype in (Question.TEXT, Question.BIGTEXT, Question.CHOICELIST):
             try:
                 return self.textdata
             except TextData.DoesNotExist:
@@ -326,7 +326,7 @@ class Answer(models.Model):
         """Set the correct answer value depending on question type."""
         qtype = self.question.question_type
 
-        if qtype in (Question.TEXT, Question.BIGTEXT):
+        if qtype in (Question.TEXT, Question.BIGTEXT, Question.CHOICELIST):
             try:
                 self.textdata.value = value
             except TextData.DoesNotExist:
