@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tasks', '0006_remove_task_date_alter_task_logs'),
+        ("tasks", "0006_remove_task_date_alter_task_logs"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='logs',
-            field=models.TextField(blank=True, default='2026-05-22 12:57:09 START OF LOGS', editable=False),
+            model_name="task",
+            name="logs",
+            field=models.TextField(
+                blank=True,
+                default="2026-05-22 12:57:09 START OF LOGS",
+                editable=False,
+            ),
         ),
     ]

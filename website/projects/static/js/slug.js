@@ -3,14 +3,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const semester = document.getElementById("id_semester");
     const slug = document.getElementById("id_slug");
     const default_repo = document.getElementById("id_default_repo");
+    const default_repo_div = document.querySelector(".field-default_repo")
     const save = document.querySelector('[name="_save"]');
     const end_body = document.getElementById("django-admin-form-add-constants")
+    const path = window.location.pathname;
 
+    if (path.endsWith("/change/")) {
+        default_repo_div.style.display = "none"
+    }
+    
     if (!name || !semester || !slug) {
         return;
     }
 
-    slug.readOnly = true;
+    slug.disabled = true;
 
     function slugify(text) {
         return text
@@ -37,27 +43,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateSlug();
 
-    function validRepoNames(){
-        if(default_repo.checked && slug.value != ""){
-            const invalid = [];
+    function invalidRepoNames(checked){
+        const invalid = [];
+        const names = [];
 
-            const repo_names = document.querySelectorAll(
-                '[id^="id_repository_set-"][id$="-name"]'
-            );
-
+        const repo_names = document.querySelectorAll(
+            '[id^="id_repository_set-"][id$="-name"]'
+        );
+        
+        if(checked && slug.value != ""){
             for(const repo_name of repo_names){
                 if(repo_name.value == slug.value){
                     invalid.push(repo_name);
                 }
             }
-
-            return invalid;
         }
-        return [];
+
+        for(const repo_name of repo_names){
+            if(!names.includes(repo_name.value)){
+                names.push(repo_name.value);
+            }
+            else{
+                if(!invalid.includes(repo_name) && repo_name.value != ""){
+                    invalid.push(repo_name);
+                }
+            }
+        }
+        return invalid;
     }
 
     function repoErrorUpdate(){
-        const invalid_repo_names = validRepoNames();
+        const invalid_repo_names = invalidRepoNames(default_repo.checked);
 
         if(invalid_repo_names.length > 0){
             save.disabled = true;
@@ -72,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
             for(const repo_name of invalid_repo_names){
                 repo_name.style.border = "1px solid #e35f5f";
                 const parent = repo_name.closest(".form-row.field-name");
-                const error = createErrorMessage("Invalid repo name");
+                const error = createErrorMessage("Repo name already taken");
                 error.classList.add("repo-error");
                 parent.before(error);
             }
