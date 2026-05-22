@@ -27,7 +27,7 @@ from registrations.models import (
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    #TeamAssignmentGenerator,
+    # TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()

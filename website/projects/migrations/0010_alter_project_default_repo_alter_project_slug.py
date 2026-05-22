@@ -4,20 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0009_project_default_repo_alter_project_slug'),
+        ("projects", "0009_project_default_repo_alter_project_slug"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='default_repo',
-            field=models.BooleanField(default=True, help_text='Whether a default repo should be created using the slug name'),
+            model_name="project",
+            name="default_repo",
+            field=models.BooleanField(
+                default=True,
+                help_text="Whether a default repo should be created using the slug name",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='slug',
-            field=models.SlugField(blank=True, unique=True, verbose_name='slug'),
+            model_name="project",
+            name="slug",
+            field=models.SlugField(
+                blank=True, unique=True, verbose_name="slug"
+            ),
         ),
     ]

@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('courses', '0004_auto_20220204_1357'),
-        ('projects', '0007_alter_project_description'),
+        ("courses", "0004_auto_20220204_1357"),
+        ("projects", "0007_alter_project_description"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='project',
-            unique_together={('name', 'semester')},
+            name="project",
+            unique_together={("name", "semester")},
         ),
         migrations.AlterField(
-            model_name='project',
-            name='slug',
-            field=models.SlugField(unique=True, verbose_name='slug'),
+            model_name="project",
+            name="slug",
+            field=models.SlugField(unique=True, verbose_name="slug"),
         ),
     ]

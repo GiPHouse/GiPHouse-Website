@@ -4,20 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0008_alter_project_unique_together_alter_project_slug'),
+        ("projects", "0008_alter_project_unique_together_alter_project_slug"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='default_repo',
+            model_name="project",
+            name="default_repo",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='slug',
-            field=models.SlugField(help_text='The year of the semester is appended to the slug upon saving.', unique=True, verbose_name='slug'),
+            model_name="project",
+            name="slug",
+            field=models.SlugField(
+                help_text="The year of the semester is appended to the slug upon saving.",
+                unique=True,
+                verbose_name="slug",
+            ),
         ),
     ]

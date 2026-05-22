@@ -180,11 +180,11 @@ class GitHubSync:
     def log(self, message, level="INFO"):
         """Store the logs on the task."""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        message = message.replace('\n', '')
+        message = message.replace("\n", "")
         log_entry = f"[{timestamp}] {level}: {message}\n"
-        
+
         self.task.logs += log_entry
-        self.task.save(update_fields=['logs'])
+        self.task.save(update_fields=["logs"])
 
     def error(self, msg):
         """Log an error message and set the fail state to True."""
@@ -206,6 +206,7 @@ class GitHubSync:
         """Log an exception message."""
         self.log(msg, "EXCEPTION")
         self.logger.exception(msg)
+        self.fail = True
 
     def sync_team_member(self, employee, project):
         """
@@ -555,15 +556,14 @@ class GitHubSync:
             self.delete_teams_and_repos_to_be_deleted()
         except Exception as e:
             self.exception(e)
-            self.fail = True
         for project in self.projects:
             try:
                 self.sync_project(project)
             except Exception as e:
                 self.exception(e)
-                self.fail = True
             self.task.completed += 1
             self.task.save()
+        self.task.status = not self.fail
         self.task.fail = self.fail
 
         self.task.success_message = (
