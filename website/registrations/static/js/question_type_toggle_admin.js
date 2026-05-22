@@ -34,6 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const isMulti = questionType === "multi";
         const isChoice = questionType === "choice";
         const isDropdown = questionType === "dropdown";
+        const isTextList = questionType === "textlist";
+        const isChoiceList = questionType === "choicelist";
         const isFollowUp = isFollowUpTbody(questionTbody);
 
         [
@@ -41,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
             questionTbody.querySelector("td.field-max_choices"),
             questionTbody.querySelector("td.field-warnings"),
         ].forEach(td => {
-            if (td) td.style.visibility = isMulti ? "visible" : "hidden";
+            if (td) td.style.visibility = isMulti || isTextList || isChoiceList ? "visible" : "hidden";
         });
 
         const parentChoiceTd = questionTbody.querySelector("td.field-parent_choice");
@@ -50,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (choicesPanel) {
-            choicesPanel.style.display = (isMulti || isChoice || isDropdown) ? "" : "none";
+            choicesPanel.style.display = (isMulti || isChoice || isDropdown || isTextList || isChoiceList) ? "" : "none";
         }
     }
 

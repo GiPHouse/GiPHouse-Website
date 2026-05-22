@@ -362,7 +362,7 @@ These steps are the necessary setup for a production server.
 
 ### Keeping Everything Up to Date
 All moving parts should be regularly updated to make sure all code is up to date and secure. There is no process in place to automate updates, because that may break something.
-The following 
+The following items should be taken into account:
 
 1. The Ubuntu server should be updated.
 2. The Python dependencies should be updated (through `uv`).
