@@ -402,8 +402,9 @@ class Answer(models.Model):
         elif qtype == Question.CHOICELIST:
             project_names = []
             for project_id in raw_value:
-                project = Project.objects.get(pk=int(project_id))
-                project_names.append(project.name)
+                if project_id:
+                    project = Project.objects.get(pk=int(project_id))
+                    project_names.append(project.name)
             TextData.objects.update_or_create(
                 answer=self, defaults={"value": ", ".join(project_names)}
             )

@@ -343,7 +343,7 @@ class Step2Form(forms.Form):
                         elif question.question_type == registration.Question.DROPDOWN and not question.optional and not answer:
                             self.warnings.append((field_name, "Please select an option."))
 
-                        elif question.question_type in [registration.Question.MULTI, registration.Question.CHOICELIST] and answer:
+                        elif question.question_type == registration.Question.MULTI and answer:
                             selected_count = len(answer)
 
                             if question.min_choices is not None and selected_count < question.min_choices:
@@ -361,33 +361,39 @@ class Step2Form(forms.Form):
                             if question.warnings:
                                 self.warnings.append((field_name, question.warnings.strip()))
 
-                            if question.question_type == registration.Question.CHOICELIST and question.id not in checked_choicelists:
-                                checked_choicelists.add(question.id)
-                                values = []
-                                empty_subfields = []
-                                n_fields = question.max_choices if question.max_choices is not None else 1
-                                for i in range(n_fields):
-                                    subfield = f"question_{question_id}_{i}"
-                                    if subfield not in cleaned_data:
-                                        break
-                                    val = cleaned_data.get(subfield)
-                                    if val:
-                                        values.append((subfield, val))
-                                    else:
-                                        empty_subfields.append(subfield)
+                        if question.question_type == registration.Question.CHOICELIST and question.id not in checked_choicelists:
+                            checked_choicelists.add(question.id)
+                            values = []
+                            n_fields = question.max_choices if question.max_choices is not None else 1
+                            for i in range(n_fields):
+                                subfield = f"question_{question_id}_{i}"
+                                val = cleaned_data.get(subfield, "")
+                                if val:
+                                    values.append((subfield, val))
 
-                                all_subfields = [f"question_{question_id}_{j}" for j in range(n_fields)]
-                                for j, (subfield, val) in enumerate(values):
-                                    cleaned_data[all_subfields[j]] = val
-                                for j in range(len(values), len(all_subfields)):
-                                    cleaned_data[all_subfields[j]] = ""
+                            if question.min_choices is not None and len(values) < question.min_choices:
+                                self.warnings.append((f"question_{question_id}_0", f"At least {question.min_choices} choices are required."))
 
-                                if len(values) >= 2:
-                                    seen = set()
-                                    for subfield, val in values:
-                                        if val in seen:
-                                            self.warnings.append((subfield, "You cannot select the same project twice."))
-                                        seen.add(val)
+                            if question.max_choices is not None and len(values) > question.max_choices:
+                                self.warnings.append((f"question_{question_id}_0", f"No more than {question.max_choices} choices are allowed."))
+
+                            if question.warnings:
+                                self.warnings.append((f"question_{question_id}_0", question.warnings.strip()))
+
+                            # compact — shift non-empty values to fill gaps
+                            all_subfields = [f"question_{question_id}_{j}" for j in range(n_fields)]
+                            for j, (subfield, val) in enumerate(values):
+                                cleaned_data[all_subfields[j]] = val
+                            for j in range(len(values), n_fields):
+                                cleaned_data[all_subfields[j]] = ""
+
+                            # duplicate check
+                            if len(values) >= 2:
+                                seen = set()
+                                for subfield, val in values:
+                                    if val in seen:
+                                        self.warnings.append((subfield, "You cannot select the same project twice."))
+                                    seen.add(val)
 
         if self.warnings and not self.cleaned_data.get("ignore_warnings"):
             for field_name, message in self.warnings:
