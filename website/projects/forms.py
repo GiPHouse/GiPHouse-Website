@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.admin import widgets
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.utils.text import slugify
+from django.core.exceptions import ValidationError
 
 from courses.models import Course, Semester
 
@@ -59,6 +61,27 @@ class ProjectAdminForm(forms.ModelForm):
         required=False,
         widget=widgets.FilteredSelectMultiple("Engineers", False),
     )
+
+    class Media:
+        js = ("js/slug.js",)
+
+    def clean(self):
+        """Validate form data and handle semester changes."""
+        cleaned_data = super().clean()
+        name = cleaned_data.get("name")
+        semester = cleaned_data.get("semester")
+
+        if semester and name:
+            expected_slug = slugify(f"{name}-{semester.year}")
+
+            existing_project = Project.objects.filter(
+                slug=expected_slug
+            ).exclude(pk=self.instance.pk if self.instance.pk else None)
+
+            if existing_project.exists():
+                raise ValidationError(
+                    f'A project with slug "{expected_slug}" already exists please choose a different name'
+                )
 
     def save_m2m(self):
         """Add the users to the Project and remove other users from the Project."""
