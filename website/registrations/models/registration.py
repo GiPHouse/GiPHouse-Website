@@ -3,7 +3,7 @@ from difflib import SequenceMatcher
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.functional import cached_property
-#from django.core.exceptions import ValidationError
+# from django.core.exceptions import ValidationError
 
 from courses.models import Course, Semester
 
@@ -40,10 +40,10 @@ class Registrations(models.Model):
     def __str__(self):
         """Return title + semester."""
         return f"{self.title} ({self.semester})"
-    
+
     def clean(self):
         """Make sure all labels that must be set are present in the questions"""
-        
+
         if not self.pk:
             return
 
@@ -62,7 +62,7 @@ class Registrations(models.Model):
         #     raise ValidationError(
         #         {"questions": f"Missing required labels: {', '.join(missing)}"}
         #     )
-        
+
     def get_projects(self):
         """Get all the projects of a registration."""
         return self.projects.all()
@@ -80,27 +80,28 @@ class Registrations(models.Model):
         self.projects.add(value)
 
 
-
 class RegistrationSubmission(models.Model):
     """Submission of a Registration by a user."""
 
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
-    #Change participant to user after removing Registration class and its dependencies
+    # Change participant to user after removing Registration class and its dependencies
     participant = models.ForeignKey(Employee, on_delete=models.CASCADE)
     projects = models.ManyToManyField(Project)
-    course = models.ForeignKey(Course, null=True, blank=True, on_delete=models.CASCADE)
+    course = models.ForeignKey(
+        Course, null=True, blank=True, on_delete=models.CASCADE
+    )
 
     submitted = models.BooleanField(default=True)
 
     created = models.DateTimeField(auto_now_add=True)
-    
+
     def get_answer(self, question_label):
         """Get the answer for a question with the given label."""
         answer = self.answer_set.filter(question__label=question_label).first()
         if answer is None:
             return ""
         return answer.answer_value
-    
+
     def get_projects(self):
         """Get all the projects of a registration."""
         return self.projects.all()
@@ -174,70 +175,72 @@ class Question(models.Model):
     MULTI = "multi"
     BIGTEXT = "bigtext"
     DROPDOWN = "dropdown"
+    TEXTLIST = "textlist"
+    CHOICELIST = "choicelist"
 
     QUESTION_TYPES = [
         (TEXT, "Text"),
         (BIGTEXT, "Big text"),
+        (TEXTLIST, "Text list"),
+        (CHOICELIST, "Choice list"),
         (CHOICE, "Single choice"),
         (MULTI, "Multiple choice"),
         (DROPDOWN, "Dropdown"),
     ]
 
-    FIRSTNAME   = "firstname"
-    LASTNAME    = "lastname"
+    FIRSTNAME = "first_name"
+    LASTNAME = "last_name"
+    EMAIL = "email"
+    GITHUB_USERNAME = "github_username"
+    GITHUB_ID = "github_id"
+    STUDENT_NUMBER = "student_number"
+    COURSE = "course"
 
-    PROJECT1    = "project1"
-    PROJECT2    = "project2"
-    PROJECT3    = "project3"
+    PROJECTS = "projects"
+    PROJECT1 = "project1"
+    PROJECT2 = "project2"
+    PROJECT3 = "project3"
 
-    COURSE      = "course"
+    PARTNERS = "partners"
+    PARTNER1 = "partner1"
+    PARTNER2 = "partner2"
+    PARTNER3 = "partner3"
 
-    PARTNER1    = "partner1"
-    PARTNER2    = "partner2"
-    PARTNER3    = "partner3"
+    DEVEXP = "devexp"
+    MANAGEMENT = "management"
+    NONDUTCH = "nondutch"
 
-    DEVEXP      = "devexp"
-    MANAGEMENT  = "management"
-    NONDUTCH    = "nondutch"
+    TIMESLOTS = "timeslots"
+    TIMESLOT1 = "timeslot1"
+    TIMESLOT2 = "timeslot2"
+    TIMESLOT3 = "timeslot3"
+    TIMESLOT4 = "timeslot4"
+    TIMESLOT5 = "timeslot5"
+    TIMESLOT6 = "timeslot6"
+    TIMESLOT7 = "timeslot7"
+    TIMESLOT8 = "timeslot8"
+    TIMESLOT9 = "timeslot9"
+    TIMESLOT10 = "timeslot10"
 
-    TIMESLOT1   = "timeslot1"
-    TIMESLOT2   = "timeslot2"
-    TIMESLOT3   = "timeslot3"
-    TIMESLOT4   = "timeslot4"
-    TIMESLOT5   = "timeslot5"
-    TIMESLOT6   = "timeslot6"
-    TIMESLOT7   = "timeslot7"
-    TIMESLOT8   = "timeslot8"
-    TIMESLOT9   = "timeslot9"
-    TIMESLOT10  = "timeslot10"
+    NONDA = "nonda"
 
-    NONDA       = "nonda"
+    COMMENTS = "comments"
 
-    COMMENTS    = "comments"
-
+    # Label choices for questions. The boolean indicates whether the question with this label must be set at least once for a registration to be valid.
     QUESTION_LABELS = [
-        (FIRSTNAME, "First name", False),
-        (LASTNAME, "Last name", False),
-        (PROJECT1, "1st project preference", True),
-        (PROJECT2, "2nd project preference", True),
-        (PROJECT3, "3rd project preference", True),
+        (FIRSTNAME, "First name", True),
+        (LASTNAME, "Last name", True),
+        (EMAIL, "Email", True),
+        (GITHUB_USERNAME, "GitHub username", False),
+        (GITHUB_ID, "GitHub ID", False),
+        (STUDENT_NUMBER, "Student number", True),
         (COURSE, "Course", True),
-        (PARTNER1, "1st partner preference", True),
-        (PARTNER2, "2nd partner preference", True),
-        (PARTNER3, "3rd partner preference", True),
+        (PROJECTS, "Project preferences", True),
+        (PARTNERS, "Partner preferences", True),
         (DEVEXP, "Dev Experience", True),
         (MANAGEMENT, "Management Interest", True),
         (NONDUTCH, "Non-dutch", True),
-        (TIMESLOT1, "Available during scheduled timeslot 1", True),
-        (TIMESLOT2, "Available during scheduled timeslot 2", True),
-        (TIMESLOT3, "Available during scheduled timeslot 3", True),
-        (TIMESLOT4, "Available during scheduled timeslot 4", True),
-        (TIMESLOT5, "Available during scheduled timeslot 5", True),
-        (TIMESLOT6, "Available during scheduled timeslot 6", True),
-        (TIMESLOT7, "Available during scheduled timeslot 7", True),
-        (TIMESLOT8, "Available during scheduled timeslot 8", True),
-        (TIMESLOT9, "Available during scheduled timeslot 9", True),
-        (TIMESLOT10, "Available during scheduled timeslot 10", True),
+        (TIMESLOTS, "Timeslot availability", False),
         (NONDA, "Has problems with signing an NDA", True),
         (COMMENTS, "Comments", True),
     ]
@@ -245,7 +248,12 @@ class Question(models.Model):
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
     question = models.CharField(max_length=255)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
-    label = models.CharField(max_length=50, choices=[(a, b) for a, b, _ in QUESTION_LABELS])
+    label = models.CharField(
+        max_length=50,
+        choices=[(a, b) for a, b, _ in QUESTION_LABELS],
+        blank=True,
+        null=True,
+    )
     optional = models.BooleanField(default=False)
 
     parent_choice = models.ForeignKey(
@@ -285,13 +293,13 @@ class Answer(models.Model):
         """Return the correct answer data object depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
+        if qtype in (Question.TEXT, Question.BIGTEXT):
             try:
                 return self.textdata
             except TextData.DoesNotExist:
                 return None
 
-        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
+        elif qtype in (Question.CHOICE, Question.DROPDOWN):
             try:
                 return self.choicedata
             except ChoiceData.DoesNotExist:
@@ -308,14 +316,14 @@ class Answer(models.Model):
         """Set the correct answer value depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
+        if qtype in (Question.TEXT, Question.BIGTEXT):
             try:
                 self.textdata.value = value
             except TextData.DoesNotExist:
                 self.textdata = TextData(answer=self, value=value)
             self.textdata.save()
 
-        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
+        elif qtype in (Question.CHOICE, Question.DROPDOWN):
             try:
                 self.choicedata.choice = value
             except ChoiceData.DoesNotExist:
@@ -336,38 +344,38 @@ class Answer(models.Model):
         """Return the human-readable answer depending on question type."""
         qtype = self.question.question_type
 
-        if qtype == Question.TEXT or qtype == Question.BIGTEXT:
+        if qtype in (Question.TEXT, Question.BIGTEXT):
             return getattr(self.textdata, "value", "")
 
-        elif qtype == Question.CHOICE or qtype == Question.DROPDOWN:
+        elif qtype in (Question.CHOICE, Question.DROPDOWN):
             return getattr(self.choicedata.choice, "value", "")
 
-        elif qtype == Question.MULTI:
+        else:
             try:
                 return ", ".join(c.value for c in self.multidata.choices.all())
             except MultiData.DoesNotExist:
                 return ""
 
-        return ""
-
     @classmethod
     def save_from_cleaned_data(cls, submission, cleaned_data):
-        "Create Answer objects for all question_* fields."
-
+        answers = {}
         for key, raw_value in cleaned_data.items():
             if not key.startswith("question_"):
                 continue
 
             question_id = int(key.split("_")[1])
-            question = Question.objects.get(pk=question_id)
+            answers.setdefault(question_id, []).append(raw_value)
 
+        for question_id, raw_values in answers.items():
+            question = Question.objects.get(pk=question_id)
             answer = cls.objects.create(
                 submission=submission, question=question
             )
+
+            raw_value = raw_values[0] if len(raw_values) == 1 else raw_values
             answer.set_value(raw_value)
 
     def set_value(self, raw_value):
-        """Store the answer depending on the question type."""
         qtype = self.question.question_type
 
         if qtype in (Question.TEXT, Question.BIGTEXT):
@@ -381,7 +389,30 @@ class Answer(models.Model):
                 answer=self, defaults={"choice": choice}
             )
 
-        elif qtype == Question.MULTI:
+        elif qtype == Question.CHOICELIST:
+            choice_ids = [int(v) for v in raw_value]
+            choices = self.question.choices.filter(pk__in=choice_ids)
+
+            multi, _ = MultiData.objects.get_or_create(answer=self)
+            multi.choices.set(choices)
+            multi.save()
+
+        elif qtype == Question.TEXTLIST:
+            values = [
+                v for v in raw_value if v is not None and str(v).strip() != ""
+            ]
+            choices = []
+            for value in values:
+                choice, _ = QuestionChoice.objects.get_or_create(
+                    question=self.question, value=value
+                )
+                choices.append(choice)
+
+            multi, _ = MultiData.objects.get_or_create(answer=self)
+            multi.choices.set(choices)
+            multi.save()
+
+        else:
             choice_ids = [int(v) for v in raw_value]
             choices = self.question.choices.filter(pk__in=choice_ids)
 

@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 from registrations.models import Employee, registration
-from courses.models import Course
 
 student_number_regex = re.compile(r"^[sS]?(\d{7})$")
 wrong_email_regex = re.compile(r"^[sS]?(\d{7})@(?:student\.)?ru\.nl$")
@@ -18,19 +17,22 @@ logger = logging.getLogger(__name__)
 class Step2Form(forms.Form):
     """Form to get user information for registration."""
 
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    course = forms.ModelChoiceField(queryset=Course.objects.all(), empty_label=None)
-    email = forms.EmailField()
-    github_username = forms.CharField(disabled=True)
-    github_id = forms.IntegerField(disabled=True)
-    student_number = forms.CharField()
-    email = forms.EmailField()
     ignore_warnings = forms.BooleanField(
         label="I acknowledge the warning(s) and want to proceed with the registration",
         required=False,
         initial=False,
     )
+
+    def get_field_name(self, question, dynamic_user_fields):
+        """ "Set field names for dynamic questions based on their label"""
+        base = f"question_{question.id}"
+        if question.label in dynamic_user_fields:
+            return f"{base}_{question.label}"
+
+        return base
+
+    def get_user_field(self, label):
+        return self.cleaned_data[self.user_fields[label]]
 
     class Media:
         js = ("js/question_type_toggle_step2.js",)
@@ -43,15 +45,20 @@ class Step2Form(forms.Form):
 
         github_id = session["github_id"]
         github_username = session["github_username"]
+        dynamic_user_fields = {
+            "first_name",
+            "last_name",
+            "email",
+            "student_number",
+            "course",
+        }
 
         if github_id is None or github_username is None:
             raise ValueError("GitHub session info is incomplete")
 
-        self.fields["github_id"].initial = github_id
-        self.fields["github_username"].initial = github_username
-
         self.github_id = github_id
         self.github_username = github_username
+        self.user_fields = {}
         self.warnings = []
         self.dynamic_questions = []
         self.questions_by_id = {}
@@ -121,7 +128,10 @@ class Step2Form(forms.Form):
                 list(q.choices.values_list("id", "value", "follow_up")),
             )
 
-            field_name = f"question_{q.id}"
+            field_name = self.get_field_name(q, dynamic_user_fields)
+            if q.label in dynamic_user_fields:
+                self.user_fields[q.label] = field_name
+
             is_follow_up = q.parent_choice_id is not None
             widget_attrs = {
                 "question-id": str(q.id),
@@ -182,6 +192,28 @@ class Step2Form(forms.Form):
                     required=not q.optional,
                     widget=forms.Select,
                 )
+
+            elif q.question_type == registration.Question.TEXTLIST:
+                n_fields = q.max_choices if q.max_choices is not None else 1
+                for i in range(n_fields):
+                    self.fields[f"{field_name}_{i}"] = forms.CharField(
+                        label=f"{q.question} {i + 1}",
+                        required=not q.optional,
+                        widget=forms.TextInput(attrs=widget_attrs),
+                    )
+
+            elif q.question_type == registration.Question.CHOICELIST:
+                choices = registration.QuestionChoice.objects.filter(
+                    question=q
+                ).values_list("id", "value")
+                n_fields = q.max_choices if q.max_choices is not None else 1
+                for i in range(n_fields):
+                    self.fields[f"{field_name}_{i}"] = forms.ChoiceField(
+                        label=f"{q.question} {i + 1}",
+                        choices=choices,
+                        required=not q.optional,
+                        widget=forms.Select(attrs=widget_attrs),
+                    )
 
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
