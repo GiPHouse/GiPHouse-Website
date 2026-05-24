@@ -81,7 +81,9 @@ class Registrations(models.Model):
 
     def sync_project_choices(self):
         """Sync project question choices from projects linked to this registration."""
-        project_questions = self.question_set.filter(label__startswith="project")
+        project_questions = self.question_set.filter(
+            label__startswith="project"
+        )
         for question in project_questions:
             question.choices.all().delete()
             for project in self.get_projects():

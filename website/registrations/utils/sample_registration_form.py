@@ -2,6 +2,7 @@ from projects.models import Project
 from courses.models import Course, Semester
 from registrations.models.registration import Question, Registrations
 
+
 class SampleRegistrationForm:
     def __init__(self):
         self.reg = Registrations.objects.create(
@@ -23,7 +24,12 @@ class SampleRegistrationForm:
         self.projects = (
             "Project preferences",
             Question.CHOICELIST,
-            [project.name for project in Project.objects.filter(semester=self.reg.semester)],
+            [
+                project.name
+                for project in Project.objects.filter(
+                    semester=self.reg.semester
+                )
+            ],
         )
 
         self.partners = (
@@ -72,13 +78,10 @@ class SampleRegistrationForm:
             ["Yes", "No"],
         )
 
-
-
-
     def get_sample_questions(self):
         sample_questions = []
         for key, value in vars(self).items():
-            if key == 'reg':
+            if key == "reg":
                 continue
             if len(value) == 2:
                 text, qtype = value
@@ -87,5 +90,5 @@ class SampleRegistrationForm:
                 text, qtype, choices = value
 
             sample_questions.append((key, text, qtype, choices))
-        
+
         return sample_questions

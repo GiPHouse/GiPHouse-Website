@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registrations', '0005_alter_question_label'),
-        ('registrations', '0021_alter_question_question_type'),
+        ("registrations", "0005_alter_question_label"),
+        ("registrations", "0021_alter_question_question_type"),
     ]
 
-    operations = [
-    ]
+    operations = []

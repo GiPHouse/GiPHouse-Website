@@ -205,7 +205,9 @@ class Step2Form(forms.Form):
                     )
 
             elif q.question_type == registration.Question.CHOICELIST:
-                choices = [("", "-- Select a project --")] + [(p.id, p.name) for p in current_registration.get_projects()]
+                choices = [("", "-- Select a project --")] + [
+                    (p.id, p.name) for p in current_registration.get_projects()
+                ]
                 n_fields = q.max_choices if q.max_choices is not None else 1
                 for i in range(n_fields):
                     self.fields[f"{field_name}_{i}"] = forms.ChoiceField(
@@ -318,10 +320,12 @@ class Step2Form(forms.Form):
                         active_ids.add(q.id)
 
         return active_ids
-    
+
     def check_subfield_list(self, question_id, question, cleaned_data):
         """Shared validation for CHOICELIST and TEXTLIST subfield questions."""
-        n_fields = question.max_choices if question.max_choices is not None else 1
+        n_fields = (
+            question.max_choices if question.max_choices is not None else 1
+        )
         values = []
         for i in range(n_fields):
             subfield = f"question_{question_id}_{i}"
@@ -329,10 +333,20 @@ class Step2Form(forms.Form):
             if val:
                 values.append((subfield, val))
 
-        if question.min_choices is not None and len(values) < question.min_choices:
-            self.warnings.append((f"question_{question_id}_0", f"At least {question.min_choices} values are required."))
+        if (
+            question.min_choices is not None
+            and len(values) < question.min_choices
+        ):
+            self.warnings.append(
+                (
+                    f"question_{question_id}_0",
+                    f"At least {question.min_choices} values are required.",
+                )
+            )
 
-        all_subfields = [f"question_{question_id}_{j}" for j in range(n_fields)]
+        all_subfields = [
+            f"question_{question_id}_{j}" for j in range(n_fields)
+        ]
         for j, (subfield, val) in enumerate(values):
             cleaned_data[all_subfields[j]] = val
         for j in range(len(values), n_fields):
@@ -342,11 +356,15 @@ class Step2Form(forms.Form):
             seen = set()
             for subfield, val in values:
                 if val in seen:
-                    self.warnings.append((subfield, "You cannot enter the same value twice."))
+                    self.warnings.append(
+                        (subfield, "You cannot enter the same value twice.")
+                    )
                 seen.add(val)
 
         if question.warnings:
-            self.warnings.append((f"question_{question_id}_0", question.warnings.strip()))
+            self.warnings.append(
+                (f"question_{question_id}_0", question.warnings.strip())
+            )
 
         return values
 
@@ -368,34 +386,71 @@ class Step2Form(forms.Form):
                         answer = cleaned_data.get(field_name)
                         is_follow_up = question.parent_choice_id is not None
 
-                        if is_follow_up and not question.optional and not answer:
-                            self.warnings.append((field_name, "This field is required."))
+                        if (
+                            is_follow_up
+                            and not question.optional
+                            and not answer
+                        ):
+                            self.warnings.append(
+                                (field_name, "This field is required.")
+                            )
 
-                        elif question.question_type == registration.Question.DROPDOWN and not question.optional and not answer:
-                            self.warnings.append((field_name, "Please select an option."))
+                        elif (
+                            question.question_type
+                            == registration.Question.DROPDOWN
+                            and not question.optional
+                            and not answer
+                        ):
+                            self.warnings.append(
+                                (field_name, "Please select an option.")
+                            )
 
-                        elif question.question_type == registration.Question.MULTI and answer:
+                        elif (
+                            question.question_type
+                            == registration.Question.MULTI
+                            and answer
+                        ):
                             selected_count = len(answer)
 
-                            if question.min_choices is not None and selected_count < question.min_choices:
-                                self.warnings.append((
-                                    field_name,
-                                    f"At least {question.min_choices} choices are required (you selected {selected_count}).",
-                                ))
+                            if (
+                                question.min_choices is not None
+                                and selected_count < question.min_choices
+                            ):
+                                self.warnings.append(
+                                    (
+                                        field_name,
+                                        f"At least {question.min_choices} choices are required (you selected {selected_count}).",
+                                    )
+                                )
 
-                            if question.max_choices is not None and selected_count > question.max_choices:
-                                self.warnings.append((
-                                    field_name,
-                                    f"No more than {question.max_choices} choices are allowed (you selected {selected_count}).",
-                                ))
+                            if (
+                                question.max_choices is not None
+                                and selected_count > question.max_choices
+                            ):
+                                self.warnings.append(
+                                    (
+                                        field_name,
+                                        f"No more than {question.max_choices} choices are allowed (you selected {selected_count}).",
+                                    )
+                                )
 
                             if question.warnings:
-                                self.warnings.append((field_name, question.warnings.strip()))
+                                self.warnings.append(
+                                    (field_name, question.warnings.strip())
+                                )
 
-                        elif question.question_type in [registration.Question.CHOICELIST, registration.Question.TEXTLIST] and question.id not in checked_subfield_questions:
+                        elif (
+                            question.question_type
+                            in [
+                                registration.Question.CHOICELIST,
+                                registration.Question.TEXTLIST,
+                            ]
+                            and question.id not in checked_subfield_questions
+                        ):
                             checked_subfield_questions.add(question.id)
-                            self.check_subfield_list(question_id, question, cleaned_data)
-
+                            self.check_subfield_list(
+                                question_id, question, cleaned_data
+                            )
 
         if self.warnings and not self.cleaned_data.get("ignore_warnings"):
             for field_name, message in self.warnings:

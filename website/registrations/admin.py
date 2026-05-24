@@ -430,7 +430,8 @@ class UserAdminTimeslot4Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
-    
+
+
 class UserAdminTimeslot5Filter(UserAdminAnswerFilter):
     title = "Timeslot 5"
     parameter_name = "timeslot5"
@@ -438,7 +439,8 @@ class UserAdminTimeslot5Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
-    
+
+
 class UserAdminTimeslot6Filter(UserAdminAnswerFilter):
     title = "Timeslot 6"
     parameter_name = "timeslot6"
@@ -446,7 +448,8 @@ class UserAdminTimeslot6Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
-    
+
+
 class UserAdminTimeslot7Filter(UserAdminAnswerFilter):
     title = "Timeslot 7"
     parameter_name = "timeslot7"
@@ -454,7 +457,8 @@ class UserAdminTimeslot7Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
-    
+
+
 class UserAdminTimeslot8Filter(UserAdminAnswerFilter):
     title = "Timeslot 8"
     parameter_name = "timeslot8"
@@ -471,7 +475,8 @@ class UserAdminTimeslot9Filter(UserAdminAnswerFilter):
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
-    
+
+
 class UserAdminTimeslot10Filter(UserAdminAnswerFilter):
     title = "Timeslot 10"
     parameter_name = "timeslot10"

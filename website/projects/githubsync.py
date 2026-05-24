@@ -96,7 +96,8 @@ class GitHubAPITalker:
         """
         if self._access_token is None or (
             self._access_token.expires_at.replace(tzinfo=timezone.utc)
-            - datetime.now(timezone.utc) < timedelta(seconds=60)
+            - datetime.now(timezone.utc)
+            < timedelta(seconds=60)
         ):
             self._access_token = self._gi.get_access_token(
                 self.installation_id
@@ -385,7 +386,9 @@ class GitHubSync:
         if not github_team.get_repo_permission(github_repo).admin:
             success = github_team.update_team_repository(github_repo, "admin")
             if not success:
-                raise PlainGitHubException("update_team_repository() returned an unsuccessful status code")
+                raise PlainGitHubException(
+                    "update_team_repository() returned an unsuccessful status code"
+                )
 
             self.info(f"""Gave admin permissions to team {github_team.name}
                        for repository {github_repo.name}""")
@@ -428,7 +431,7 @@ class GitHubSync:
                     # if this fails, we might have a problem
                     #  with the github_repo_id
                     self.update_repo(project_repo)
-                except (GithubException, AssertionError, PlainGitHubException):
+                except GithubException, AssertionError, PlainGitHubException:
                     self.error(f"""Something went wrong syncing the repository
                                 '{project_repo}' for '{project_team}'.""")
 
@@ -465,7 +468,9 @@ class GitHubSync:
 
         success = github_team.update_team_repository(github_repo, "admin")
         if not success:
-            raise PlainGitHubException("update_team_repository() returned an unsuccessful status code")
+            raise PlainGitHubException(
+                "update_team_repository() returned an unsuccessful status code"
+            )
 
         self.info(f"Added team {github_team.name} to repository {repo.name}")
 
