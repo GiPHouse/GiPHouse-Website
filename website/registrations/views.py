@@ -13,16 +13,21 @@ from registrations.models import Employee, registration
 
 # Only for testing
 def dev_login(request):
-    """Simulate GitHub OAuth login for local development. This sets the session variables that Step2Form expects."""
-
-    employee = Employee.objects.get(github_username="devuser")
+    employee, _ = Employee.objects.get_or_create(
+        github_username="devuser",
+        defaults={
+            "github_id": 123456,
+            "first_name": "Dev",
+            "last_name": "User",
+            "email": "devuser@example.com",
+        }
+    )
     login(request, employee)
 
     request.session["github_id"] = 123456
     request.session["github_username"] = "devuser"
     request.session["github_name"] = "Dev User"
     request.session["github_email"] = "devuser@example.com"
-
     # Redirect to Step2View where the form is return redirect("registrations:step2")
     return redirect("registrations:step2")
 
@@ -92,7 +97,7 @@ class Step2View(FormView):
             first_name, last_name = self.request.session["github_name"].rsplit(
                 " ", 1
             )
-        except KeyError, AttributeError:
+        except (KeyError, AttributeError):
             first_name, last_name = "", ""
         except ValueError:
             first_name, last_name = self.request.session["github_name"], ""

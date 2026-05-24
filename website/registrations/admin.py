@@ -32,7 +32,6 @@ from registrations.models.registration import (
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    # TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
@@ -260,7 +259,24 @@ class RegistrationSubmissionAdmin(admin.ModelAdmin):
     participant_github_username.short_description = "GitHub Username"
 
 
-class UserAdminSemesterFilter(AutocompleteFilter):
+class AnswerInline(NestedTabularInline):
+    model = Answer
+    extra = 0
+    readonly_fields = ("question_text", "answer_value")
+    exclude = ("question",)
+
+    def question_text(self, obj):
+        return obj.question.question
+
+    question_text.short_description = "Question"
+
+    def answer_value(self, obj):
+        return obj.answer_value
+
+    answer_value.short_description = "Answer"
+
+
+class UserAdminSemesterFilter(admin.SimpleListFilter):
     """Filter class to filter Semester objects."""
 
     title = "Semester"
@@ -368,7 +384,7 @@ class UserAdminManagementFilter(UserAdminAnswerFilter):
     label = "management"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminInternationalFilter(UserAdminAnswerFilter):
@@ -377,7 +393,7 @@ class UserAdminInternationalFilter(UserAdminAnswerFilter):
     label = "nondutch"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot1Filter(UserAdminAnswerFilter):
@@ -386,7 +402,7 @@ class UserAdminTimeslot1Filter(UserAdminAnswerFilter):
     label = "timeslot1"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot2Filter(UserAdminAnswerFilter):
@@ -395,7 +411,7 @@ class UserAdminTimeslot2Filter(UserAdminAnswerFilter):
     label = "timeslot2"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot3Filter(UserAdminAnswerFilter):
@@ -404,7 +420,7 @@ class UserAdminTimeslot3Filter(UserAdminAnswerFilter):
     label = "timeslot3"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot4Filter(UserAdminAnswerFilter):
@@ -413,43 +429,39 @@ class UserAdminTimeslot4Filter(UserAdminAnswerFilter):
     label = "timeslot4"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-
-
+        return [("True", "True"), ("False", "False")]
+    
 class UserAdminTimeslot5Filter(UserAdminAnswerFilter):
     title = "Timeslot 5"
     parameter_name = "timeslot5"
     label = "timeslot5"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-
-
+        return [("True", "True"), ("False", "False")]
+    
 class UserAdminTimeslot6Filter(UserAdminAnswerFilter):
     title = "Timeslot 6"
     parameter_name = "timeslot6"
     label = "timeslot6"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-
-
+        return [("True", "True"), ("False", "False")]
+    
 class UserAdminTimeslot7Filter(UserAdminAnswerFilter):
     title = "Timeslot 7"
     parameter_name = "timeslot7"
     label = "timeslot7"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-
-
+        return [("True", "True"), ("False", "False")]
+    
 class UserAdminTimeslot8Filter(UserAdminAnswerFilter):
     title = "Timeslot 8"
     parameter_name = "timeslot8"
     label = "timeslot8"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot9Filter(UserAdminAnswerFilter):
@@ -458,16 +470,15 @@ class UserAdminTimeslot9Filter(UserAdminAnswerFilter):
     label = "timeslot9"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-
-
+        return [("True", "True"), ("False", "False")]
+    
 class UserAdminTimeslot10Filter(UserAdminAnswerFilter):
     title = "Timeslot 10"
     parameter_name = "timeslot10"
     label = "timeslot10"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminNdaFilter(UserAdminAnswerFilter):
@@ -476,7 +487,7 @@ class UserAdminNdaFilter(UserAdminAnswerFilter):
     label = "nonda"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class RegistrationInline(NestedTabularInline):
@@ -492,6 +503,24 @@ class RegistrationSubmissionInline(NestedTabularInline):
     model = RegistrationSubmission
     extra = 0
     inlines = [AnswerInline]
+
+
+class CollapsedRelatedFieldFilter(admin.RelatedFieldListFilter):
+    """Class to collapse related field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedChoicesFieldFilter(admin.ChoicesFieldListFilter):
+    """Class to collapse choices field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedBooleanFieldFilter(admin.BooleanFieldListFilter):
+    """Class to collapse boolean field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
 
 
 @admin.register(User)
