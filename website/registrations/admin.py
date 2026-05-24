@@ -16,6 +16,8 @@ from django.forms.models import BaseInlineFormSet
 
 from courses.models import Semester, Course
 
+from registrations.utils.sample_registration_form import SampleRegistrationForm
+
 from projects.models import Project
 
 from nested_admin import NestedModelAdmin, NestedTabularInline
@@ -173,78 +175,12 @@ class RegistrationsAdmin(NestedModelAdmin):
 
     # Create a sample registration with autofilled questions
     def create_sample_registration(self, request):
-        reg = Registrations.objects.create(
-            title="Sample Registration",
-            semester=Semester.objects.get_or_create_current_semester(),
-        )
-
-        sample_questions = [
-            ("first_name", "First name", Question.TEXT),
-            ("last_name", "Last name", Question.TEXT),
-            ("email", "Email", Question.TEXT),
-            ("student_number", "Student number", Question.TEXT),
-            (
-                "course",
-                "Course",
-                Question.DROPDOWN,
-                [course.name for course in Course.objects.all()],
-            ),
-            (
-                "projects",
-                "Project preferences",
-                Question.CHOICELIST,
-                [project.name for project in Project.objects.filter(semester=reg.semester)],
-            ),
-            (
-                "partners",
-                "Partner preferences",
-                Question.TEXTLIST,
-            ),
-            (
-                "devexp",
-                "Dev Experience",
-                Question.CHOICE,
-                ["None", "Little", "Some", "A lot"],
-            ),
-            (
-                "management",
-                "Management Interest",
-                Question.CHOICE,
-                ["Yes", "No"],
-            ),
-            ("nondutch", "Non-dutch", Question.CHOICE, ["Yes", "No"]),
-            (
-                "timeslots",
-                "Timeslot availability",
-                Question.MULTI,
-                [
-                    "Available during scheduled timeslot 1",
-                    "Available during scheduled timeslot 2",
-                    "Available during scheduled timeslot 3",
-                    "Available during scheduled timeslot 4",
-                    "Available during scheduled timeslot 5",
-                    "Available during scheduled timeslot 6",
-                    "Available during scheduled timeslot 7",
-                    "Available during scheduled timeslot 8",
-                    "Available during scheduled timeslot 9",
-                    "Available during scheduled timeslot 10",
-                ],
-            ),
-            (
-                "nonda",
-                "Has problems with signing an NDA",
-                Question.CHOICE,
-                ["Yes", "No"],
-            ),
-        ]
+        sample_registration = SampleRegistrationForm()
+        sample_questions = sample_registration.get_sample_questions()
+        reg = sample_registration.reg
 
         for item in sample_questions:
-            # Case distinction for questions with and without choices
-            if len(item) == 3:
-                label, text, qtype = item
-                choices = []
-            else:
-                label, text, qtype, choices = item
+            label, text, qtype, choices = item
 
             q = Question.objects.create(
                 registration=reg,
