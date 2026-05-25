@@ -4,14 +4,21 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('projects', '0001_initial'),
+        ("projects", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='project',
-            options={'ordering': ['semester', 'name'], 'permissions': [('can_sync_to_github', 'Can synchronize project(s) to GitHub')]},
+            name="project",
+            options={
+                "ordering": ["semester", "name"],
+                "permissions": [
+                    (
+                        "can_sync_to_github",
+                        "Can synchronize project(s) to GitHub",
+                    )
+                ],
+            },
         ),
     ]
