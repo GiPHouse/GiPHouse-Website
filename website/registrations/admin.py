@@ -574,7 +574,7 @@ class UserAdmin(NestedModelAdmin):
     )
 
     list_filter = (
-        #UserAdminSemesterFilter,
+        # UserAdminSemesterFilter,
         UserAdminProjectFilter,
         UserAdminCourseFilter,
         UserAdminDevExpFilter,
@@ -638,7 +638,7 @@ class UserAdmin(NestedModelAdmin):
         # converts timeslot availability answers to a list of 10 true false values indicating availability for timeslots 1-10
         # Input: string like "available during scheduled timeslot 1, available during scheduled timeslot 2"
         # Output: [True, True, False, False, False, False, False, False, False, False]
-        
+
         current_reg = Registrations.objects.current_registration()
 
         timeslot_db = list(
@@ -649,23 +649,21 @@ class UserAdmin(NestedModelAdmin):
         )
         n = len(timeslot_db)
         timeslot_list = [False] * n
-        
+
         if not timeslot_answers:
             return timeslot_list
-        
+
         # Split by comma to get individual timeslot entries
         timeslot_entries = timeslot_answers.split(",")
-        
+
         # Check if each entry matches a timeslot choice in the database, set corresponding index to True if it does
         for entry in timeslot_entries:
             entry = entry.strip()
             if entry in timeslot_db:
                 index = timeslot_db.index(entry)
                 timeslot_list[index] = True
-        
+
         return timeslot_list
-        
-        
 
     def export_registrations(self, request, queryset):
         """Export the registration information of the most recent registration of the selected users to a CSV file."""
@@ -674,7 +672,7 @@ class UserAdmin(NestedModelAdmin):
             content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
         )
         queryset = queryset.exclude(registrationsubmission__isnull=True)
-        
+
         # Static headers
         static_headers = [
             "First name",
@@ -693,28 +691,44 @@ class UserAdmin(NestedModelAdmin):
             "Has problems with signing an NDA",
             "Registration Comments",
         ]
-        
+
         # Get current registration
         current_registration = Registrations.objects.current_registration()
-        
+
         # Get all submissions for the users in the queryset
         submissions = RegistrationSubmission.objects.filter(
-            participant__in=queryset,
-            registration=current_registration
+            participant__in=queryset, registration=current_registration
         )
-        
+
         # Get all unique questions that appear in answers for these submissions
-        dynamic_questions = Question.objects.filter(
-            registration=current_registration,
-            answer__submission__in=submissions
-        ).exclude(
-            label__in=[
-                "projects", "partners", "devexp", "gitexp", "scrumexp",
-                "management", "nondutch", "timeslots", "nonda", "comments",
-                "first_name", "last_name", "email", "student_number", "course"
-            ]
-        ).distinct().order_by("id")
-        
+        dynamic_questions = (
+            Question.objects.filter(
+                registration=current_registration,
+                answer__submission__in=submissions,
+            )
+            .exclude(
+                label__in=[
+                    "projects",
+                    "partners",
+                    "devexp",
+                    "gitexp",
+                    "scrumexp",
+                    "management",
+                    "nondutch",
+                    "timeslots",
+                    "nonda",
+                    "comments",
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "student_number",
+                    "course",
+                ]
+            )
+            .distinct()
+            .order_by("id")
+        )
+
         # Write header row
         headers = static_headers + [q.question for q in dynamic_questions]
         writer.writerow(headers)
@@ -733,18 +747,18 @@ class UserAdmin(NestedModelAdmin):
                 user.student_number,
                 user.github_username,
                 submission.course,
-                submission.get_answer('projects'),
-                submission.get_answer('partners'),
+                submission.get_answer("projects"),
+                submission.get_answer("partners"),
                 submission.get_answer("devexp"),
                 submission.get_answer("gitexp"),
                 submission.get_answer("scrumexp"),
                 submission.get_answer("management"),
                 submission.get_answer("nondutch"),
-                self.convert_timeslots(submission.get_answer('timeslots')),
+                self.convert_timeslots(submission.get_answer("timeslots")),
                 submission.get_answer("nonda"),
                 submission.get_answer("comments"),
             ]
-            
+
             # Add dynamic question answers
             dynamic_row = []
             for question in dynamic_questions:
@@ -753,7 +767,7 @@ class UserAdmin(NestedModelAdmin):
                     dynamic_row.append(answer.answer_value)
                 except Answer.DoesNotExist:
                     dynamic_row.append("")
-            
+
             writer.writerow(static_row + dynamic_row)
 
         response = HttpResponse(

@@ -83,6 +83,7 @@ VALID_COURSES = [
     "Software Development Entrepreneurship",
 ]
 
+
 def parse_exp(value):
     if value == "Beginner":
         return engineer_data.BEGINNER
@@ -96,12 +97,14 @@ def parse_exp(value):
         return engineer_data.ADVANCED
     return value
 
+
 def parse_booleans(value):
     if value == "True":
         return True
     elif value == "False":
         return False
     return value
+
 
 def parse_timetable(row):
     slots = []
@@ -127,43 +130,64 @@ def parse_timetable(row):
         slots.append((engineer_data.FRIDAY, 2))
     return slots
 
+
 def verify_columns(header):
     missing = [col for col in EXPECTED_COLUMNS if col not in header]
     unexpected = [col for col in header if col not in EXPECTED_COLUMNS]
     if missing:
         print(f"{RED}Error: Missing columns: {', '.join(missing)}{RESET}")
     if unexpected:
-        print(f"{RED}Error: Unexpected columns: {', '.join(unexpected)}{RESET}")
+        print(
+            f"{RED}Error: Unexpected columns: {', '.join(unexpected)}{RESET}"
+        )
 
 
 def verify_row(row):
     errors = []
-    
-    name = row['First name'] + " " + row['Last name']
-    
+
+    name = row["First name"] + " " + row["Last name"]
+
     if row["Course"] not in VALID_COURSES:
         errors.append(f"Invalid course '{row['Course']}' for student {name}")
-    
+
     for col in PROJECT_PREFERENCE_COLUMNS:
-        if row[col] != "" and row[col] not in project_data.full_names and row[col] not in project_data.short_names:
-            errors.append(f"Invalid project preference '{row[col]}' in column {col} for student {name}")
-    
+        if (
+            row[col] != ""
+            and row[col] not in project_data.full_names
+            and row[col] not in project_data.short_names
+        ):
+            errors.append(
+                f"Invalid project preference '{row[col]}' in column {col} for student {name}"
+            )
+
     for col in EXPERIENCE_COLUMNS:
-        if row[col] not in ["Beginner", "Junior", "Intermediate", "Pretty Good", "Advanced"]:
-            errors.append(f"Invalid experience level '{row[col]}' in column {col} for student {name}")
-    
+        if row[col] not in [
+            "Beginner",
+            "Junior",
+            "Intermediate",
+            "Pretty Good",
+            "Advanced",
+        ]:
+            errors.append(
+                f"Invalid experience level '{row[col]}' in column {col} for student {name}"
+            )
+
     for col in BOOLEAN_COLUMNS:
         if row[col] not in ["True", "False"]:
-            errors.append(f"Invalid boolean value '{row[col]}' in column {col} for student {name}")
-    
+            errors.append(
+                f"Invalid boolean value '{row[col]}' in column {col} for student {name}"
+            )
+
     return name, errors
 
+
 friend_data = []
+
 
 def load_registrations(filename):
     all_errors = []
 
-    with open(filename, 'r') as csvfile:
+    with open(filename, "r") as csvfile:
         reader = csv.DictReader(csvfile)
         header = reader.fieldnames
         verify_columns(header)
@@ -171,7 +195,7 @@ def load_registrations(filename):
             name, errors = verify_row(row)
             if errors:
                 all_errors.append((name, errors))
-            elif row['Course'] == 'Software Engineering':
+            elif row["Course"] == "Software Engineering":
                 engineer_data.add_student(
                     name,
                     parse_exp(row["Dev Experience"]),
@@ -179,19 +203,31 @@ def load_registrations(filename):
                     parse_booleans(row["Non-dutch"]),
                     parse_booleans(row["Has problems with signing an NDA"]),
                     parse_timetable(row),
-                    [row["1st project preference"], row["2nd project preference"], row["3rd project preference"]]
+                    [
+                        row["1st project preference"],
+                        row["2nd project preference"],
+                        row["3rd project preference"],
+                    ],
                 )
-                partners = [row["1st partner preference"], row["2nd partner preference"], row["3rd partner preference"]]
-                while "" in partners: partners.remove("")
-                friend_data.append((name,partners))
+                partners = [
+                    row["1st partner preference"],
+                    row["2nd partner preference"],
+                    row["3rd partner preference"],
+                ]
+                while "" in partners:
+                    partners.remove("")
+                friend_data.append((name, partners))
 
     if all_errors:
-        print(f"{RED}The following students have errors in their registration:{RESET}")
+        print(
+            f"{RED}The following students have errors in their registration:{RESET}"
+        )
         for name, errors in all_errors:
             print(f"{RED}  {name}:{RESET}")
             for error in errors:
                 print(f"{RED}    - {error}{RESET}")
         sys.exit(1)
+
 
 def get_friend_data():
     return friend_data
@@ -200,6 +236,7 @@ def get_friend_data():
 def print_registrations(registrations):
     for reg in registrations:
         print(reg)
+
 
 def get_header(registrations):
     if len(registrations) == 0:
@@ -214,4 +251,3 @@ def get_header(registrations):
 
 # engineers = get_engineers(registrations)
 # print(f"Engineers: {engineers}")
-
