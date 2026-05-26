@@ -639,8 +639,16 @@ class UserAdmin(NestedModelAdmin):
         # Input: string like "available during scheduled timeslot 1, available during scheduled timeslot 2"
         # Output: [True, True, False, False, False, False, False, False, False, False]
         
-        # Initialize list of 10 False values
-        timeslot_list = [False] * 10
+        current_reg = Registrations.objects.current_registration()
+
+        timeslot_db = list(
+            QuestionChoice.objects.filter(
+                question__label="timeslots",
+                question__registration=current_reg,
+            ).values_list("value", flat=True)
+        )
+        n = len(timeslot_db)
+        timeslot_list = [False] * n
         
         if not timeslot_answers:
             return timeslot_list
@@ -648,18 +656,12 @@ class UserAdmin(NestedModelAdmin):
         # Split by comma to get individual timeslot entries
         timeslot_entries = timeslot_answers.split(",")
         
+        # Check if each entry matches a timeslot choice in the database, set corresponding index to True if it does
         for entry in timeslot_entries:
             entry = entry.strip()
-            if not entry:
-                continue
-            try:
-                # Extract the number from the end of the string
-                # e.g., "available during scheduled timeslot 1" -> 1
-                timeslot_num = int(entry.split()[-1])
-                if 1 <= timeslot_num <= 10:
-                    timeslot_list[timeslot_num - 1] = True
-            except (ValueError, IndexError):
-                pass
+            if entry in timeslot_db:
+                index = timeslot_db.index(entry)
+                timeslot_list[index] = True
         
         return timeslot_list
         
