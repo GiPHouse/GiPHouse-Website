@@ -574,7 +574,7 @@ class UserAdmin(NestedModelAdmin):
     )
 
     list_filter = (
-        UserAdminSemesterFilter,
+        #UserAdminSemesterFilter,
         UserAdminProjectFilter,
         UserAdminCourseFilter,
         UserAdminDevExpFilter,
@@ -634,6 +634,37 @@ class UserAdmin(NestedModelAdmin):
         "Export names and student numbers"
     )
 
+    def convert_timeslots(self, timeslot_answers):
+        # converts timeslot availability answers to a list of 10 true false values indicating availability for timeslots 1-10
+        # Input: string like "available during scheduled timeslot 1, available during scheduled timeslot 2"
+        # Output: [True, True, False, False, False, False, False, False, False, False]
+        
+        # Initialize list of 10 False values
+        timeslot_list = [False] * 10
+        
+        if not timeslot_answers:
+            return timeslot_list
+        
+        # Split by comma to get individual timeslot entries
+        timeslot_entries = timeslot_answers.split(",")
+        
+        for entry in timeslot_entries:
+            entry = entry.strip()
+            if not entry:
+                continue
+            try:
+                # Extract the number from the end of the string
+                # e.g., "available during scheduled timeslot 1" -> 1
+                timeslot_num = int(entry.split()[-1])
+                if 1 <= timeslot_num <= 10:
+                    timeslot_list[timeslot_num - 1] = True
+            except (ValueError, IndexError):
+                pass
+        
+        return timeslot_list
+        
+        
+
     def export_registrations(self, request, queryset):
         """Export the registration information of the most recent registration of the selected users to a CSV file."""
         content = StringIO()
@@ -641,85 +672,87 @@ class UserAdmin(NestedModelAdmin):
             content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
         )
         queryset = queryset.exclude(registrationsubmission__isnull=True)
-        writer.writerow(
-            [
-                "First name",
-                "Last name",
-                "Student number",
-                "GitHub username",
-                "Course",
-                "1st project preference",
-                "2nd project preference",
-                "3rd project preference",
-                "1st partner preference",
-                "2nd partner preference",
-                "3rd partner preference",
-                "Dev Experience",
-                "Git Experience",
-                "Scrum Experience",
-                "Management Interest",
-                "Non-dutch",
-                "Available during scheduled timeslot 1",
-                "Available during scheduled timeslot 2",
-                "Available during scheduled timeslot 3",
-                "Available during scheduled timeslot 4",
-                "Available during scheduled timeslot 5",
-                "Available during scheduled timeslot 6",
-                "Available during scheduled timeslot 7",
-                "Available during scheduled timeslot 8",
-                "Available during scheduled timeslot 9",
-                "Available during scheduled timeslot 10",
-                "Has problems with signing an NDA",
-                "Registration Comments",
-            ]
-        )
-        print("QUERYSET:", queryset)
-        print("COUNT:", queryset.count())
-
+        
+        # Static headers
+        static_headers = [
+            "First name",
+            "Last name",
+            "Student number",
+            "GitHub username",
+            "Course",
+            "project preferences",
+            "partner preferences",
+            "Dev Experience",
+            "Git Experience",
+            "Scrum Experience",
+            "Management Interest",
+            "Non-dutch",
+            "Availablility timeslots",
+            "Has problems with signing an NDA",
+            "Registration Comments",
+        ]
+        
+        # Get current registration
         current_registration = Registrations.objects.current_registration()
+        
+        # Get all submissions for the users in the queryset
+        submissions = RegistrationSubmission.objects.filter(
+            participant__in=queryset,
+            registration=current_registration
+        )
+        
+        # Get all unique questions that appear in answers for these submissions
+        dynamic_questions = Question.objects.filter(
+            registration=current_registration,
+            answer__submission__in=submissions
+        ).exclude(
+            label__in=[
+                "projects", "partners", "devexp", "gitexp", "scrumexp",
+                "management", "nondutch", "timeslots", "nonda", "comments",
+                "first_name", "last_name", "email", "student_number", "course"
+            ]
+        ).distinct().order_by("id")
+        
+        # Write header row
+        headers = static_headers + [q.question for q in dynamic_questions]
+        writer.writerow(headers)
+
         for user in queryset:
             submission = user.registrationsubmission_set.filter(
                 registration=current_registration
             ).first()
 
-            print("USER:", user)
-            print("REGISTRATION:", submission)
+            if not submission:
+                continue
 
-            if submission is None:
-                print("NO REGISTRATION FOR:", user.id, user)
-
-            writer.writerow(
-                [
-                    user.first_name,
-                    user.last_name,
-                    user.student_number,
-                    user.github_username,
-                    submission.course,
-                    submission.get_answer("project1"),
-                    submission.get_answer("project2"),
-                    submission.get_answer("project3"),
-                    submission.get_answer("partner1"),
-                    submission.get_answer("partner2"),
-                    submission.get_answer("partner3"),
-                    submission.get_answer("devexp"),
-                    submission.get_answer("gitexp"),
-                    submission.get_answer("scrumexp"),
-                    submission.get_answer("management"),
-                    submission.get_answer("nondutch"),
-                    submission.get_answer("timeslot1"),
-                    submission.get_answer("timeslot2"),
-                    submission.get_answer("timeslot3"),
-                    submission.get_answer("timeslot4"),
-                    submission.get_answer("timeslot5"),
-                    submission.get_answer("timeslot6"),
-                    submission.get_answer("timeslot7"),
-                    submission.get_answer("timeslot8"),
-                    submission.get_answer("timeslot9"),
-                    submission.get_answer("timeslot10"),
-                    submission.get_answer("nonda"),
-                    submission.get_answer("comments"),
-                ]
-            )
+            static_row = [
+                user.first_name,
+                user.last_name,
+                user.student_number,
+                user.github_username,
+                submission.course,
+                submission.get_answer('projects'),
+                submission.get_answer('partners'),
+                submission.get_answer("devexp"),
+                submission.get_answer("gitexp"),
+                submission.get_answer("scrumexp"),
+                submission.get_answer("management"),
+                submission.get_answer("nondutch"),
+                self.convert_timeslots(submission.get_answer('timeslots')),
+                submission.get_answer("nonda"),
+                submission.get_answer("comments"),
+            ]
+            
+            # Add dynamic question answers
+            dynamic_row = []
+            for question in dynamic_questions:
+                try:
+                    answer = submission.answer_set.get(question=question)
+                    dynamic_row.append(answer.answer_value)
+                except Answer.DoesNotExist:
+                    dynamic_row.append("")
+            
+            writer.writerow(static_row + dynamic_row)
 
         response = HttpResponse(
             content.getvalue(), content_type="application/x-zip-compressed"
