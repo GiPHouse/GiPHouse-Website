@@ -18,16 +18,16 @@ from projects.models import Project
 
 from nested_admin import NestedModelAdmin, NestedTabularInline
 
-from registrations.models import (
-    Employee,
-    Registration,
-    Registrations,
+from registrations.models import Employee, Registration
+from registrations.models.registration import (
     Question,
     QuestionChoice,
+    Registrations,
+    RegistrationSubmission,
+    Answer,
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    # TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
@@ -36,15 +36,88 @@ User: Employee = get_user_model()
 "interface for Registrationss with the proper inlines."
 
 
-class QuestionChoiceInline(NestedTabularInline):
+class QuestionAdminForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        question_type = cleaned_data.get("question_type")
+        min_choices = cleaned_data.get("min_choices")
+        max_choices = cleaned_data.get("max_choices")
+
+        errors = []
+
+        if question_type == Question.MULTI:
+            if min_choices is not None and min_choices < 0:
+                errors.append("min_choices cannot be negative.")
+            if max_choices is not None and max_choices < 0:
+                errors.append("max_choices cannot be negative.")
+            if (
+                min_choices is not None
+                and max_choices is not None
+                and min_choices > max_choices
+            ):
+                errors.append(
+                    "min_choices cannot be greater than max_choices."
+                )
+
+            if self.instance and self.instance.pk:
+                choice_count = self.instance.choices.count()
+                if min_choices is not None and min_choices > choice_count:
+                    errors.append(
+                        f"min_choices ({min_choices}) cannot exceed the number of choices ({choice_count})."
+                    )
+                if max_choices is not None and max_choices > choice_count:
+                    errors.append(
+                        f"max_choices ({max_choices}) cannot exceed the number of choices ({choice_count})."
+                    )
+
+        if errors:
+            raise forms.ValidationError(errors)
+
+        return cleaned_data
+
+
+class FollowUpQuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 1
+    fk_name = "question"
+    inlines = []
+
+
+class FollowUpQuestionInline(NestedTabularInline):
+    model = Question
+    fk_name = "parent_choice"
+    extra = 1
+    exclude = ("parent_choice", "registration")
+    inlines = [FollowUpQuestionChoiceInline]
+
+    def save_new(self, form, commit=True):
+        instance = super().save_new(form, commit=False)
+        instance.registration = form.cleaned_data["registration"]
+        if commit:
+            instance.save()
+        return instance
+
+
+class QuestionChoiceInline(NestedTabularInline):
+    model = QuestionChoice
+    extra = 0
+    fk_name = "question"
+    inlines = [FollowUpQuestionInline]
 
 
 class QuestionInline(NestedTabularInline):
     model = Question
-    extra = 1
+    fk_name = "registration"
+    form = QuestionAdminForm
+    extra = 0
     inlines = [QuestionChoiceInline]
+
+    class Media:
+        js = ("js/question_type_toggle.js",)
 
 
 @admin.register(Registrations)
@@ -55,23 +128,87 @@ class RegistrationsAdmin(NestedModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(NestedModelAdmin):
+    form = QuestionAdminForm
     list_display = ("question", "registration", "question_type", "optional")
     inlines = [QuestionChoiceInline]
 
 
-class UserAdminSemesterFilter(AutocompleteFilter):
+class AnswerInline(NestedTabularInline):
+    model = Answer
+    extra = 0
+    readonly_fields = ("question_text", "answer_value")
+    exclude = ("question",)
+
+    def question_text(self, obj):
+        return obj.question.question
+
+    question_text.short_description = "Question"
+
+    def answer_value(self, obj):
+        return obj.answer_value
+
+    answer_value.short_description = "Answer"
+
+
+@admin.register(RegistrationSubmission)
+class RegistrationSubmissionAdmin(admin.ModelAdmin):
+    list_display = ("registration", "participant", "submitted", "created")
+    inlines = [AnswerInline]
+
+
+class AnswerInline(NestedTabularInline):
+    model = Answer
+    extra = 0
+    readonly_fields = ("question_text", "answer_value")
+    exclude = ("question",)
+
+    def question_text(self, obj):
+        return obj.question.question
+
+    question_text.short_description = "Question"
+
+    def answer_value(self, obj):
+        return obj.answer_value
+
+    answer_value.short_description = "Answer"
+
+
+class UserAdminSemesterFilter(admin.SimpleListFilter):
     """Filter class to filter Semester objects."""
 
     title = "Semester"
-    field_name = "semester"
-    rel_model = Registration
+    parameter_name = "semester"
+
+    def lookups(self, request, model_admin):
+        """Defines all the filter options including All"""
+        semesters = Semester.objects.all()
+        id = 1
+        filter_options = [(0, "All ")]
+        for s in semesters:
+            filter_options.append((id, s))
+            id += 1
+        return filter_options
+
+    def choices(self, changelist):
+        """Hides the non functional All button"""
+        for choice in super().choices(changelist):
+            if choice["display"] == "All":
+                continue
+            yield choice
+
+    def value(self):
+        """Autoselects the newest semester"""
+        val = super().value()
+        if val is not None:
+            return val
+        return str(1) if Semester.objects.all().first() else None
 
     def queryset(self, request, queryset):
         """Filter semesters."""
-        if self.value():
-            return queryset.filter(registration__semester=self.value())
-        else:
+        if self.value() == "0":
             return queryset
+        else:
+            return queryset.filter(registration__semester_id=self.value())
 
 
 class UserAdminProjectFilter(AutocompleteFilter):
@@ -88,16 +225,41 @@ class UserAdminProjectFilter(AutocompleteFilter):
         return queryset
 
 
-class RegistrationInline(admin.StackedInline):
+class RegistrationInline(NestedTabularInline):
     """Inline form for Registration."""
 
-    model = Registration
+    model = Registrations
     extra = 0
-    filter_horizontal = ("projects",)
+
+
+class RegistrationSubmissionInline(NestedTabularInline):
+    """Inline form for Registration."""
+
+    model = RegistrationSubmission
+    extra = 0
+    inlines = [AnswerInline]
+
+
+class CollapsedRelatedFieldFilter(admin.RelatedFieldListFilter):
+    """Class to collapse related field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedChoicesFieldFilter(admin.ChoicesFieldListFilter):
+    """Class to collapse choices field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedBooleanFieldFilter(admin.BooleanFieldListFilter):
+    """Class to collapse boolean field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(NestedModelAdmin):
     """Custom admin for Student."""
 
     actions = (
@@ -134,7 +296,7 @@ class UserAdmin(admin.ModelAdmin):
         ("Private comments", {"fields": ("comments",)}),
     )
 
-    inlines = [RegistrationInline]
+    inlines = [RegistrationSubmissionInline]
     list_display = (
         "__str__",
         "get_current_project",
@@ -144,17 +306,29 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = (
         UserAdminSemesterFilter,
         UserAdminProjectFilter,
-        "registration__course",
-        "registration__dev_experience",
-        "registration__git_experience",
-        "registration__scrum_experience",
-        "registration__management_interest",
-        "is_staff",
-        "registration__is_international",
-        "registration__available_during_scheduled_timeslot_1",
-        "registration__available_during_scheduled_timeslot_2",
-        "registration__available_during_scheduled_timeslot_3",
-        "registration__has_problems_with_signing_an_nda",
+        ("registration__course", CollapsedRelatedFieldFilter),
+        ("registration__dev_experience", CollapsedChoicesFieldFilter),
+        ("registration__git_experience", CollapsedChoicesFieldFilter),
+        ("registration__scrum_experience", CollapsedChoicesFieldFilter),
+        ("registration__management_interest", CollapsedBooleanFieldFilter),
+        ("is_staff", CollapsedBooleanFieldFilter),
+        ("registration__is_international", CollapsedBooleanFieldFilter),
+        (
+            "registration__available_during_scheduled_timeslot_1",
+            CollapsedBooleanFieldFilter,
+        ),
+        (
+            "registration__available_during_scheduled_timeslot_2",
+            CollapsedBooleanFieldFilter,
+        ),
+        (
+            "registration__available_during_scheduled_timeslot_3",
+            CollapsedBooleanFieldFilter,
+        ),
+        (
+            "registration__has_problems_with_signing_an_nda",
+            CollapsedBooleanFieldFilter,
+        ),
     )
 
     # Necessary for the autocomplete filter
@@ -169,7 +343,11 @@ class UserAdmin(admin.ModelAdmin):
         """Return current project."""
         registration = obj.registration_set.first()
         return (
-            mark_safe("<br>".join(str(p) for p in registration.get_projects()))
+            mark_safe(
+                '<div style="display: -webkit-box;-webkit-line-clamp: 5;-webkit-box-orient: vertical;overflow: hidden;">'
+                + "<br>".join(str(p) for p in registration.get_projects())
+                + "</div>"
+            )
             if registration
             else None
         )

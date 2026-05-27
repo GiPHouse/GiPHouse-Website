@@ -1,6 +1,6 @@
 from unittest import mock
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model  # noqa: F401
 from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.test import Client, RequestFactory, TestCase
@@ -99,7 +99,7 @@ class LoginTest(TestCase):
 
         self.client.force_login(self.test_user)
 
-        response = self.client.get("/logout/")
+        response = self.client.post("/logout/")
 
         self.assertNotIn("_auth_user_id", self.client.session)
         self.assertRedirects(response, reverse("home"))
@@ -110,8 +110,7 @@ class LoginTest(TestCase):
 
         self.client.force_login(self.test_user)
 
-        response = self.client.get(f"/logout/?next={redirect_path}")
-
+        response = self.client.post(f"/logout/?next={redirect_path}")
         self.assertNotIn("_auth_user_id", self.client.session)
         self.assertRedirects(response, redirect_path)
 
