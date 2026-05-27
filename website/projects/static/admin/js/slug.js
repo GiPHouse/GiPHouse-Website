@@ -129,12 +129,83 @@ document.addEventListener("DOMContentLoaded", () => {
         repoErrorUpdate();
     }
 
-    const repositoryFieldset = document.querySelector(
+    const newrepositoryFieldset = document.querySelector(
         "#newrepository_set-group"
     );
 
-    if (repositoryFieldset) {
-        repositoryFieldset.addEventListener("input", repoErrorUpdate);
+    if (newrepositoryFieldset) {
+        newrepositoryFieldset.addEventListener("input", repoErrorUpdate);
     }
     default_repo.addEventListener("change", repoErrorUpdate);
+
+    const existingrepositoryFieldset = document.querySelector(
+        "#existingrepository_set-group"
+    );
+
+    document.addEventListener("click", addLinkListener);
+    function addLinkListener(){
+        const addlink = existingrepositoryFieldset.querySelector(".addlink");
+        if(addlink){
+            addlink.addEventListener("click", fetchTimeout);
+            document.removeEventListener("click", addLinkListener);
+            fetchTimeout();
+        }
+    }
+
+    function fetchTimeout(){
+        const repo_ids = existingrepositoryFieldset.querySelectorAll(
+            '[id^="id_existingrepository_set-"][id$="-github_repo_id"]'
+        );
+
+        for(const repo_id of repo_ids){
+            let timeout = null;
+            repo_id.removeEventListener("keyup", keyUp);
+            repo_id.addEventListener("keyup", keyUp);
+        }
+
+        const delete_buttons = existingrepositoryFieldset.querySelectorAll(".inline-deletelink");
+        
+        for(const delete_button of delete_buttons){
+            delete_button.removeEventListener("click", fetchTimeout)
+            delete_button.addEventListener("click", fetchTimeout)
+        }
+    }
+
+    const keyUp = (e) => {
+        clearTimeout(e.target._timeout);
+
+        e.target._timeout = setTimeout(() => {
+            fetchData(e);
+        }, 500);
+    };
+
+    async function fetchData(e){
+        const url = `/admin/projects/project/fetch-repo/?github_repo_id=${encodeURIComponent(e.target.value)}`;
+        const row = e.target.closest(".inline-related");
+
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            // fill fields (row-scoped only)
+            const nameField = row.querySelector("input[name$='name']");
+            const privateField = row.querySelector("input[name$='private']");
+            const archivedField = row.querySelector("select[name$='is_archived']");
+
+            if (nameField) nameField.value = data.name;
+            if (privateField) privateField.checked = data.private;
+            if (archivedField) {
+            archivedField.value = String(data.archived);
+
+            archivedField.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        } catch (err) {
+            alert("Fetch failed");
+        }
+    }
 });
