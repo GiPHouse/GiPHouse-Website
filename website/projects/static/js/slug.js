@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const names = [];
 
         const repo_names = document.querySelectorAll(
-            '[id^="id_repository_set-"][id$="-name"]'
+            '[id^="id_newrepository_set-"][id$="-name"]'
         );
         
         if(checked && slug.value != ""){
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function clear(){
-        const repo_names = document.querySelectorAll('[id^="id_repository_set-"][id$="-name"]');
+        const repo_names = document.querySelectorAll('[id^="id_newrepository_set-"][id$="-name"]');
 
         for(const repo_name of repo_names){
             repo_name.style.border = "";
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const repositoryFieldset = document.querySelector(
-        "#repository_set-group"
+        "#newrepository_set-group"
     );
 
     if (repositoryFieldset) {

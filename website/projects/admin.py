@@ -344,17 +344,17 @@ class ProjectAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-    def save_model(self, request, obj, form, change):
-        if not change: # new project
-            super().save_model(request, obj, form, change) # save
-            self.synchronise_to_GitHub(request, obj)
-        else: # existing
-            changed_fields = form.changed_data
-            if ("name" in changed_fields or
-                "managers" in changed_fields or
-                "engineers" in changed_fields):
-                super().save_model(request, obj, form, change)  # save
-                self.synchronise_to_GitHub(request, obj)
+    # def save_model(self, request, obj, form, change):
+    #     if not change: # new project
+    #         super().save_model(request, obj, form, change) # save
+    #         self.synchronise_to_GitHub(request, obj)
+    #     else: # existing
+    #         changed_fields = form.changed_data
+    #         if ("name" in changed_fields or
+    #             "managers" in changed_fields or
+    #             "engineers" in changed_fields):
+    #             super().save_model(request, obj, form, change)  # save
+    #             self.synchronise_to_GitHub(request, obj)
 
 
 @admin.register(Client)
