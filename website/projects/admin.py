@@ -11,6 +11,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.urls import path
+from django.utils.text import slugify
 
 from github import Repository as GithubRepository
 from github import UnknownObjectException, GithubException
@@ -157,7 +158,21 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
 
-    prepopulated_fields = {"slug": ("name",)}
+    def save_model(self, request, obj, form, change):
+        # This automatically appends the year of the semester to the slug when saving
+        super().save_model(request, obj, form, change)
+
+        new_slug = slugify(f"{obj.name}-{obj.semester.year}")
+        if obj.slug != new_slug:
+            obj.slug = new_slug
+            obj.save(update_fields=["slug"])
+
+        if obj.number_of_repos == 0 and obj.default_repo:
+            obj.repository_set.create(
+                name=obj.slug,
+            )
+            obj.default_repo = False
+            obj.save(update_fields=["default_repo"])
 
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""

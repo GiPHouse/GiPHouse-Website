@@ -37,16 +37,26 @@ class Project(models.Model):
         """Meta class for Project model."""
 
         ordering = ["semester", "name"]
-        unique_together = [["name", "semester"], ["slug", "semester"]]
+        unique_together = [["name", "semester"]]
 
         permissions = [
             ("can_sync_to_github", "Can synchronize project(s) to GitHub"),
         ]
 
     name = models.CharField("name", max_length=50)
-    slug = models.SlugField("slug", max_length=50, blank=False, null=False)
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+
+    slug = models.SlugField(
+        "slug", max_length=50, blank=True, null=False, unique=True
+    )
+
+    default_repo = models.BooleanField(
+        blank=False,
+        default=True,
+        help_text="Whether a default repo should be created using the slug name",
+    )
+
     description = HTMLField()
     client = models.ForeignKey(
         Client, on_delete=models.SET_NULL, blank=True, null=True
