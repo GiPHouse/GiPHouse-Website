@@ -63,7 +63,7 @@ class ProjectAdminForm(forms.ModelForm):
     )
 
     class Media:
-        js = ("js/slug.js",)
+        js = ("admin/js/slug.js",)
 
     def clean(self):
         """Validate form data and handle semester changes."""
