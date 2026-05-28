@@ -6,34 +6,19 @@ from admin_auto_filters.filters import AutocompleteFilter
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import path
-from django.utils.text import slugify
-
-from github import Repository as GithubRepository
-from github import UnknownObjectException, GithubException
 
 from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
-from projects.apps import ProjectsConfig
-from projects.forms import (
-    ProjectAdminForm,
-    NewRepositoryInlineForm,
-    ExistingRepositoryInlineForm,
-)
-from projects.githubsync import GitHubSync, GitHubAPITalker
-from projects.models import (
-    Client,
-    Project,
-    Repository,
-    NewRepository,
-    ExistingRepository,
-)
+from projects.forms import ProjectAdminForm, RepositoryInlineForm
+from projects.githubsync import GitHubSync
+from projects.models import Client, Project, Repository
 
 from registrations.models import Employee
 
@@ -85,39 +70,15 @@ class ProjectAdminArchivedFilter(admin.SimpleListFilter):
             return queryset
 
 
-class NewRepositoryInline(admin.StackedInline):
-    """Inline form for new Repository."""
+class RepositoryInline(admin.StackedInline):
+    """Inline form for Repository."""
 
-    form = NewRepositoryInlineForm
-    model = NewRepository
-    extra = 0
+    form = RepositoryInlineForm
+    model = Repository
 
-    readonly_fields = ("github_repo_id",)
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(github_repo_id__isnull=True)
-
-    # def get_extra(self, request, obj=None, **kwargs):
-    # """Only show an extra inline if none exist."""
-    # return 0 if obj else 1
-
-
-class ExistingRepositoryInline(admin.StackedInline):
-    form = ExistingRepositoryInlineForm
-    model = ExistingRepository
-    extra = 0
-
-    template = "admin/existing_repository_inline.html"
-
-    #
-
-    class Media:
-        js = ("admin/js/fetch_repo.js",)
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(github_repo_id__isnull=False)
+    def get_extra(self, request, obj=None, **kwargs):
+        """Only show an extra inline if none exist."""
+        return 0 if obj else 1
 
 
 class MailinglistInline(admin.StackedInline):
@@ -149,30 +110,12 @@ class ProjectAdmin(admin.ModelAdmin):
         "archive_all_repositories",
         "export_project_members",
     ]
-    inlines = [
-        NewRepositoryInline,
-        ExistingRepositoryInline,
-        MailinglistInline,
-    ]
+    inlines = [RepositoryInline, MailinglistInline]
 
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
 
-    def save_model(self, request, obj, form, change):
-        # This automatically appends the year of the semester to the slug when saving
-        super().save_model(request, obj, form, change)
-
-        new_slug = slugify(f"{obj.name}-{obj.semester.year}")
-        if obj.slug != new_slug:
-            obj.slug = new_slug
-            obj.save(update_fields=["slug"])
-
-        if obj.number_of_repos == 0 and obj.default_repo:
-            obj.repository_set.create(
-                name=obj.slug,
-            )
-            obj.default_repo = False
-            obj.save(update_fields=["default_repo"])
+    prepopulated_fields = {"slug": ("name",)}
 
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
@@ -276,11 +219,6 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def synchronise_current_projects_to_GitHub(self, request):
         """Synchronise project(teams) of the current semester to GitHub."""
-        if not request.user.has_perm(
-            f"{ProjectsConfig.label}.can_sync_to_github"
-        ):
-            raise PermissionDenied
-
         return self.synchronise_to_GitHub(
             request,
             [
@@ -290,39 +228,6 @@ class ProjectAdmin(admin.ModelAdmin):
                 )
                 if p.is_archived != Repository.Archived.CONFIRMED
             ],
-        )
-
-    def fetch_repo(self, request):
-        repo_id = request.GET.get("github_repo_id")
-
-        if not repo_id:
-            return JsonResponse(
-                {"error": "missing github_repo_id"}, status=400
-            )
-
-        if not repo_id.isdigit():
-            return JsonResponse(
-                {"error": "github_repo_id must be an integer"}, status=400
-            )
-        repo_id = int(repo_id)
-
-        talker = GitHubAPITalker()
-        try:
-            repo: GithubRepository = talker.get_repo(repo_id)
-        except UnknownObjectException:
-            return JsonResponse(
-                {"error": "repository with provided id does not exist"},
-                status=404,
-            )
-        except GithubException as e:
-            return JsonResponse({"error": e.message}, status=500)
-
-        archived = Repository.Archived.NOT_ARCHIVED
-        if repo.archived:
-            archived = Repository.Archived.CONFIRMED
-
-        return JsonResponse(
-            {"name": repo.name, "private": repo.private, "archived": archived}
         )
 
     def get_urls(self):
@@ -336,25 +241,9 @@ class ProjectAdmin(admin.ModelAdmin):
                 ),
                 name="synchronise_to_github",
             ),
-            path(
-                "fetch-repo/",
-                self.admin_site.admin_view(self.fetch_repo),
-                name="fetch_repo",
-            ),
         ]
         return custom_urls + urls
 
-    # def save_model(self, request, obj, form, change):
-    #     if not change: # new project
-    #         super().save_model(request, obj, form, change) # save
-    #         self.synchronise_to_GitHub(request, obj)
-    #     else: # existing
-    #         changed_fields = form.changed_data
-    #         if ("name" in changed_fields or
-    #             "managers" in changed_fields or
-    #             "engineers" in changed_fields):
-    #             super().save_model(request, obj, form, change)  # save
-    #             self.synchronise_to_GitHub(request, obj)
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):

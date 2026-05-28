@@ -85,7 +85,7 @@ class GitHubAPITalker:
 
         An access token must be created for all requests to authenticate.
         Access tokens are valid for only 10 minutes
-        and must be recreated afterward.
+        and must be recreated afterwards.
          A timedelta of 60 seconds is used
         to renew access tokens that are not longer than 60 seconds valid.
         Hence, all methods that require the access
@@ -102,7 +102,7 @@ class GitHubAPITalker:
             self._access_token = self._gi.get_access_token(
                 self.installation_id
             )
-            self._github = Github(auth=Auth.Token(self._access_token.token))
+            self._github = Github(self._access_token.token)
             self._organization = self._github.get_organization(
                 self.organization_name
             )
@@ -154,11 +154,6 @@ class GitHubAPITalker:
         self.github_organization.remove_from_members(user)
 
 
-class PlainGitHubException(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
 class GitHubSync:
     """Sync with GitHub."""
 
@@ -183,36 +178,18 @@ class GitHubSync:
             redirect_url=reverse("admin:projects_project_changelist"),
         )
 
-    def log(self, message, level="INFO"):
-        """Store the logs on the task."""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        message = message.replace("\n", "")
-        log_entry = f"[{timestamp}] {level}: {message}\n"
-
-        self.task.logs += log_entry
-        self.task.save(update_fields=["logs"])
-
     def error(self, msg):
         """Log an error message and set the fail state to True."""
-        self.log(msg, "ERROR")
         self.logger.error(msg)
         self.fail = True
 
     def warning(self, msg):
         """Log a warning message."""
-        self.log(msg, "WARNING")
         self.logger.warning(msg)
 
     def info(self, msg):
         """Log an info message."""
-        self.log(msg, "INFO")
         self.logger.info(msg)
-
-    def exception(self, msg):
-        """Log an exception message."""
-        self.log(msg, "EXCEPTION")
-        self.logger.exception(msg)
-        self.fail = True
 
     def sync_team_member(self, employee, project):
         """
@@ -402,12 +379,7 @@ class GitHubSync:
                        to repository {github_repo.name}""")
 
         if not github_team.get_repo_permission(github_repo).admin:
-            success = github_team.update_team_repository(github_repo, "admin")
-            if not success:
-                raise PlainGitHubException(
-                    "update_team_repository() returned an unsuccessful status code"
-                )
-
+            github_team.set_repo_permission(github_repo, "admin")
             self.info(f"""Gave admin permissions to team {github_team.name}
                        for repository {github_repo.name}""")
 
@@ -449,7 +421,7 @@ class GitHubSync:
                     # if this fails, we might have a problem
                     #  with the github_repo_id
                     self.update_repo(project_repo)
-                except GithubException, AssertionError, PlainGitHubException:
+                except GithubException, AssertionError:
                     self.error(f"""Something went wrong syncing the repository
                                 '{project_repo}' for '{project_team}'.""")
 
@@ -490,13 +462,7 @@ class GitHubSync:
 
         # a class from the GitHub library has these methods
         github_team.add_to_repos(github_repo)
-
-        success = github_team.update_team_repository(github_repo, "admin")
-        if not success:
-            raise PlainGitHubException(
-                "update_team_repository() returned an unsuccessful status code"
-            )
-
+        github_team.set_repo_permission(github_repo, "admin")
         self.info(f"Added team {github_team.name} to repository {repo.name}")
 
         return github_repo
@@ -573,15 +539,16 @@ class GitHubSync:
         try:
             self.delete_teams_and_repos_to_be_deleted()
         except Exception as e:
-            self.exception(e)
+            self.logger.exception(e)
+            self.fail = True
         for project in self.projects:
             try:
                 self.sync_project(project)
             except Exception as e:
-                self.exception(e)
+                self.logger.exception(e)
+                self.fail = True
             self.task.completed += 1
             self.task.save()
-        self.task.status = not self.fail
         self.task.fail = self.fail
 
         self.task.success_message = (
