@@ -16,6 +16,8 @@ from projects.models import (
 
 from registrations.models import Employee, Registration
 
+from django.db.utils import IntegrityError
+
 
 class EmployeeQueryTest(TestCase):
     @classmethod
@@ -180,3 +182,31 @@ class EmployeeQueryTest(TestCase):
         Repository.objects.create(name="testrepository1", project=project)
         Repository.objects.create(name="testrepository2", project=project)
         self.assertEqual(project.number_of_repos, 2)
+
+    def test_slug_name_already_exists(self):
+        project1 = Project.objects.create(
+            name="project1", slug="project-2020", semester=self.semester
+        )
+        project1.save()
+        try:
+            project2 = Project.objects.create(
+                name="project2", slug="project-2020", semester=self.semester
+            )
+            project2.save()
+            self.fail("test_slug_name_already_exists FAILED: TWO PROJECTS WITH SAME SLUG")
+        except IntegrityError as e:
+            pass
+
+    def test_repo_name_already_exists(self):
+        repo1 = Repository.objects.create(
+            name="project1",
+        )
+        repo1.save()
+        try:
+            repo2 = Repository.objects.create(
+                name="project1",
+            )
+            repo2.save()
+            self.fail("test_repo_name_already_exists FAILED: TWO REPOS WITH SAME NAME")
+        except IntegrityError:
+            pass
