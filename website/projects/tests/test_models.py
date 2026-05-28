@@ -194,7 +194,7 @@ class EmployeeQueryTest(TestCase):
             )
             project2.save()
             self.fail("test_slug_name_already_exists FAILED: TWO PROJECTS WITH SAME SLUG")
-        except IntegrityError as e:
+        except IntegrityError:
             pass
 
     def test_repo_name_already_exists(self):
