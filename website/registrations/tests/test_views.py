@@ -3,11 +3,17 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
+from django.utils.text import slugify
+from unittest.mock import patch
 
 from courses.models import Course, Semester
 
-from registrations.models import Employee, registration, Registrations, Question, QuestionChoice
+from projects.models import Project
+
 from registrations.admin import RegistrationsAdmin
+from registrations.forms import Step2Form
+from registrations.models import Employee, registration, Registrations, Question, QuestionChoice, RegistrationSubmission
+from registrations.utils.sample_registration_form import SampleRegistrationForm
 
 User: Employee = get_user_model()
 
@@ -109,17 +115,30 @@ class Step1Test(TestCase):
 class Step2Test(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Course.objects.create(name="Software Engineering")
-        cls.se = Course.objects.se()
+        # Create courses for the registration to offer as a choice
+        cls.course = Course.objects.se()
 
-        # Semester should have a registration period set,
-        # but we do not check for registrations being open
-        # at the moment. Sample registration does not specify
-        # the registration period either.
-        cls.semester = Semester.objects.get_or_create_current_semester()
+        cls.sem = Semester.objects.get_or_create_current_semester()
+        # ..and projects
+        cls.project_preference1 = "Project A"
+        cls.project_preference2 = "Project B"
+        cls.project_preference3 = "Project C"
 
-        # cls.semester.registration_end = timezone.now() + timezone.timedelta(days=1)
-        # cls.semester.save()
+        Project.objects.create(
+            name=cls.project_preference1,
+            slug=slugify(cls.project_preference1),
+            semester=cls.sem,
+        )
+        Project.objects.create(
+            name=cls.project_preference2,
+            slug=slugify(cls.project_preference2),
+            semester=cls.sem,
+        )
+        Project.objects.create(
+            name=cls.project_preference3,
+            slug=slugify(cls.project_preference3),
+            semester=cls.sem,
+        )
 
         # create sample registration
         site = AdminSite()
@@ -129,27 +148,31 @@ class Step2Test(TestCase):
         admin.create_sample_registration(None)
 
         cls.q_ids_start = Question.objects.all().first().pk
+        sample_reg = SampleRegistrationForm()
 
+        cls.devexp_question_id = Question.objects.filter(
+            question=sample_reg.devexp[0]
+        ).first().pk
+
+        timeslot_q_id = Question.objects.filter(
+            question=sample_reg.timeslots[0]
+        ).first().pk
+        cls.availability_ids_start = QuestionChoice.objects.filter(
+            question_id=timeslot_q_id,
+        ).first().id
+
+        # Fields set by Step1
+        cls.github_username = "test"
+        cls.github_id = 1
+
+        # Fields of the sample_reg form
         cls.first_name = "FirstTest"
         cls.last_name = "LastTest"
         cls.email = "test@test.com"
-        cls.github_username = "test"
-        cls.github_id = 1
         cls.student_number = "s1234567"
 
-        cls.dev_exp_question_id = Question.objects.filter(
-            question="Dev Experience" # not optimal
-        ).first().pk
         # choose any of the options, say, the first one
-        cls.dev_experience = QuestionChoice.objects.filter(
-            question_id=cls.dev_exp_question_id,
-        ).first().value # right now it would be = "None"
-
-        # you could access them the same filtering way
-        # but Ima just go with what they are: hardcoded
-        cls.project_preference1 = "Project A"
-        cls.project_preference2 = "Project B"
-        cls.project_preference3 = "Project C"
+        cls.devexp = sample_reg.devexp[2][0]
 
         cls.project_partner_preference1 = "Piet Janssen"
         cls.project_partner_preference2 = "FirstTest LastTest"
@@ -157,16 +180,10 @@ class Step2Test(TestCase):
 
         cls.available_during_scheduled_timeslots = [1, 2, 3, 10]
 
-        cls.management_interest = "No"
-        cls.non_dutch = "Yes"
-        cls.problem_with_NDA = "No"
+        cls.management_interest = sample_reg.management[2][0]
+        cls.non_dutch = sample_reg.nondutch[2][0]
+        cls.problem_with_NDA = sample_reg.nonda[2][0]
 
-        timeslot_q_id = Question.objects.filter(
-            question="Timeslot availability"  # semi-optimal
-        ).first().pk
-        cls.availability_ids_start = QuestionChoice.objects.filter(
-            question_id=timeslot_q_id,
-        ).first().id
 
     def setUp(self):
         self.client = Client()
@@ -189,39 +206,33 @@ class Step2Test(TestCase):
             f"question_{self.q_ids_start + 3}_student_number": self.student_number,
             f"question_{self.q_ids_start + 4}_course": QuestionChoice.objects.filter(
                 question_id=self.q_ids_start + 4,
-                value=self.se,  # because it's a dropdown
+                value=self.course,  # because it's a dropdown
             ).first().pk,
-            f"question_{self.q_ids_start + 5}": QuestionChoice.objects.filter(
-                question_id=self.q_ids_start + 5,
-                value=self.project_preference1,  # DROPDOWN
-            ).first().pk,
-            f"question_{self.q_ids_start + 6}": QuestionChoice.objects.filter(
-                question_id=self.q_ids_start + 6,
-                value=self.project_preference2,
-            ).first().pk,
+            # cannot choose actual projects because they have to be explicitly selected.
+            # Either way depends on the total number; we created 3, so 3 fields respectively.
+            f"question_{self.q_ids_start + 5}_0": "",
+            f"question_{self.q_ids_start + 5}_1": "",
+            f"question_{self.q_ids_start + 5}_2": "",
+            # apparently three partner preferences
+            f"question_{self.q_ids_start + 6}_0": self.project_partner_preference1, # TEXTLIST
+            f"question_{self.q_ids_start + 6}_1": self.project_partner_preference2,
+            f"question_{self.q_ids_start + 6}_2": self.project_partner_preference3,
             f"question_{self.q_ids_start + 7}": QuestionChoice.objects.filter(
-                question_id=self.q_ids_start + 7,
-                value=self.project_preference3,  # DROPDOWN
+                question_id=self.devexp_question_id,
+                value=self.devexp,  # CHOICE
             ).first().pk,
-            f"question_{self.q_ids_start + 8}": self.project_partner_preference1,  # TEXT
-            f"question_{self.q_ids_start + 9}": self.project_partner_preference2,
-            f"question_{self.q_ids_start + 10}": self.project_partner_preference3,
-            f"question_{self.q_ids_start + 11}": QuestionChoice.objects.filter(
-                question_id=self.dev_exp_question_id,
-                value=self.dev_experience,  # CHOICE
-            ).first().pk,
-            f"question_{self.q_ids_start + 12}": QuestionChoice.objects.filter(
-                question_id=self.q_ids_start + 12,
+            f"question_{self.q_ids_start + 8}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 8,
                 value=self.management_interest,  # CHOICE
             ).first().pk,
-            f"question_{self.q_ids_start + 13}": QuestionChoice.objects.filter(
-                question_id=self.q_ids_start + 13,
+            f"question_{self.q_ids_start + 9}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 9,
                 value=self.non_dutch,  # CHOICE
             ).first().pk,
-            f"question_{self.q_ids_start + 14}": [self.availability_ids_start + t - 1 for t in
+            f"question_{self.q_ids_start + 10}": [self.availability_ids_start + t - 1 for t in
                                                  self.available_during_scheduled_timeslots],  # offset 1
-            f"question_{self.q_ids_start + 15}": QuestionChoice.objects.filter(
-                question_id=self.q_ids_start + 15,
+            f"question_{self.q_ids_start + 11}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 11,
                 value=self.problem_with_NDA,
             ).first().pk
             # "submit": "submit"
@@ -238,6 +249,29 @@ class Step2Test(TestCase):
         response = self.client.get("/register/step2")
 
         self.assertEqual(response.status_code, 400)
+
+    def test_step2_form_rendered(self):
+        response = self.client.get("/register/step2")
+        self.assertEqual(response.status_code, 200)
+
+        self.assertContains(response, self.session["github_email"])
+        self.assertContains(response, self.first_name)
+
+    def test_step2_no_github_name(self):
+        del self.session["github_name"]
+        self.session.save()
+
+        response = self.client.get("/register/step2")
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_step2_github_name_one_word(self):
+        self.session["github_name"] = "Sean"
+        self.session.save()
+
+        response = self.client.get("/register/step2")
+
+        self.assertEqual(response.status_code, 200)
 
     def test_post_step2(self):
         response = self.client.post(
@@ -259,352 +293,106 @@ class Step2Test(TestCase):
         self.assertNotIn("github_name", session)
         self.assertNotIn("github_email", session)
 
+        user = User.objects.filter(
+            github_id=self.session["github_id"],
+            github_username=self.session["github_username"],
+            first_name=self.first_name,
+            last_name=self.last_name,
+            email=self.email,
+            student_number=self.student_number,
+        ).first()
+        self.assertIsNotNone(user)
+
+        submission = RegistrationSubmission.objects.filter(
+            participant=user,
+        ).first()
+        self.assertIsNotNone(submission)
+
     def test_post_step2_wrong_student_number(self):
         self.form_data_filled.update({
-            f"question_{self.q_ids_start + 3}_student_number": "wrong format", # this one actually works lol
+            f"question_{self.q_ids_start + 3}_student_number": "wrong format",
         })
         response = self.client.post(
             "/register/step2",
             self.form_data_filled,
-            follow=True,
         )
+
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Invalid Student Number")
 
-    # All tests below are for reference only and should be replaced
-    def test_post_step2_duplicate_project(self):
+    def test_post_step2_requires_fields(self):
+        self.form_data_filled.pop(f"question_{self.q_ids_start + 7}")
         response = self.client.post(
             "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id,
-                "github_username": self.github_username,
-                "course": self.se.id,
-                "email": self.email,
-                "dev_experience": self.dev_experience,
-                "non_dutch": self.non_dutch,
-                "project1": self.project_preference1.id,
-                "project2": str(self.project_preference1.id),
-            },
-            follow=True,
-        )
-        self.assertContains(
-            response, "You should fill in all preferences with unique values"
+            self.form_data_filled,
         )
 
-    def test_post_step2_existing_user(self):
-        existing_user = User.objects.create_user(
-            github_id=self.github_id, student_number=self.student_number
-        )
-        registration.Registration.objects.create(
-            user=existing_user,
-            dev_experience=self.dev_experience,
-            course_id=self.se.id,
-            preference1_id=self.project_preference1.id,
-            preference2_id=self.project_preference2.id,
-            preference3_id=self.project_preference3.id,
-            semester=Semester.objects.get_or_create_current_semester(),
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "This field is required.")
+
+    def test_post_step2_existing_user_same_registration(self):
+        prior_student_number = "s1337"
+        User.objects.create_user(
+            github_id=self.github_id,
+            github_username=self.github_username,
+            student_number=prior_student_number,
         )
 
         response = self.client.post(
             "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id,
-                "github_username": self.github_username,
-                "course": self.se.id,
-                "email": self.email,
-                "dev_experience": self.dev_experience,
-                "non_dutch": self.non_dutch,
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "partner1": self.project_partner_preference1,
-                "partner2": self.project_partner_preference2,
-                "partner3": self.project_partner_preference3,
-                "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
-                "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
-                "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
-            },
-        )
-        self.assertContains(
-            response, "User already registered for this semester."
+            self.form_data_filled,
+            follow=True
         )
 
-    def test_post_step2_existing_user_different_semester(self):
-        existing_user = User.objects.create_user(
-            github_id=self.github_id, student_number=self.student_number
-        )
-
-        older_semester = Semester.objects.create(
-            year=timezone.now().year - 2, season=Semester.FALL
-        )
-
-        registration.Registration.objects.create(
-            user=existing_user,
-            dev_experience=self.dev_experience,
-            course_id=self.se.id,
-            preference1_id=self.project_preference1.id,
-            preference2_id=self.project_preference2.id,
-            preference3_id=self.project_preference3.id,
-            semester=older_semester,
-            available_during_scheduled_timeslot_1=self.available_during_scheduled_timeslot_1,
-            available_during_scheduled_timeslot_2=self.available_during_scheduled_timeslot_2,
-            available_during_scheduled_timeslot_3=self.available_during_scheduled_timeslot_3,
-            available_during_scheduled_timeslot_10=self.available_during_scheduled_timeslot_10,
-        )
-
-        response = self.client.post(
-            "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id,
-                "github_username": self.github_username,
-                "course": self.se.id,
-                "email": self.email,
-                "dev_experience": self.dev_experience,
-                "git_experience": self.dev_experience,
-                "scrum_experience": self.dev_experience,
-                "management_interest": False,
-                "non_dutch": self.non_dutch,
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "partner1": self.project_partner_preference1,
-                "partner2": self.project_partner_preference2,
-                "partner3": self.project_partner_preference3,
-                "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
-                "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
-                "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
-            },
-            follow=True,
-        )
         self.assertRedirects(response, "/")
         self.assertContains(response, "Registration created successfully")
+
+        new = User.objects.filter(
+            student_number=self.student_number,
+        ).first()
+        self.assertIsNotNone(new)
+
+        old = User.objects.filter(
+            student_number=prior_student_number,
+        ).first()
+        self.assertIsNone(old)
 
     def test_post_step2_existing_email(self):
-        existing_user = User.objects.create_user(
-            github_id=self.github_id,
-            student_number=self.student_number,
+        other_lad = User.objects.create_user(
+            github_id=123,
+            github_username="Jeffrey",
             email=self.email,
         )
-        registration.Registration.objects.create(
-            user=existing_user,
-            dev_experience=self.dev_experience,
-            course_id=self.se.id,
-            preference1_id=self.project_preference1.id,
-            preference2_id=self.project_preference2.id,
-            preference3_id=self.project_preference3.id,
-            semester=Semester.objects.get_or_create_current_semester(),
-            available_during_scheduled_timeslot_1=self.available_during_scheduled_timeslot_1,
-            available_during_scheduled_timeslot_2=self.available_during_scheduled_timeslot_2,
-            available_during_scheduled_timeslot_3=self.available_during_scheduled_timeslot_3,
-        )
 
-        self.session["github_id"] += 1
-        self.session.save()
+        RegistrationSubmission.objects.create(
+            registration=Registrations.objects.current_registration(),
+            participant=other_lad,
+        )
 
         response = self.client.post(
             "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id + 1,
-                "github_username": self.github_username,
-                "dev_experience": self.dev_experience,
-                "non_dutch": self.non_dutch,
-                "course": self.se.id,
-                "email": self.email,
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "partner1": self.project_partner_preference1,
-                "partner2": self.project_partner_preference2,
-                "partner3": self.project_partner_preference3,
-                "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
-                "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
-                "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
-            },
-            follow=True,
+            self.form_data_filled,
         )
-        self.assertContains(response, "Email address already in use")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Email address already in use.")
 
     def test_post_step2_existing_student_number(self):
-        existing_user = User.objects.create_user(
-            github_id=self.github_id,
+        other_chum = User.objects.create_user(
+            github_id=123,
+            github_username="Jeffrey",
             student_number=self.student_number,
-            email="non-existent@test.invalid",
-        )
-        registration.Registration.objects.create(
-            user=existing_user,
-            dev_experience=self.dev_experience,
-            course_id=self.se.id,
-            preference1_id=self.project_preference1.id,
-            preference2_id=self.project_preference2.id,
-            preference3_id=self.project_preference3.id,
-            semester=Semester.objects.get_or_create_current_semester(),
-            available_during_scheduled_timeslot_1=self.available_during_scheduled_timeslot_1,
-            available_during_scheduled_timeslot_2=self.available_during_scheduled_timeslot_2,
-            available_during_scheduled_timeslot_3=self.available_during_scheduled_timeslot_3,
         )
 
-        self.session["github_id"] += 1
-        self.session.save()
+        RegistrationSubmission.objects.create(
+            registration=Registrations.objects.current_registration(),
+            participant=other_chum,
+        )
 
         response = self.client.post(
             "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id + 1,
-                "github_username": self.github_username,
-                "dev_experience": self.dev_experience,
-                "git_experience": self.dev_experience,
-                "scrum_experience": self.dev_experience,
-                "management_interest": False,
-                "non_dutch": self.non_dutch,
-                "course": self.se.id,
-                "email": self.email,
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "partner1": self.project_partner_preference1,
-                "partner2": self.project_partner_preference2,
-                "partner3": self.project_partner_preference3,
-                "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
-                "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
-                "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
-            },
-            follow=True,
+            self.form_data_filled,
         )
+
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Student Number already in use.")
-
-    def test_step2_works_with_no_last_name(self):
-        self.session["github_name"] = f"{self.first_name}"
-        self.session.save()
-        response = self.client.post(
-            "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id,
-                "github_username": self.github_username,
-                "semester": self.semester.id,
-                "course": self.se.id,
-                "email": self.email,
-                "dev_experience": self.dev_experience,
-                "git_experience": self.dev_experience,
-                "scrum_experience": self.dev_experience,
-                "management_interest": False,
-                "non_dutch": self.non_dutch,
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "partner1": self.project_partner_preference1,
-                "partner2": self.project_partner_preference2,
-                "partner3": self.project_partner_preference3,
-                "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
-                "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
-                "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
-                "available_during_scheduled_timeslot_10": self.available_during_scheduled_timeslot_10,
-            },
-            follow=True,
-        )
-        self.assertRedirects(response, "/")
-        self.assertContains(response, "Registration created successfully")
-
-    def test_post_step2_with_warning_no_ignore(self):
-        response = self.client.post(
-            "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id,
-                "github_username": self.github_username,
-                "semester": self.semester.id,
-                "course": self.se.id,
-                "email": self.email,
-                "dev_experience": self.dev_experience,
-                "git_experience": self.dev_experience,
-                "scrum_experience": self.dev_experience,
-                "management_interest": False,
-                "non_dutch": self.non_dutch,
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "partner1": self.project_partner_preference1,
-                "partner2": self.project_partner_preference2,
-                "partner3": self.project_partner_preference3,
-                "available_during_scheduled_timeslot_1": True,
-                "available_during_scheduled_timeslot_2": True,
-                "available_during_scheduled_timeslot_3": True,
-            },
-            follow=True,
-        )
-        self.assertContains(
-            response,
-            "You are only available for less than 4 scheduled timeslots",
-        )
-
-    def test_post_step2_wrong_email(self):
-        response = self.client.post(
-            "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id,
-                "github_username": self.github_username,
-                "course": self.se.id,
-                "email": f"{self.student_number}@student.ru.nl",
-                "dev_experience": self.dev_experience,
-                "git_experience": self.dev_experience,
-                "scrum_experience": self.dev_experience,
-                "management_interest": False,
-                "background": "background",
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
-                "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
-                "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
-            },
-            follow=True,
-        )
-        self.assertContains(response, "Non-existent email address.")
-
-    def test_post_step2_wrong_email2(self):
-        response = self.client.post(
-            "/register/step2",
-            {
-                "first_name": self.first_name,
-                "last_name": self.last_name,
-                "student_number": self.student_number,
-                "github_id": self.github_id,
-                "github_username": self.github_username,
-                "course": self.se.id,
-                "email": f"{self.student_number}@ru.nl",
-                "dev_experience": self.dev_experience,
-                "git_experience": self.dev_experience,
-                "scrum_experience": self.dev_experience,
-                "management_interest": False,
-                "background": "background",
-                "project1": self.project_preference1.id,
-                "project2": self.project_preference2.id,
-                "project3": self.project_preference3.id,
-                "available_during_scheduled_timeslot_1": self.available_during_scheduled_timeslot_1,
-                "available_during_scheduled_timeslot_2": self.available_during_scheduled_timeslot_2,
-                "available_during_scheduled_timeslot_3": self.available_during_scheduled_timeslot_3,
-            },
-            follow=True,
-        )
-        self.assertContains(response, "Non-existent email address.")
