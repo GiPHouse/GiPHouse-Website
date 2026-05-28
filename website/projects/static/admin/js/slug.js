@@ -162,13 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
             repo_id.removeEventListener("keyup", keyUp);
             repo_id.addEventListener("keyup", keyUp);
         }
-
-        const delete_buttons = existingrepositoryFieldset.querySelectorAll(".inline-deletelink");
-        
-        for(const delete_button of delete_buttons){
-            delete_button.removeEventListener("click", fetchTimeout)
-            delete_button.addEventListener("click", fetchTimeout)
-        }
     }
 
     const keyUp = (e) => {

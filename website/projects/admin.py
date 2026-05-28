@@ -162,12 +162,10 @@ class ProjectAdmin(admin.ModelAdmin):
         # This automatically appends the year of the semester to the slug when saving
         super().save_model(request, obj, form, change)
 
-        new_slug = slugify(f"{obj.name}-{obj.semester.year}")
-        if obj.slug != new_slug:
-            obj.slug = new_slug
-            obj.save(update_fields=["slug"])
+        obj.slug = slugify(f"{obj.name}-{obj.semester.year}")
+        obj.save(update_fields=["slug"])
 
-        if obj.number_of_repos == 0 and obj.default_repo:
+        if obj.default_repo:
             obj.repository_set.create(
                 name=obj.slug,
             )
