@@ -1,4 +1,5 @@
 from django.core import validators
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
@@ -36,12 +37,26 @@ class Project(models.Model):
         """Meta class for Project model."""
 
         ordering = ["semester", "name"]
-        unique_together = [["name", "semester"], ["slug", "semester"]]
+        unique_together = [["name", "semester"]]
+
+        permissions = [
+            ("can_sync_to_github", "Can synchronize project(s) to GitHub"),
+        ]
 
     name = models.CharField("name", max_length=50)
-    slug = models.SlugField("slug", max_length=50, blank=False, null=False)
 
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
+
+    slug = models.SlugField(
+        "slug", max_length=50, blank=True, null=False, unique=True
+    )
+
+    default_repo = models.BooleanField(
+        blank=False,
+        default=True,
+        help_text="Whether a default repo should be created using the slug name",
+    )
+
     description = HTMLField()
     client = models.ForeignKey(
         Client, on_delete=models.SET_NULL, blank=True, null=True
@@ -160,6 +175,28 @@ class Repository(models.Model):
     def __str__(self):
         """Return repository name."""
         return self.name
+
+
+class NewRepository(Repository):
+    class Meta:
+        proxy = True
+        verbose_name = "New Repository"
+        verbose_name_plural = "New Repositories"
+
+
+class ExistingRepository(Repository):
+    class Meta:
+        proxy = True
+        verbose_name = "Existing Repository"
+        verbose_name_plural = "Existing Repositories"
+
+    def clean(self):
+        super().clean()
+
+        if not self.pk and (self.github_repo_id and not self.name):
+            raise ValidationError(
+                'Press "Fetch Info" to fill in missing fields.'
+            )
 
 
 class RepositoryToBeDeleted(models.Model):
