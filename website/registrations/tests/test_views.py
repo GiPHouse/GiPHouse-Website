@@ -194,17 +194,6 @@ class Step2Test(TestCase):
         cls.non_dutch = sample_reg.nondutch[2][0]
         cls.problem_with_NDA = sample_reg.nonda[2][0]
 
-        cls.reg = registration.Registrations.objects.create(
-            title="Test Registration",
-            semester=cls.semester,
-        )
-        cls.first_name_q = registration.Question.objects.create(registration=cls.reg, label="first_name", question="First name", question_type=registration.Question.TEXT)
-        cls.last_name_q = registration.Question.objects.create(registration=cls.reg, label="last_name", question="Last name", question_type=registration.Question.TEXT)
-        cls.email_q = registration.Question.objects.create(registration=cls.reg, label="email", question="Email", question_type=registration.Question.TEXT)
-        cls.student_number_q = registration.Question.objects.create(registration=cls.reg, label="student_number", question="Student number", question_type=registration.Question.TEXT)
-        cls.course_q = registration.Question.objects.create(registration=cls.reg, label="course", question="Course", question_type=registration.Question.DROPDOWN)
-        cls.se_choice = registration.QuestionChoice.objects.create(question=cls.course_q, value=cls.se.name)
-
     def setUp(self):
         self.client = Client()
 
