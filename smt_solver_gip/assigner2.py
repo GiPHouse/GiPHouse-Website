@@ -7,10 +7,6 @@
 
 import project_data
 import engineer_data
-<<<<<<< HEAD
-import assignment_info
-=======
->>>>>>> origin/feature/registration_forms_hao
 import csv_loader
 from colour_codes import *
 
@@ -123,10 +119,6 @@ for student_name, friend_list in friend_data:
 if failed_friends_registration:
     sys.exit(1)
 
-<<<<<<< HEAD
-# engineer_data.print_students(range(engineer_data.num_students), " * ")
-
-csv_loader.print_managers(csv_loader.get_managers(), " * ")
-=======
 engineer_data.print_students(range(engineer_data.num_students), " * ")
->>>>>>> origin/feature/registration_forms_hao
+
+# csv_loader.print_managers(csv_loader.get_managers(), " * ")

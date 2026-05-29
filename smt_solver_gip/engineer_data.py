@@ -5,6 +5,7 @@
 
 from colour_codes import *
 import project_data
+import csv_loader
 
 import re
 import unicodedata
@@ -428,6 +429,7 @@ def query_shared_timeslots(student_list, initial_list):
 
 def print_student(student, prestring, highlight):
     identifier = get_student_identifier(student)
+    extra_data, extra_columns = csv_loader.get_extra_data()
     col = BROWN
     if highlight:
         col = YELLOW
@@ -457,19 +459,21 @@ def print_student(student, prestring, highlight):
     print("; available: ", end="")
     for pair in students[identifier].timeslots:
         print(pair[0] + str(pair[1]), end=" ")
-    if friends == []:
-        print()
+    if friends[identifier] == []:
+        print(" (no friends)", end="")
     else:
-        if friends[identifier] == []:
-            print(" (no friends)")
-        else:
-            print(
-                " (friends: "
-                + " ; ".join(
-                    [students[friend].name for friend in friends[identifier]]
-                )
-                + ")"
+        print(
+            " (friends: "
+            + " ; ".join(
+                [students[friend].name for friend in friends[identifier]]
             )
+            + ")",
+            end="",
+        )
+    if students[identifier].name in extra_data:
+        for col in extra_columns:
+            print(f" ; {col}: {extra_data[students[identifier].name][col]}", end="")
+    print()
 
 
 def print_students(lst, prestring):
