@@ -3,7 +3,6 @@
 # to distinguish projects using both short names, full names and identifier.                      #
 ###################################################################################################
 
-import csv_loader
 from colour_codes import *
 
 num_projects = 0

@@ -5,7 +5,6 @@
 
 from colour_codes import *
 import project_data
-import csv_loader
 
 import re
 import unicodedata
@@ -428,6 +427,7 @@ def query_shared_timeslots(student_list, initial_list):
 
 
 def print_student(student, prestring, highlight):
+    import csv_loader
     identifier = get_student_identifier(student)
     extra_data, extra_columns = csv_loader.get_extra_data()
     col = BROWN
