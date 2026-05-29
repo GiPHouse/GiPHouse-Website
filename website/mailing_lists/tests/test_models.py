@@ -32,6 +32,10 @@ class ModelTest(TestCase):
             address=cls.existing_alias_address, mailing_list=cls.existing_list
         )
 
+        Course.objects.create(name="Software Engineering")
+        Course.objects.create(name="System Development Management")
+        Course.objects.create(name="Software Development Entrepreneurship")
+
     def test_mailininglistalias_str_method(self):
         self.assertEqual(self.existing_alias_address, str(self.existing_alias))
 
@@ -121,6 +125,7 @@ class ModelTest(TestCase):
         employee = Employee.objects.create(
             github_id=0, github_username="user1", email="e@test.nl"
         )
+
         reg = Registration.objects.create(
             user=employee,
             dev_experience=Registration.EXPERIENCE_BEGINNER,

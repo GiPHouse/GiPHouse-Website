@@ -70,6 +70,10 @@ class GetProjectsStaffStatusTest(TestCase):
 class GetProjectsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
+        Course.objects.create(name="System Development Management")
+        Course.objects.create(name="Software Development Entrepreneurship")
+
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(
             github_id=0, github_username="admin"
@@ -300,7 +304,8 @@ class GetProjectsTest(TestCase):
         for mailing_list in lists:
             reg = Registration.objects.all()
             for r in reg:
-                if mailing_list.address == r.first_project.generate_email():
+                first_proj_email = r.projects.first().generate_email()
+                if mailing_list.address == first_proj_email:
                     user_list.append(r.user.github_id)
 
         self.assertIn(test_user1.github_id, user_list)

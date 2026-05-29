@@ -97,7 +97,7 @@ class Step2View(FormView):
             first_name, last_name = self.request.session["github_name"].rsplit(
                 " ", 1
             )
-        except KeyError, AttributeError:
+        except (KeyError, AttributeError):
             first_name, last_name = "", ""
         except ValueError:
             first_name, last_name = self.request.session["github_name"], ""
@@ -137,7 +137,7 @@ class Step2View(FormView):
                 registration.Registrations.objects.current_registration()
             )
 
-            if not submitted_registration:
+            if not submitted_registration: # pragma: no cover
                 form.add_error(
                     None, "No registration form found for this semester."
                 )

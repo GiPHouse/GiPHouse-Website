@@ -63,6 +63,12 @@ class Step2Form(forms.Form):
         self.dynamic_questions = []
         self.questions_by_id = {}
 
+        #from courses.models import Semester
+        #current_registration, _ = registration.Registrations.objects.get_or_create(
+        #    title="test",
+        #    semester=Semester.objects.get_or_create_current_semester(),
+        #)
+
         current_registration = (
             registration.Registrations.objects.current_registration()
         )
