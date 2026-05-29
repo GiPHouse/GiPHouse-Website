@@ -15,6 +15,14 @@ from projects.models import Project
 
 from registrations.admin import UserAdminProjectFilter, UserAdminSemesterFilter
 from registrations.models import Employee, Registration
+from registrations.models.registration import (
+    Question,
+    QuestionChoice,
+    Registrations,
+    RegistrationSubmission,
+    Answer,
+    TextData,
+)
 
 User: Employee = get_user_model()
 
@@ -22,6 +30,10 @@ User: Employee = get_user_model()
 class RegistrationAdminTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
+        Course.objects.create(name="System Development Management")
+        Course.objects.create(name="Software Development Entrepreneurship")
+
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(
             github_id=0, github_username="super"
@@ -231,63 +243,104 @@ class RegistrationAdminTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_registration_csv_export(self):
-        response = self.client.post(
-            reverse("admin:registrations_employee_changelist"),
-            {
-                ACTION_CHECKBOX_NAME: [self.manager.pk],
-                "action": "export_registrations",
-                "index": 0,
-            },
+        # Create a Registrations object (the registration form)
+        registration_form = Registrations.objects.create(
+            title="Test Registration Form",
+            semester=self.semester,
         )
-        self.assertContains(
-            response,
-            (
-                '"First name","Last name","Student number","GitHub username",'
-                '"Course","1st project preference","2nd project preference","3rd project preference",'
-                '"1st partner preference","2nd partner preference","3rd partner preference",'
-                '"Dev Experience","Git Experience","Scrum Experience","Management Interest",'
-                '"Non-dutch","Available during scheduled timeslot 1",'
-                '"Available during scheduled timeslot 2","Available during scheduled timeslot 3",'
-                '"Available during scheduled timeslot 4","Available during scheduled timeslot 5",'
-                '"Available during scheduled timeslot 6","Available during scheduled timeslot 7",'
-                '"Available during scheduled timeslot 8","Available during scheduled timeslot 9",'
-                '"Available during scheduled timeslot 10",'
-                '"Has problems with signing an NDA","Registration Comments"'
-            ),
+
+        # Create questions with appropriate labels
+        question_labels = {
+            "projects": Question.PROJECTS,
+            "partners": Question.PARTNERS,
+            "devexp": Question.DEVEXP,
+            "gitexp": Question.GITEXP,
+            "scrumexp": Question.SCRUMEXP,
+            "management": Question.MANAGEMENT,
+            "nondutch": Question.NONDUTCH,
+            "timeslots": Question.TIMESLOTS,
+            "nonda": Question.NONDA,
+            "comments": Question.COMMENTS,
+        }
+
+        questions = {}
+        for key, label in question_labels.items():
+            questions[key] = Question.objects.create(
+                registration=registration_form,
+                question=f"Question for {key}",
+                question_type=Question.TEXT,
+                label=label,
+            )
+
+        # Create timeslot choices
+        timeslot_values = [
+            f"available during scheduled timeslot {i}" for i in range(1, 11)
+        ]
+        timeslot_question = Question.objects.create(
+            registration=registration_form,
+            question="Which timeslots are you available?",
+            question_type=Question.MULTI,
+            label=Question.TIMESLOTS,
         )
-        self.assertContains(
-            response,
-            (
-                f'"{self.manager.first_name}",'
-                f'"{self.manager.last_name}",'
-                f'"{self.manager.student_number}",'
-                f'"{self.manager.github_username}",'
-                f'"{self.registration.course}",'
-                f'"{self.registration.preference1}",'
-                f'"",'
-                f'"",'
-                f'"{self.registration.partner_preference1}",'
-                f'"",'
-                f'"",'
-                f'"{self.registration.dev_experience}",'
-                f'"{self.registration.dev_experience}",'
-                f'"{self.registration.dev_experience}",'
-                '"False",'
-                f'"{self.registration.is_international}",'
-                f'"{self.registration.available_during_scheduled_timeslot_1}",'
-                f'"{self.registration.available_during_scheduled_timeslot_2}",'
-                f'"{self.registration.available_during_scheduled_timeslot_3}",'
-                f'"{self.registration.available_during_scheduled_timeslot_4}",'
-                f'"{self.registration.available_during_scheduled_timeslot_5}",'
-                f'"{self.registration.available_during_scheduled_timeslot_6}",'
-                f'"{self.registration.available_during_scheduled_timeslot_7}",'
-                f'"{self.registration.available_during_scheduled_timeslot_8}",'
-                f'"{self.registration.available_during_scheduled_timeslot_9}",'
-                f'"{self.registration.available_during_scheduled_timeslot_10}",'
-                f'"{self.registration.has_problems_with_signing_an_nda}",'
-                f'"{self.registration.comments}"'
-            ),
+        for value in timeslot_values:
+            QuestionChoice.objects.create(
+                question=timeslot_question, value=value
+            )
+
+        # Create a RegistrationSubmission for the manager
+        submission = RegistrationSubmission.objects.create(
+            registration=registration_form,
+            participant=self.manager,
+            course=self.registration.course,
         )
+
+        # Create Answer objects for each question
+        answers_data = {
+            "projects": f'"{self.registration.preference1}"',
+            "partners": f'"{self.registration.partner_preference1}"',
+            "devexp": f'"{self.registration.dev_experience}"',
+            "gitexp": f'"{self.registration.dev_experience}"',
+            "scrumexp": f'"{self.registration.dev_experience}"',
+            "management": "False",
+            "nondutch": f'"{self.registration.is_international}"',
+            "timeslots": "available during scheduled timeslot 1, available during scheduled timeslot 2",
+            "nonda": "False",
+            "comments": f'"{self.registration.comments}"',
+        }
+
+        for key, value in answers_data.items():
+            answer = Answer.objects.create(
+                question=questions[key],
+                submission=submission,
+            )
+            TextData.objects.create(answer=answer, value=value)
+
+        # Mock the current_registration to return our test registration form
+        with patch(
+            "registrations.admin.Registrations.objects.current_registration"
+        ) as mock_current_reg:
+            mock_current_reg.return_value = registration_form
+
+            response = self.client.post(
+                reverse("admin:registrations_employee_changelist"),
+                {
+                    ACTION_CHECKBOX_NAME: [self.manager.pk],
+                    "action": "export_registrations",
+                    "index": 0,
+                },
+            )
+
+            # Check response contains expected headers
+            self.assertContains(
+                response,
+                '"First name","Last name","Student number","GitHub username","Course","project preferences","partner preferences","Dev Experience","Git Experience","Scrum Experience","Management Interest","Non-dutch","Availablility timeslots","Has problems with signing an NDA","Registration Comments"',
+            )
+
+            # Check response contains manager's data
+            self.assertContains(response, f'"{self.manager.first_name}"')
+            self.assertContains(response, f'"{self.manager.last_name}"')
+            self.assertContains(response, f'"{self.manager.student_number}"')
+            self.assertContains(response, f'"{self.manager.github_username}"')
 
     def test_unassign_project(self):
         response = self.client.post(
@@ -572,3 +625,154 @@ class RegistrationAdminTest(TestCase):
         registration.refresh_from_db()
         self.assertFalse(registration.has_projects())
         self.assertEqual(response.status_code, 200)
+
+    def test_convert_timeslots(self):
+        from registrations.admin import UserAdmin
+        from registrations.models.registration import (
+            Question,
+            QuestionChoice,
+            Registrations,
+        )
+
+        # Set up mock registration with timeslot choices in the database
+        mock_registration = Registrations.objects.create(
+            title="Test Registration",
+            semester=self.semester,
+        )
+
+        # Create a question with label "timeslots"
+        timeslot_question = Question.objects.create(
+            registration=mock_registration,
+            question="Which timeslots are you available?",
+            question_type=Question.MULTI,
+            label=Question.TIMESLOTS,
+        )
+
+        # Create 10 timeslot choices
+        timeslot_choices = []
+        for i in range(1, 11):
+            choice = QuestionChoice.objects.create(
+                question=timeslot_question,
+                value=f"available during scheduled timeslot {i}",
+            )
+            timeslot_choices.append(choice)
+
+        # Mock the current_registration to return our test registration
+        with patch(
+            "registrations.admin.Registrations.objects.current_registration"
+        ) as mock_current_reg:
+            mock_current_reg.return_value = mock_registration
+
+            user_admin = UserAdmin(User, None)
+
+            # Test with multiple timeslots
+            self.assertEqual(
+                user_admin.convert_timeslots(
+                    "available during scheduled timeslot 1, available during scheduled timeslot 2"
+                ),
+                [
+                    True,
+                    True,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                ],
+            )
+
+            # Test with single timeslot
+            self.assertEqual(
+                user_admin.convert_timeslots(
+                    "available during scheduled timeslot 2"
+                ),
+                [
+                    False,
+                    True,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                ],
+            )
+
+            # Test with timeslot 5
+            self.assertEqual(
+                user_admin.convert_timeslots(
+                    "available during scheduled timeslot 5"
+                ),
+                [
+                    False,
+                    False,
+                    False,
+                    False,
+                    True,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                ],
+            )
+
+            # Test with timeslot 10
+            self.assertEqual(
+                user_admin.convert_timeslots(
+                    "available during scheduled timeslot 10"
+                ),
+                [
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    True,
+                ],
+            )
+
+            # Test with multiple non-consecutive timeslots
+            self.assertEqual(
+                user_admin.convert_timeslots(
+                    "available during scheduled timeslot 1, available during scheduled timeslot 5, available during scheduled timeslot 10"
+                ),
+                [
+                    True,
+                    False,
+                    False,
+                    False,
+                    True,
+                    False,
+                    False,
+                    False,
+                    False,
+                    True,
+                ],
+            )
+
+            # Test with empty string
+            self.assertEqual(
+                user_admin.convert_timeslots(""),
+                [
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                ],
+            )

@@ -30,9 +30,7 @@ class GetProjectsStaffStatusTest(TestCase):
     def setUpTestData(cls):
         cls.staff_password = "hunter1"
         cls.staff = User.objects._create_user(
-            github_id=0,
-            is_staff=True,
-            is_superuser=False
+            github_id=0, is_staff=True, is_superuser=False
         )
 
         cls.view_permission = Permission.objects.get(codename="view_project")
@@ -49,7 +47,9 @@ class GetProjectsStaffStatusTest(TestCase):
             reverse("admin:projects_project_changelist")
         )
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "Synchronize projects of the current semester to GitHub")
+        self.assertNotContains(
+            response, "Synchronize projects of the current semester to GitHub"
+        )
 
     def test_no_sync_without_permission(self):
         """
@@ -70,6 +70,10 @@ class GetProjectsStaffStatusTest(TestCase):
 class GetProjectsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
+        Course.objects.create(name="System Development Management")
+        Course.objects.create(name="Software Development Entrepreneurship")
+
         cls.admin_password = "hunter2"
         cls.admin = User.objects.create_superuser(
             github_id=0, github_username="admin"
@@ -198,7 +202,9 @@ class GetProjectsTest(TestCase):
             reverse("admin:projects_project_changelist")
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Synchronize projects of the current semester to GitHub")
+        self.assertContains(
+            response, "Synchronize projects of the current semester to GitHub"
+        )
 
     def test_create_mail_is_valid(self):
         p1 = Project.objects.create(
@@ -298,7 +304,8 @@ class GetProjectsTest(TestCase):
         for mailing_list in lists:
             reg = Registration.objects.all()
             for r in reg:
-                if mailing_list.address == r.first_project.generate_email():
+                first_proj_email = r.projects.first().generate_email()
+                if mailing_list.address == first_proj_email:
                     user_list.append(r.user.github_id)
 
         self.assertIn(test_user1.github_id, user_list)

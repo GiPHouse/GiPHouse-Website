@@ -222,7 +222,9 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def synchronise_current_projects_to_GitHub(self, request):
         """Synchronise project(teams) of the current semester to GitHub."""
-        if not request.user.has_perm(f"{ProjectsConfig.label}.can_sync_to_github"):
+        if not request.user.has_perm(
+            f"{ProjectsConfig.label}.can_sync_to_github"
+        ):
             raise PermissionDenied
 
         return self.synchronise_to_GitHub(

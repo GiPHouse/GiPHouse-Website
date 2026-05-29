@@ -118,6 +118,7 @@ class LoginTest(TestCase):
 class RegisterTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
 
         cls.test_user = User.objects.create_user(github_id=0)
 
@@ -142,9 +143,16 @@ class RegisterTest(TestCase):
         mock_get_github_info.return_value = {
             "id": self.test_user.github_id + 1,
             "email": None,
-            "login": None,
+            "login": "None",
             "name": None,
         }
+
+        from registrations.models import Registrations
+
+        Registrations.objects.create(
+            title="testreg",
+            semester=Semester.objects.get_or_create_current_semester(),
+        )
 
         response = self.client.get("/oauth/register/?code=fakecode")
 
