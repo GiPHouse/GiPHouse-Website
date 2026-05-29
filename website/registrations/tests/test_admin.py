@@ -283,7 +283,9 @@ class RegistrationAdminTest(TestCase):
             label=Question.TIMESLOTS,
         )
         for value in timeslot_values:
-            QuestionChoice.objects.create(question=timeslot_question, value=value)
+            QuestionChoice.objects.create(
+                question=timeslot_question, value=value
+            )
 
         # Create a RegistrationSubmission for the manager
         submission = RegistrationSubmission.objects.create(
@@ -626,7 +628,11 @@ class RegistrationAdminTest(TestCase):
 
     def test_convert_timeslots(self):
         from registrations.admin import UserAdmin
-        from registrations.models.registration import Question, QuestionChoice, Registrations
+        from registrations.models.registration import (
+            Question,
+            QuestionChoice,
+            Registrations,
+        )
 
         # Set up mock registration with timeslot choices in the database
         mock_registration = Registrations.objects.create(

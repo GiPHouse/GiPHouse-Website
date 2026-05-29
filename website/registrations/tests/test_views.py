@@ -4,15 +4,19 @@ from django.shortcuts import reverse
 from django.test import Client, TestCase
 from django.utils import timezone
 from django.utils.text import slugify
-from unittest.mock import patch
 
 from courses.models import Course, Semester
 
 from projects.models import Project
 
 from registrations.admin import RegistrationsAdmin
-from registrations.forms import Step2Form
-from registrations.models import Employee, registration, Registrations, Question, QuestionChoice, RegistrationSubmission
+from registrations.models import (
+    Employee,
+    Registrations,
+    Question,
+    QuestionChoice,
+    RegistrationSubmission,
+)
 from registrations.utils.sample_registration_form import SampleRegistrationForm
 
 User: Employee = get_user_model()
@@ -74,7 +78,7 @@ class Step1Test(TestCase):
 
     def test_step1_semester_without_registrations(self):
         """Uncomment a branch of the dispatch() method of
-         the Step1View Class for this test to pass."""
+        the Step1View Class for this test to pass."""
 
         Semester.objects.get_or_create_current_semester()
 
@@ -150,16 +154,22 @@ class Step2Test(TestCase):
         cls.q_ids_start = Question.objects.all().first().pk
         sample_reg = SampleRegistrationForm()
 
-        cls.devexp_question_id = Question.objects.filter(
-            question=sample_reg.devexp[0]
-        ).first().pk
+        cls.devexp_question_id = (
+            Question.objects.filter(question=sample_reg.devexp[0]).first().pk
+        )
 
-        timeslot_q_id = Question.objects.filter(
-            question=sample_reg.timeslots[0]
-        ).first().pk
-        cls.availability_ids_start = QuestionChoice.objects.filter(
-            question_id=timeslot_q_id,
-        ).first().id
+        timeslot_q_id = (
+            Question.objects.filter(question=sample_reg.timeslots[0])
+            .first()
+            .pk
+        )
+        cls.availability_ids_start = (
+            QuestionChoice.objects.filter(
+                question_id=timeslot_q_id,
+            )
+            .first()
+            .id
+        )
 
         # Fields set by Step1
         cls.github_username = "test"
@@ -184,7 +194,6 @@ class Step2Test(TestCase):
         cls.non_dutch = sample_reg.nondutch[2][0]
         cls.problem_with_NDA = sample_reg.nonda[2][0]
 
-
     def setUp(self):
         self.client = Client()
 
@@ -207,34 +216,46 @@ class Step2Test(TestCase):
             f"question_{self.q_ids_start + 4}_course": QuestionChoice.objects.filter(
                 question_id=self.q_ids_start + 4,
                 value=self.course,  # because it's a dropdown
-            ).first().pk,
+            )
+            .first()
+            .pk,
             # cannot choose actual projects because they have to be explicitly selected.
             # Either way depends on the total number; we created 3, so 3 fields respectively.
             f"question_{self.q_ids_start + 5}_0": "",
             f"question_{self.q_ids_start + 5}_1": "",
             f"question_{self.q_ids_start + 5}_2": "",
             # apparently three partner preferences
-            f"question_{self.q_ids_start + 6}_0": self.project_partner_preference1, # TEXTLIST
+            f"question_{self.q_ids_start + 6}_0": self.project_partner_preference1,  # TEXTLIST
             f"question_{self.q_ids_start + 6}_1": self.project_partner_preference2,
             f"question_{self.q_ids_start + 6}_2": self.project_partner_preference3,
             f"question_{self.q_ids_start + 7}": QuestionChoice.objects.filter(
                 question_id=self.devexp_question_id,
                 value=self.devexp,  # CHOICE
-            ).first().pk,
+            )
+            .first()
+            .pk,
             f"question_{self.q_ids_start + 8}": QuestionChoice.objects.filter(
                 question_id=self.q_ids_start + 8,
                 value=self.management_interest,  # CHOICE
-            ).first().pk,
+            )
+            .first()
+            .pk,
             f"question_{self.q_ids_start + 9}": QuestionChoice.objects.filter(
                 question_id=self.q_ids_start + 9,
                 value=self.non_dutch,  # CHOICE
-            ).first().pk,
-            f"question_{self.q_ids_start + 10}": [self.availability_ids_start + t - 1 for t in
-                                                 self.available_during_scheduled_timeslots],  # offset 1
+            )
+            .first()
+            .pk,
+            f"question_{self.q_ids_start + 10}": [
+                self.availability_ids_start + t - 1
+                for t in self.available_during_scheduled_timeslots
+            ],  # offset 1
             f"question_{self.q_ids_start + 11}": QuestionChoice.objects.filter(
                 question_id=self.q_ids_start + 11,
                 value=self.problem_with_NDA,
-            ).first().pk
+            )
+            .first()
+            .pk,
             # "submit": "submit"
         }
 
@@ -275,9 +296,7 @@ class Step2Test(TestCase):
 
     def test_post_step2(self):
         response = self.client.post(
-            "/register/step2",
-            self.form_data_filled,
-            follow=True
+            "/register/step2", self.form_data_filled, follow=True
         )
 
         self.assertRedirects(response, "/")
@@ -309,9 +328,11 @@ class Step2Test(TestCase):
         self.assertIsNotNone(submission)
 
     def test_post_step2_wrong_student_number(self):
-        self.form_data_filled.update({
-            f"question_{self.q_ids_start + 3}_student_number": "wrong format",
-        })
+        self.form_data_filled.update(
+            {
+                f"question_{self.q_ids_start + 3}_student_number": "wrong format",
+            }
+        )
         response = self.client.post(
             "/register/step2",
             self.form_data_filled,
@@ -339,9 +360,7 @@ class Step2Test(TestCase):
         )
 
         response = self.client.post(
-            "/register/step2",
-            self.form_data_filled,
-            follow=True
+            "/register/step2", self.form_data_filled, follow=True
         )
 
         self.assertRedirects(response, "/")
