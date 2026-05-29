@@ -40,7 +40,19 @@ class SampleRegistrationForm:
         self.devexp = (
             "Dev Experience",
             Question.CHOICE,
-            ["None", "Little", "Some", "A lot"],
+            ["Beginner", "Junior", "Intermediate", "Pretty Good", "Advanced"],
+        )
+
+        self.gitexp = (
+            "Git Experience",
+            Question.CHOICE,
+            ["Beginner", "Junior", "Intermediate", "Pretty Good", "Advanced"],
+        )
+
+        self.scrumexp = (
+            "Scrum Experience",
+            Question.CHOICE,
+            ["Beginner", "Junior", "Intermediate", "Pretty Good", "Advanced"],
         )
 
         self.management = (
