@@ -29,7 +29,9 @@ class CourseManager(models.Manager):
 
     def sde(self):
         """Get or create Software Development Entrepreneurship course."""
-        return self.get_or_create(name="Software Development Entrepreneurship")[0]
+        return self.get_or_create(
+            name="Software Development Entrepreneurship"
+        )[0]
 
 
 class Course(models.Model):
