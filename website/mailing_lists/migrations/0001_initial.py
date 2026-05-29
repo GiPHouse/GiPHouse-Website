@@ -5,57 +5,157 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('projects', '0001_initial'),
+        ("projects", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ExtraEmailAddress',
+            name="ExtraEmailAddress",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('address', models.EmailField(max_length=254)),
-                ('name', models.CharField(max_length=50)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("address", models.EmailField(max_length=254)),
+                ("name", models.CharField(max_length=50)),
             ],
             options={
-                'verbose_name_plural': 'Extra Email Addresses',
+                "verbose_name_plural": "Extra Email Addresses",
             },
         ),
         migrations.CreateModel(
-            name='MailingListAlias',
+            name="MailingListAlias",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('address', models.CharField(max_length=60, unique=True, validators=[django.core.validators.RegexValidator(message='Enter a simpler name', regex='^[a-zA-Z0-9-]+$'), django.core.validators.RegexValidator(message='This is a reserved address', regex='^(?!(abuse|admin|administrator|hostmaster|majordomo|postmaster|root|ssl-admin|webmaster)$)')])),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "address",
+                    models.CharField(
+                        max_length=60,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                message="Enter a simpler name",
+                                regex="^[a-zA-Z0-9-]+$",
+                            ),
+                            django.core.validators.RegexValidator(
+                                message="This is a reserved address",
+                                regex="^(?!(abuse|admin|administrator|hostmaster|majordomo|postmaster|root|ssl-admin|webmaster)$)",
+                            ),
+                        ],
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'mailing list aliases',
+                "verbose_name_plural": "mailing list aliases",
             },
         ),
         migrations.CreateModel(
-            name='MailingListCourseSemesterLink',
+            name="MailingListCourseSemesterLink",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='MailingListToBeDeleted',
+            name="MailingListToBeDeleted",
             fields=[
-                ('address', models.CharField(max_length=60, primary_key=True, serialize=False)),
-                ('archive_instead_of_delete', models.BooleanField(default=True)),
+                (
+                    "address",
+                    models.CharField(
+                        max_length=60, primary_key=True, serialize=False
+                    ),
+                ),
+                (
+                    "archive_instead_of_delete",
+                    models.BooleanField(default=True),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='MailingList',
+            name="MailingList",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('address', models.CharField(max_length=60, unique=True, validators=[django.core.validators.RegexValidator(message='Enter a simpler name', regex='^[a-zA-Z0-9-]+$'), django.core.validators.RegexValidator(message='This is a reserved address', regex='^(?!(abuse|admin|administrator|hostmaster|majordomo|postmaster|root|ssl-admin|webmaster)$)')])),
-                ('gsuite_group_name', models.CharField(blank=True, max_length=60, null=True, validators=[django.core.validators.RegexValidator(message='Enter a simpler name', regex='^[a-zA-Z0-9-]+$'), django.core.validators.RegexValidator(message='This is a reserved address', regex='^(?!(abuse|admin|administrator|hostmaster|majordomo|postmaster|root|ssl-admin|webmaster)$)')])),
-                ('description', models.CharField(blank=True, max_length=150, null=True)),
-                ('archive_instead_of_delete', models.BooleanField(default=True, verbose_name='Archive instead of deleting from Gsuite')),
-                ('projects', models.ManyToManyField(blank=True, to='projects.project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "address",
+                    models.CharField(
+                        max_length=60,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                message="Enter a simpler name",
+                                regex="^[a-zA-Z0-9-]+$",
+                            ),
+                            django.core.validators.RegexValidator(
+                                message="This is a reserved address",
+                                regex="^(?!(abuse|admin|administrator|hostmaster|majordomo|postmaster|root|ssl-admin|webmaster)$)",
+                            ),
+                        ],
+                    ),
+                ),
+                (
+                    "gsuite_group_name",
+                    models.CharField(
+                        blank=True,
+                        max_length=60,
+                        null=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                message="Enter a simpler name",
+                                regex="^[a-zA-Z0-9-]+$",
+                            ),
+                            django.core.validators.RegexValidator(
+                                message="This is a reserved address",
+                                regex="^(?!(abuse|admin|administrator|hostmaster|majordomo|postmaster|root|ssl-admin|webmaster)$)",
+                            ),
+                        ],
+                    ),
+                ),
+                (
+                    "description",
+                    models.CharField(blank=True, max_length=150, null=True),
+                ),
+                (
+                    "archive_instead_of_delete",
+                    models.BooleanField(
+                        default=True,
+                        verbose_name="Archive instead of deleting from Gsuite",
+                    ),
+                ),
+                (
+                    "projects",
+                    models.ManyToManyField(blank=True, to="projects.project"),
+                ),
             ],
         ),
     ]

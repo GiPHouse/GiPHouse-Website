@@ -12,9 +12,11 @@ from django.urls import path, reverse
 from django.views import View
 from django.utils.safestring import mark_safe
 from django.forms.models import BaseInlineFormSet
-from django.core.exceptions import ValidationError
+# from django.core.exceptions import ValidationError
 
 from courses.models import Semester, Course
+
+from registrations.utils.sample_registration_form import SampleRegistrationForm
 
 from projects.models import Project
 
@@ -30,23 +32,26 @@ from registrations.models.registration import (
 )
 from registrations.team_assignment import (
     CSV_STRUCTURE,
-    # TeamAssignmentGenerator,
 )
 
 User: Employee = get_user_model()
 
+SAMPLE_MIN_CHOICES = 0
+SAMPLE_MAX_CHOICES = 3
+
 "The following four classes provide the logic behind the admin"
 "interface for Registrationss with the proper inlines."
+
 
 class QuestionInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
 
-        required_labels = {
-            label
-            for (label, _, must_be_set) in Question.QUESTION_LABELS
-            if must_be_set
-        }
+        # required_labels = {
+        #     label
+        #     for (label, _, must_be_set) in Question.QUESTION_LABELS
+        #     if must_be_set
+        # }
 
         used_labels = set()
 
@@ -60,11 +65,12 @@ class QuestionInlineFormSet(BaseInlineFormSet):
             if label:
                 used_labels.add(label)
 
-        missing = required_labels - used_labels
+        # missing = required_labels - used_labels
         # if missing:
         #     raise ValidationError(
         #         f"Missing required labels: {', '.join(missing)}"
         #     )
+
 
 class QuestionAdminForm(forms.ModelForm):
     class Meta:
@@ -78,7 +84,7 @@ class QuestionAdminForm(forms.ModelForm):
         max_choices = cleaned_data.get("max_choices")
 
         errors = []
-    
+
         if question_type == Question.MULTI:
             if min_choices is not None and min_choices < 0:
                 errors.append("min_choices cannot be negative.")
@@ -124,6 +130,7 @@ class FollowUpQuestionInline(NestedTabularInline):
     exclude = ["parent_choice", "registration"]
     inlines = [FollowUpQuestionChoiceInline]
 
+
 class QuestionChoiceInline(NestedTabularInline):
     model = QuestionChoice
     extra = 0
@@ -167,48 +174,12 @@ class RegistrationsAdmin(NestedModelAdmin):
 
     # Create a sample registration with autofilled questions
     def create_sample_registration(self, request):
-        reg = Registrations.objects.create(
-            title="Sample Registration",
-            semester=Semester.objects.get_or_create_current_semester(),
-        )
-
-        sample_questions = [
-            ("firstname",  "First name", Question.TEXT),
-            ("lastname",   "Last name", Question.TEXT),
-
-            ("project1",   "1st project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
-            ("project2",   "2nd project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
-            ("project3",   "3rd project preference", Question.DROPDOWN, ["Project A", "Project B", "Project C"]),
-
-            ("partner1",   "1st partner preference", Question.TEXT),
-            ("partner2",   "2nd partner preference", Question.TEXT),
-            ("partner3",   "3rd partner preference", Question.TEXT),
-
-            ("devexp",     "Dev Experience", Question.CHOICE),
-            ("management", "Management Interest", Question.CHOICE, ["Yes", "No"]),
-            ("nondutch",   "Non-dutch", Question.CHOICE, ["Yes", "No"]),
-
-            ("timeslot1",  "Available during scheduled timeslot 1", Question.CHOICE),
-            ("timeslot2",  "Available during scheduled timeslot 2", Question.CHOICE),
-            ("timeslot3",  "Available during scheduled timeslot 3", Question.CHOICE),
-            ("timeslot4",  "Available during scheduled timeslot 4", Question.CHOICE),
-            ("timeslot5",  "Available during scheduled timeslot 5", Question.CHOICE),
-            ("timeslot6",  "Available during scheduled timeslot 6", Question.CHOICE),
-            ("timeslot7",  "Available during scheduled timeslot 7", Question.CHOICE),
-            ("timeslot8",  "Available during scheduled timeslot 8", Question.CHOICE),
-            ("timeslot9",  "Available during scheduled timeslot 9", Question.CHOICE),
-            ("timeslot10", "Available during scheduled timeslot 10", Question.CHOICE),
-
-            ("nonda",      "Has problems with signing an NDA", Question.CHOICE, ["Yes", "No"]),
-        ]
+        sample_registration = SampleRegistrationForm()
+        sample_questions = sample_registration.get_sample_questions()
+        reg = sample_registration.reg
 
         for item in sample_questions:
-            # Case distinction for questions with and without choices
-            if len(item) == 3:
-                label, text, qtype = item
-                choices = []
-            else:
-                label, text, qtype, choices = item
+            label, text, qtype, choices = item
 
             q = Question.objects.create(
                 registration=reg,
@@ -217,25 +188,33 @@ class RegistrationsAdmin(NestedModelAdmin):
                 question_type=qtype,
             )
 
+            if qtype in [Question.TEXTLIST, Question.CHOICELIST]:
+                q.min_choices = SAMPLE_MIN_CHOICES
+                q.max_choices = SAMPLE_MAX_CHOICES
+                q.save()
+
             for choice_text in choices:
-                QuestionChoice.objects.create(
-                    question=q,
-                    value=choice_text
-                )
+                QuestionChoice.objects.create(question=q, value=choice_text)
 
-
-        url = reverse("admin:registrations_registrations_change", args=[reg.pk])
+        url = reverse(
+            "admin:registrations_registrations_change", args=[reg.pk]
+        )
         return redirect(url)
 
     # Set changelist to add button that calls create_sample_registration
     change_list_template = "admin/registrations/change_list.html"
 
 
-
 @admin.register(Question)
 class QuestionAdmin(NestedModelAdmin):
     form = QuestionAdminForm
-    list_display = ("question", "registration", "question_type", "label", "optional")
+    list_display = (
+        "question",
+        "registration",
+        "question_type",
+        "label",
+        "optional",
+    )
     inlines = [QuestionChoiceInline]
 
 
@@ -258,11 +237,46 @@ class AnswerInline(NestedTabularInline):
 
 @admin.register(RegistrationSubmission)
 class RegistrationSubmissionAdmin(admin.ModelAdmin):
-    list_display = ("registration", "participant", "submitted", "created")
+    list_display = (
+        "registration",
+        "participant",
+        "participant_github_id",
+        "participant_github_username",
+        "submitted",
+        "created",
+    )
+    readonly_fields = ("participant_github_id", "participant_github_username")
     inlines = [AnswerInline]
 
+    def participant_github_id(self, obj):
+        return obj.participant.github_id
 
-class UserAdminSemesterFilter(AutocompleteFilter):
+    participant_github_id.short_description = "GitHub ID"
+
+    def participant_github_username(self, obj):
+        return obj.participant.github_username
+
+    participant_github_username.short_description = "GitHub Username"
+
+
+class AnswerInline(NestedTabularInline):
+    model = Answer
+    extra = 0
+    readonly_fields = ("question_text", "answer_value")
+    exclude = ("question",)
+
+    def question_text(self, obj):
+        return obj.question.question
+
+    question_text.short_description = "Question"
+
+    def answer_value(self, obj):
+        return obj.answer_value
+
+    answer_value.short_description = "Answer"
+
+
+class UserAdminSemesterFilter(admin.SimpleListFilter):
     """Filter class to filter Semester objects."""
 
     title = "Semester"
@@ -272,7 +286,9 @@ class UserAdminSemesterFilter(AutocompleteFilter):
     def queryset(self, request, queryset):
         """Filter semesters."""
         if self.value():
-            return queryset.filter(registrationsubmission__registration__semester=self.value())
+            return queryset.filter(
+                registrationsubmission__registration__semester=self.value()
+            )
         else:
             return queryset
 
@@ -290,13 +306,14 @@ class UserAdminProjectFilter(AutocompleteFilter):
             return queryset.filter(registrations__projects=self.value())
         return queryset
 
+
 class UserAdminCourseFilter(admin.SimpleListFilter):
     title = "Course"
     parameter_name = "course"
 
     def lookups(self, request, model_admin):
         return [(c.id, c.name) for c in Course.objects.all()]
-    
+
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(
@@ -307,6 +324,7 @@ class UserAdminCourseFilter(admin.SimpleListFilter):
 
 class UserAdminAnswerFilter(admin.SimpleListFilter):
     """Base class for filtering by answer value."""
+
     label = None
 
     def lookups(self, request, model_admin):
@@ -316,7 +334,7 @@ class UserAdminAnswerFilter(admin.SimpleListFilter):
         if self.value():
             return queryset.filter(
                 registrationsubmission__answer__question__label=self.label,
-                registrationsubmission__answer__choicedata__choice__value=self.value()
+                registrationsubmission__answer__choicedata__choice__value=self.value(),
             ).distinct()
         return queryset
 
@@ -327,7 +345,11 @@ class UserAdminDevExpFilter(UserAdminAnswerFilter):
     label = "devexp"
 
     def lookups(self, request, model_admin):
-        return [("Beginner", "Beginner"), ("Intermediate", "Intermediate"), ("Advanced", "Advanced")]
+        return [
+            ("Beginner", "Beginner"),
+            ("Intermediate", "Intermediate"),
+            ("Advanced", "Advanced"),
+        ]
 
 
 class UserAdminGitExpFilter(UserAdminAnswerFilter):
@@ -336,7 +358,11 @@ class UserAdminGitExpFilter(UserAdminAnswerFilter):
     label = "gitexp"
 
     def lookups(self, request, model_admin):
-        return [("Beginner", "Beginner"), ("Intermediate", "Intermediate"), ("Advanced", "Advanced")]
+        return [
+            ("Beginner", "Beginner"),
+            ("Intermediate", "Intermediate"),
+            ("Advanced", "Advanced"),
+        ]
 
 
 class UserAdminScrumExpFilter(UserAdminAnswerFilter):
@@ -345,7 +371,11 @@ class UserAdminScrumExpFilter(UserAdminAnswerFilter):
     label = "scrumexp"
 
     def lookups(self, request, model_admin):
-        return [("Beginner", "Beginner"), ("Intermediate", "Intermediate"), ("Advanced", "Advanced")]
+        return [
+            ("Beginner", "Beginner"),
+            ("Intermediate", "Intermediate"),
+            ("Advanced", "Advanced"),
+        ]
 
 
 class UserAdminManagementFilter(UserAdminAnswerFilter):
@@ -354,7 +384,7 @@ class UserAdminManagementFilter(UserAdminAnswerFilter):
     label = "management"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminInternationalFilter(UserAdminAnswerFilter):
@@ -363,7 +393,7 @@ class UserAdminInternationalFilter(UserAdminAnswerFilter):
     label = "nondutch"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot1Filter(UserAdminAnswerFilter):
@@ -372,7 +402,7 @@ class UserAdminTimeslot1Filter(UserAdminAnswerFilter):
     label = "timeslot1"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot2Filter(UserAdminAnswerFilter):
@@ -381,7 +411,7 @@ class UserAdminTimeslot2Filter(UserAdminAnswerFilter):
     label = "timeslot2"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class UserAdminTimeslot3Filter(UserAdminAnswerFilter):
@@ -390,7 +420,8 @@ class UserAdminTimeslot3Filter(UserAdminAnswerFilter):
     label = "timeslot3"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
+
 
 class UserAdminTimeslot4Filter(UserAdminAnswerFilter):
     title = "Timeslot 4"
@@ -398,39 +429,44 @@ class UserAdminTimeslot4Filter(UserAdminAnswerFilter):
     label = "timeslot4"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-    
+        return [("True", "True"), ("False", "False")]
+
+
 class UserAdminTimeslot5Filter(UserAdminAnswerFilter):
     title = "Timeslot 5"
     parameter_name = "timeslot5"
     label = "timeslot5"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-    
+        return [("True", "True"), ("False", "False")]
+
+
 class UserAdminTimeslot6Filter(UserAdminAnswerFilter):
     title = "Timeslot 6"
     parameter_name = "timeslot6"
     label = "timeslot6"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-    
+        return [("True", "True"), ("False", "False")]
+
+
 class UserAdminTimeslot7Filter(UserAdminAnswerFilter):
     title = "Timeslot 7"
     parameter_name = "timeslot7"
     label = "timeslot7"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-    
+        return [("True", "True"), ("False", "False")]
+
+
 class UserAdminTimeslot8Filter(UserAdminAnswerFilter):
     title = "Timeslot 8"
     parameter_name = "timeslot8"
     label = "timeslot8"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
+
 
 class UserAdminTimeslot9Filter(UserAdminAnswerFilter):
     title = "Timeslot 9"
@@ -438,15 +474,17 @@ class UserAdminTimeslot9Filter(UserAdminAnswerFilter):
     label = "timeslot9"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
-    
+        return [("True", "True"), ("False", "False")]
+
+
 class UserAdminTimeslot10Filter(UserAdminAnswerFilter):
     title = "Timeslot 10"
     parameter_name = "timeslot10"
     label = "timeslot10"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
+
 
 class UserAdminNdaFilter(UserAdminAnswerFilter):
     title = "Has problems with NDA"
@@ -454,7 +492,7 @@ class UserAdminNdaFilter(UserAdminAnswerFilter):
     label = "nonda"
 
     def lookups(self, request, model_admin):
-        return [("Yes", "Yes"), ("No", "No")]
+        return [("True", "True"), ("False", "False")]
 
 
 class RegistrationInline(NestedTabularInline):
@@ -470,6 +508,24 @@ class RegistrationSubmissionInline(NestedTabularInline):
     model = RegistrationSubmission
     extra = 0
     inlines = [AnswerInline]
+
+
+class CollapsedRelatedFieldFilter(admin.RelatedFieldListFilter):
+    """Class to collapse related field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedChoicesFieldFilter(admin.ChoicesFieldListFilter):
+    """Class to collapse choices field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
+
+
+class CollapsedBooleanFieldFilter(admin.BooleanFieldListFilter):
+    """Class to collapse boolean field filters on default"""
+
+    template = "admin/registrations/collapsible_filter.html"
 
 
 @admin.register(User)
@@ -518,7 +574,7 @@ class UserAdmin(NestedModelAdmin):
     )
 
     list_filter = (
-        UserAdminSemesterFilter,
+        # UserAdminSemesterFilter,
         UserAdminProjectFilter,
         UserAdminCourseFilter,
         UserAdminDevExpFilter,
@@ -547,8 +603,10 @@ class UserAdmin(NestedModelAdmin):
 
         if not submission:
             return None
-        
-        return mark_safe("<br>".join(str(p) for p in submission.get_projects()))
+
+        return mark_safe(
+            "<br>".join(str(p) for p in submission.get_projects())
+        )
 
     get_current_project.short_description = "Project"
 
@@ -576,6 +634,37 @@ class UserAdmin(NestedModelAdmin):
         "Export names and student numbers"
     )
 
+    def convert_timeslots(self, timeslot_answers):
+        # converts timeslot availability answers to a list of 10 true false values indicating availability for timeslots 1-10
+        # Input: string like "available during scheduled timeslot 1, available during scheduled timeslot 2"
+        # Output: [True, True, False, False, False, False, False, False, False, False]
+
+        current_reg = Registrations.objects.current_registration()
+
+        timeslot_db = list(
+            QuestionChoice.objects.filter(
+                question__label="timeslots",
+                question__registration=current_reg,
+            ).values_list("value", flat=True)
+        )
+        n = len(timeslot_db)
+        timeslot_list = [False] * n
+
+        if not timeslot_answers:
+            return timeslot_list
+
+        # Split by comma to get individual timeslot entries
+        timeslot_entries = timeslot_answers.split(",")
+
+        # Check if each entry matches a timeslot choice in the database, set corresponding index to True if it does
+        for entry in timeslot_entries:
+            entry = entry.strip()
+            if entry in timeslot_db:
+                index = timeslot_db.index(entry)
+                timeslot_list[index] = True
+
+        return timeslot_list
+
     def export_registrations(self, request, queryset):
         """Export the registration information of the most recent registration of the selected users to a CSV file."""
         content = StringIO()
@@ -583,83 +672,103 @@ class UserAdmin(NestedModelAdmin):
             content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
         )
         queryset = queryset.exclude(registrationsubmission__isnull=True)
-        writer.writerow(
-            [
-                "First name",
-                "Last name",
-                "Student number",
-                "GitHub username",
-                "Course",
-                "1st project preference",
-                "2nd project preference",
-                "3rd project preference",
-                "1st partner preference",
-                "2nd partner preference",
-                "3rd partner preference",
-                "Dev Experience",
-                "Git Experience",
-                "Scrum Experience",
-                "Management Interest",
-                "Non-dutch",
-                "Available during scheduled timeslot 1",
-                "Available during scheduled timeslot 2",
-                "Available during scheduled timeslot 3",
-                "Available during scheduled timeslot 4",
-                "Available during scheduled timeslot 5",
-                "Available during scheduled timeslot 6",
-                "Available during scheduled timeslot 7",
-                "Available during scheduled timeslot 8",
-                "Available during scheduled timeslot 9",
-                "Available during scheduled timeslot 10",
-                "Has problems with signing an NDA",
-                "Registration Comments",
-            ]
-        )
-        print("QUERYSET:", queryset)
-        print("COUNT:", queryset.count())
 
+        # Static headers
+        static_headers = [
+            "First name",
+            "Last name",
+            "Student number",
+            "GitHub username",
+            "Course",
+            "project preferences",
+            "partner preferences",
+            "Dev Experience",
+            "Git Experience",
+            "Scrum Experience",
+            "Management Interest",
+            "Non-dutch",
+            "Availablility timeslots",
+            "Has problems with signing an NDA",
+            "Registration Comments",
+        ]
+
+        # Get current registration
         current_registration = Registrations.objects.current_registration()
-        for user in queryset:
-            submission = user.registrationsubmission_set.filter(registration=current_registration).first()
 
-            print("USER:", user)
-            print("REGISTRATION:", submission)
+        # Get all submissions for the users in the queryset
+        submissions = RegistrationSubmission.objects.filter(
+            participant__in=queryset, registration=current_registration
+        )
 
-            if submission is None:
-                print("NO REGISTRATION FOR:", user.id, user)
-
-            writer.writerow(
-                [
-                    user.first_name,
-                    user.last_name,
-                    user.student_number,
-                    user.github_username,
-                    submission.course,
-                    submission.get_answer("project1"),
-                    submission.get_answer("project2"),
-                    submission.get_answer("project3"),
-                    submission.get_answer("partner1"),
-                    submission.get_answer("partner2"),
-                    submission.get_answer("partner3"),
-                    submission.get_answer("devexp"),
-                    submission.get_answer("gitexp"),
-                    submission.get_answer("scrumexp"),
-                    submission.get_answer("management"),
-                    submission.get_answer("nondutch"),
-                    submission.get_answer("timeslot1"),
-                    submission.get_answer("timeslot2"),
-                    submission.get_answer("timeslot3"),
-                    submission.get_answer("timeslot4"),
-                    submission.get_answer("timeslot5"),
-                    submission.get_answer("timeslot6"),
-                    submission.get_answer("timeslot7"),
-                    submission.get_answer("timeslot8"),
-                    submission.get_answer("timeslot9"),
-                    submission.get_answer("timeslot10"),
-                    submission.get_answer("nonda"),
-                    submission.get_answer("comments"),
+        # Get all unique questions that appear in answers for these submissions
+        dynamic_questions = (
+            Question.objects.filter(
+                registration=current_registration,
+                answer__submission__in=submissions,
+            )
+            .exclude(
+                label__in=[
+                    "projects",
+                    "partners",
+                    "devexp",
+                    "gitexp",
+                    "scrumexp",
+                    "management",
+                    "nondutch",
+                    "timeslots",
+                    "nonda",
+                    "comments",
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "student_number",
+                    "course",
                 ]
             )
+            .distinct()
+            .order_by("id")
+        )
+
+        # Write header row
+        headers = static_headers + [q.question for q in dynamic_questions]
+        writer.writerow(headers)
+
+        for user in queryset:
+            submission = user.registrationsubmission_set.filter(
+                registration=current_registration
+            ).first()
+
+            if not submission:
+                continue
+
+            static_row = [
+                user.first_name,
+                user.last_name,
+                user.student_number,
+                user.github_username,
+                submission.course,
+                submission.get_answer("projects"),
+                submission.get_answer("partners"),
+                submission.get_answer("devexp"),
+                submission.get_answer("gitexp"),
+                submission.get_answer("scrumexp"),
+                submission.get_answer("management"),
+                submission.get_answer("nondutch"),
+                self.convert_timeslots(submission.get_answer("timeslots")),
+                submission.get_answer("nonda"),
+                submission.get_answer("comments"),
+            ]
+
+            # Add dynamic question answers
+            dynamic_row = []
+            for question in dynamic_questions:
+                try:
+                    answer = submission.answer_set.get(question=question)
+                    dynamic_row.append(answer.answer_value)
+                except Answer.DoesNotExist:
+                    dynamic_row.append("")
+
+            writer.writerow(static_row + dynamic_row)
 
         response = HttpResponse(
             content.getvalue(), content_type="application/x-zip-compressed"
@@ -762,7 +871,7 @@ class ImportAssignmentAdminView(View):
                     registration__semester=semester,
                     course__name=csv_course,
                 )
-                    
+
             except RegistrationSubmission.DoesNotExist:
                 raise ValueError(
                     f"No registration was found for {csv_first_name} {csv_last_name} with student number "
