@@ -6,7 +6,7 @@ from admin_auto_filters.filters import AutocompleteFilter
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -16,6 +16,7 @@ from courses.models import Semester
 
 from mailing_lists.models import MailingList
 
+from projects.apps import ProjectsConfig
 from projects.forms import ProjectAdminForm, RepositoryInlineForm
 from projects.githubsync import GitHubSync
 from projects.models import Client, Project, Repository
@@ -221,6 +222,11 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def synchronise_current_projects_to_GitHub(self, request):
         """Synchronise project(teams) of the current semester to GitHub."""
+        if not request.user.has_perm(
+            f"{ProjectsConfig.label}.can_sync_to_github"
+        ):
+            raise PermissionDenied
+
         return self.synchronise_to_GitHub(
             request,
             [

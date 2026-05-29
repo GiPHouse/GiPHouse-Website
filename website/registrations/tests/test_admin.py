@@ -572,3 +572,120 @@ class RegistrationAdminTest(TestCase):
         registration.refresh_from_db()
         self.assertFalse(registration.has_projects())
         self.assertEqual(response.status_code, 200)
+
+    def test_convert_timeslots(self):
+        from registrations.admin import UserAdmin
+
+        user_admin = UserAdmin(User, None)
+
+        # Test with multiple timeslots
+        self.assertEqual(
+            user_admin.convert_timeslots(
+                "available during scheduled timeslot 1, available during scheduled timeslot 2"
+            ),
+            [
+                True,
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ],
+        )
+
+        # Test with single timeslot
+        self.assertEqual(
+            user_admin.convert_timeslots(
+                "available during scheduled timeslot 2"
+            ),
+            [
+                False,
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ],
+        )
+
+        # Test with timeslot 5
+        self.assertEqual(
+            user_admin.convert_timeslots(
+                "available during scheduled timeslot 5"
+            ),
+            [
+                False,
+                False,
+                False,
+                False,
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ],
+        )
+
+        # Test with timeslot 10
+        self.assertEqual(
+            user_admin.convert_timeslots(
+                "available during scheduled timeslot 10"
+            ),
+            [
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                True,
+            ],
+        )
+
+        # Test with multiple non-consecutive timeslots
+        self.assertEqual(
+            user_admin.convert_timeslots(
+                "available during scheduled timeslot 1, available during scheduled timeslot 5, available during scheduled timeslot 10"
+            ),
+            [
+                True,
+                False,
+                False,
+                False,
+                True,
+                False,
+                False,
+                False,
+                False,
+                True,
+            ],
+        )
+
+        # Test with empty string
+        self.assertEqual(
+            user_admin.convert_timeslots(""),
+            [
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ],
+        )
