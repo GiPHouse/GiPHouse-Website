@@ -47,6 +47,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const invalid = [];
         const names = [];
 
+        const existing_repo_names = existingrepositoryFieldset.querySelectorAll(
+            '[id^="id_existingrepository_set-"][id$="-name"]'
+        );
+
         const repo_names = document.querySelectorAll(
             '[id^="id_newrepository_set-"][id$="-name"]'
         );
@@ -54,6 +58,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if(checked && slug.value != ""){
             for(const repo_name of repo_names){
                 if(repo_name.value == slug.value){
+                    invalid.push(repo_name);
+                }
+            }
+        }
+        
+        for(const repo_name of existing_repo_names){
+            if(!names.includes(repo_name.value)){
+                names.push(repo_name.value);
+            }
+            else{
+                if(!invalid.includes(repo_name) && repo_name.value != ""){
                     invalid.push(repo_name);
                 }
             }
@@ -112,8 +127,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function clear(){
         const repo_names = document.querySelectorAll('[id^="id_newrepository_set-"][id$="-name"]');
+        const existing_repo_names = document.querySelectorAll('[id^="id_existingrepository_set-"][id$="-name"]');
 
         for(const repo_name of repo_names){
+            repo_name.style.border = "";
+        }
+
+        for(const repo_name of existing_repo_names){
             repo_name.style.border = "";
         }
 
@@ -144,23 +164,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("click", addLinkListener);
     function addLinkListener(){
-        const addlink = existingrepositoryFieldset.querySelector(".addlink");
-        if(addlink){
-            addlink.addEventListener("click", fetchTimeout);
+        const addlink1 = newrepositoryFieldset.querySelector(".addlink");
+        const addlink2 = existingrepositoryFieldset.querySelector(".addlink");
+        if(addlink1){
+            addlink1.addEventListener("click", createRemoveListeners);
+            document.removeEventListener("click", addLinkListener);
+            fetchTimeout();
+        }
+        if(addlink2){
+            addlink2.addEventListener("click", fetchTimeout);
             document.removeEventListener("click", addLinkListener);
             fetchTimeout();
         }
     }
+    function createRemoveListeners(){
+        const remove_buttons = newrepositoryFieldset.querySelectorAll(".inline-deletelink");
+
+        for(const remove_button of remove_buttons){
+            remove_button.removeEventListener("click", repoErrorUpdate);
+            remove_button.addEventListener("click", repoErrorUpdate);
+        }
+    }
 
     function fetchTimeout(){
+        const repo_names = existingrepositoryFieldset.querySelectorAll(
+            '[id^="id_existingrepository_set-"][id$="-name"]'
+        );
+
         const repo_ids = existingrepositoryFieldset.querySelectorAll(
             '[id^="id_existingrepository_set-"][id$="-github_repo_id"]'
         );
+
+        const remove_buttons = existingrepositoryFieldset.querySelectorAll(".inline-deletelink");
+
+        for(const repo_name of repo_names){
+            repo_name.removeEventListener("click", repoErrorUpdate);
+            repo_name.addEventListener("click", repoErrorUpdate);
+        }
 
         for(const repo_id of repo_ids){
             let timeout = null;
             repo_id.removeEventListener("keyup", keyUp);
             repo_id.addEventListener("keyup", keyUp);
+        }
+
+        for(const remove_button of remove_buttons){
+            remove_button.removeEventListener("click", repoErrorUpdate)
+            remove_button.addEventListener("click", repoErrorUpdate)
+        }
+
+        disableFields();
+    }
+
+    function disableFields(){
+        const nameFields = existingrepositoryFieldset.querySelectorAll("input[name$='name']");
+
+        for(const name of nameFields){
+            const row = name.closest(".inline-related");
+            const private = row.querySelector("input[name$='private']");
+            const archived = row.querySelector("select[name$='is_archived']");
+            const repo_id = row.querySelector('input[name$="github_repo_id"]');
+
+            if(!repo_id.disabled){
+                name.disabled = true;
+                private.disabled = true;
+                archived.disabled = true;
+            }
         }
     }
 
@@ -181,14 +250,24 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
 
             if (data.error) {
-                alert(data.error);
+                e.target.style.border = "1px solid #e35f5f";
+                document.getElementById("error" + e.target.id)?.remove();
+                const parent = e.target.closest(".form-row.field-github_repo_id");
+                const error = createErrorMessage(data.error);
+                error.id = "error" + e.target.id;
+                parent.before(error);
                 return;
             }
+            e.target.style.border = "";
+            document.getElementById("error" + e.target.id)?.remove();
+            e.target.disabled = true;
 
-            // fill fields (row-scoped only)
             const nameField = row.querySelector("input[name$='name']");
+            nameField.disabled = false;
             const privateField = row.querySelector("input[name$='private']");
+            privateField.disabled = false;
             const archivedField = row.querySelector("select[name$='is_archived']");
+            archivedField.disabled = false;
 
             if (nameField) nameField.value = data.name;
             if (privateField) privateField.checked = data.private;
@@ -197,8 +276,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
             archivedField.dispatchEvent(new Event("change", { bubbles: true }));
             }
+            repoErrorUpdate();
         } catch (err) {
-            alert("Fetch failed");
+            document.getElementById("error" + e.target.id)?.remove();
+            e.target.style.border = "1px solid #e35f5f";
+            const parent = e.target.closest(".form-row.field-github_repo_id");
+            const error = createErrorMessage("Fetch failed");
+            error.id = "error" + e.target.id;
+            parent.before(error);
         }
     }
+
+    save.addEventListener('mouseenter', () => {
+        const nameFields = existingrepositoryFieldset.querySelectorAll("input[name$='name']");
+        const privateFields = existingrepositoryFieldset.querySelectorAll("input[name$='private']");
+        const archivedFields = existingrepositoryFieldset.querySelectorAll("select[name$='is_archived']");
+        const repo_ids = existingrepositoryFieldset.querySelectorAll(
+            '[id^="id_existingrepository_set-"][id$="-github_repo_id"]'
+        );
+
+        disable(nameFields);
+        disable(privateFields);
+        disable(archivedFields);
+        disable(repo_ids);
+    });
+
+    function disable(list){
+        for(item of list){
+            item.disabled = false;
+        }
+    }
+
+    save.addEventListener('mouseleave', () => {
+        disableFields();
+    });
+
 });

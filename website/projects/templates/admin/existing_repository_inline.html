@@ -33,14 +33,6 @@
   {% if inline_admin_form.needs_explicit_pk_field %}{{ inline_admin_form.pk_field.field }}{% endif %}
   {% if inline_admin_form.fk_field %}{{ inline_admin_form.fk_field.field }}{% endif %}
 
-  {% if not inline_admin_form.original %}
-	<div style="margin-top: 10px;">
-	  <button type="button" class="fetch-repo">
-		Fetch Info
-	  </button>
-	</div>
-  {% endif %}
-
 </div>{% endfor %}
   {% if inline_admin_formset.is_collapsible %}</details>{% endif %}
 </fieldset>
