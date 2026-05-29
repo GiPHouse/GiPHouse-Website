@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch, PropertyMock
 
 from django.test import TestCase
 
-from github import GithubException, MainClass, UnknownObjectException
+from github import GithubException, MainClass, UnknownObjectException, Auth
 
 from courses.models import Course, Semester
 
@@ -65,10 +65,14 @@ class GitHubAPITalkerTest(TestCase):
         MainClass.Github.__init__ = MagicMock(return_value=None)
         MainClass.Github.get_organization = MagicMock()
 
+        self.old_github_auth_token_init = Auth.Token.__init__
+        Auth.Token.__init__ = MagicMock(return_value=None)
+
     def tearDown(self):
         """Remove objects after a test is performed."""
         MainClass.Github.__init__ = self.old_github_init
         MainClass.Github.get_organization = self.old_github_get_org
+        Auth.Token.__init__ = self.old_github_auth_token_init
         del self.talker
 
     def test_singleton(self):
@@ -165,6 +169,10 @@ class GitHubAPITalkerTest(TestCase):
 class GitHubSyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Course.objects.create(name="Software Engineering")
+        Course.objects.create(name="System Development Management")
+        Course.objects.create(name="Software Development Entrepreneurship")
+
         cls.semester = Semester.objects.create(year=2020, season=Semester.FALL)
         cls.project1 = Project.objects.create(
             name="test1", github_team_id="87654321", semester=cls.semester
@@ -293,12 +301,12 @@ class GitHubSyncTest(TestCase):
 
     def test_sync_team_member__not_in_project(self):
         reg = Registration.objects.get(user=self.employee1)
-        # field first_project does not currently exist
-        reg.first_project = None
         reg.save()
+
         return_value = self.sync.sync_team_member(
             self.employee1, self.project1
         )
+
         self.talker.get_user.assert_not_called()
         self.github_team.add_membership.assert_not_called()
         self.assertFalse(return_value)
@@ -528,7 +536,7 @@ class GitHubSyncTest(TestCase):
         self.sync.update_repo(self.repo1)
         self.github_team.add_to_repos.assert_not_called()
         self.github_repo.edit.assert_called_once_with(name=self.repo1.name)
-        self.github_team.set_repo_permission.assert_not_called()
+        self.github_team.update_team_repository.assert_not_called()
         self.assert_info()
 
     def test_update_repo__incorrect_permissions(self):
@@ -538,7 +546,7 @@ class GitHubSyncTest(TestCase):
         self.sync.update_repo(self.repo1)
         self.github_team.add_to_repos.assert_not_called()
         self.github_repo.edit.assert_not_called()
-        self.github_team.set_repo_permission.assert_called_once_with(
+        self.github_team.update_team_repository.assert_called_once_with(
             self.github_repo, "admin"
         )
         self.assert_info()
@@ -550,7 +558,7 @@ class GitHubSyncTest(TestCase):
         self.github_repo.edit.assert_called_once_with(
             private=self.repo1.private
         )
-        self.github_team.set_repo_permission.assert_not_called()
+        self.github_team.update_team_repository.assert_not_called()
         self.assert_info()
 
     def test_update_repo__not_in_repos(self):
@@ -558,14 +566,14 @@ class GitHubSyncTest(TestCase):
         self.sync.update_repo(self.repo1)
         self.github_team.add_to_repos.assert_called_once_with(self.github_repo)
         self.github_repo.edit.assert_not_called()
-        self.github_team.set_repo_permission.assert_not_called()
+        self.github_team.update_team_repository.assert_not_called()
         self.assert_info()
 
     def test_update_repo__all_correct(self):
         self.sync.update_repo(self.repo1)
         self.github_team.add_to_repos.assert_not_called()
         self.github_repo.edit.assert_not_called()
-        self.github_team.set_repo_permission.assert_not_called()
+        self.github_team.update_team_repository.assert_not_called()
         self.assert_no_log()
 
     def create_or_update_repo__create(self, side_effect=None):
@@ -634,7 +642,7 @@ class GitHubSyncTest(TestCase):
         self.talker.create_repo.assert_called_once_with(self.repo1)
         self.assertEqual(returned_repo, "ThisShouldBeAPyGithubRepo")
         self.github_team.add_to_repos.assert_called_once_with(returned_repo)
-        self.github_team.set_repo_permission.assert_called_once_with(
+        self.github_team.update_team_repository.assert_called_once_with(
             returned_repo, "admin"
         )
 

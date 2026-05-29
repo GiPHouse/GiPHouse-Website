@@ -12,3 +12,5 @@ db.sqlite3
 *.DS_Store
 .coverage
 *.pem
+*.ps1
+test_output.txt
