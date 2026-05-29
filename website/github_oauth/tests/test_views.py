@@ -148,6 +148,7 @@ class RegisterTest(TestCase):
         }
 
         from registrations.models import Registrations
+
         Registrations.objects.create(
             title="testreg",
             semester=Semester.objects.get_or_create_current_semester(),
