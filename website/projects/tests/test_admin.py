@@ -14,6 +14,7 @@ from courses.models import Course, Semester
 
 from mailing_lists.models import MailingList
 
+from projects import githubsync
 from projects.admin import ProjectAdmin, ProjectAdminArchivedFilter
 from projects.forms import ProjectAdminForm
 from projects.models import Project, Repository
@@ -66,6 +67,37 @@ class GetProjectsStaffStatusTest(TestCase):
 
         self.project_admin.synchronise_to_GitHub = backup
 
+
+class FetchRepoTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin_password = "hunter2"
+        cls.admin = User.objects.create_superuser(
+            github_id=0, github_username="admin"
+        )
+
+        cls.url = "/admin/projects/project/fetch-repo/?github_repo_id="
+
+    def setUp(self):
+        site = AdminSite
+        self.project_admin = ProjectAdmin(Project, site)
+        self.client = Client()
+        self.client.force_login(self.admin)
+
+    def test_get_fetch_repo(self):
+        githubsync.talker.get_repo = MagicMock()
+
+        backup = self.project_admin.synchronise_to_GitHub
+        self.project_admin.synchronise_to_GitHub = MagicMock()
+
+        response = self.client.get(
+            self.url + str("123")
+        )
+        # expect Permission Denied
+        self.assertEqual(response.status_code, 403)
+        self.project_admin.synchronise_to_GitHub.assert_not_called()
+
+        self.project_admin.synchronise_to_GitHub = backup
 
 class GetProjectsTest(TestCase):
     @classmethod
