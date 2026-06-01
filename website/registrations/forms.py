@@ -220,6 +220,25 @@ class Step2Form(forms.Form):
             else:
                 raise ValueError(f"Unknown question type: {q.question_type}")
 
+        if not self.is_bound:
+            github_name = session.get("github_name", "") or ""
+            github_email = session.get("github_email", "") or ""
+            try:
+                first_name, last_name = github_name.rsplit(" ", 1)
+            except ValueError:
+                first_name, last_name = github_name, ""
+
+            initial_values = {
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": github_email,
+            }
+
+            for label, value in initial_values.items():
+                field_name = self.user_fields.get(label)
+                if field_name and field_name in self.fields:
+                    self.fields[field_name].initial = value
+
         ignore_warnings_field = self.fields.pop("ignore_warnings", None)
         if ignore_warnings_field is not None:
             self.fields["ignore_warnings"] = ignore_warnings_field
