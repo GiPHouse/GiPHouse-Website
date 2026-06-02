@@ -443,3 +443,144 @@ class GetProjectsTest(TestCase):
             f'"{self.project.name}","{self.manager.first_name}","{self.manager.last_name}",'
             f'"{self.manager.student_number}","{self.manager.github_username}"',
         )
+
+
+    def test_save_model_updates_slug_on_creation(self):
+        """Test that slug is generated from project name and semester year on creation."""
+        project = Project(
+            name="Test Project",
+            semester=self.semester,
+            description="Test description",
+            default_repo=False,
+        )
+        form = MagicMock()
+        
+        self.project_admin.save_model(self.request, project, form, change=False)
+        
+        project.refresh_from_db()
+        self.assertEqual(project.slug, "test-project-2020")
+
+    def test_save_model_updates_slug_on_name_change(self):
+        """Test that slug is updated when project name changes."""
+        project = Project.objects.create(
+            name="Old Name",
+            slug="old-name-2020",
+            semester=self.semester,
+            description="Test description",
+            default_repo=False,
+        )
+        project.name = "New Name"
+        form = MagicMock()
+        
+        self.project_admin.save_model(self.request, project, form, change=True)
+        
+        project.refresh_from_db()
+        self.assertEqual(project.slug, "new-name-2020")
+
+    def test_save_model_updates_slug_on_semester_change(self):
+        """Test that slug is updated when semester year changes."""
+        new_semester = Semester.objects.create(
+            year=2021, season=Semester.SPRING
+        )
+        project = Project.objects.create(
+            name="Test Project",
+            slug="test-project-2020",
+            semester=self.semester,
+            description="Test description",
+            default_repo=False,
+        )
+        project.semester = new_semester
+        form = MagicMock()
+        
+        self.project_admin.save_model(self.request, project, form, change=True)
+        
+        project.refresh_from_db()
+        self.assertEqual(project.slug, "test-project-2021")
+
+    def test_save_model_does_not_update_slug_if_unchanged(self):
+        """Test that slug is not updated if it doesn't need to change."""
+        project = Project.objects.create(
+            name="Test Project",
+            slug="test-project-2020",
+            semester=self.semester,
+            description="Test description",
+            default_repo=False,
+        )
+        original_slug = project.slug
+        form = MagicMock()
+        
+        self.project_admin.save_model(self.request, project, form, change=True)
+        
+        project.refresh_from_db()
+        self.assertEqual(project.slug, original_slug)
+
+    def test_save_model_creates_default_repository(self):
+        """Test that a default repository is created when default_repo is True and no repos exist."""
+        project = Project(
+            name="Test Project",
+            slug="test-project-2020",
+            semester=self.semester,
+            description="Test description",
+            default_repo=True,
+        )
+        form = MagicMock()
+        
+        self.project_admin.save_model(self.request, project, form, change=False)
+        
+        project.refresh_from_db()
+        self.assertEqual(project.repository_set.count(), 1)
+        self.assertEqual(project.repository_set.first().name, "test-project-2020")
+        self.assertFalse(project.default_repo)
+
+    def test_save_model_does_not_create_repo_if_default_repo_false(self):
+        """Test that no repository is created when default_repo is False."""
+        project = Project(
+            name="Test Project",
+            slug="test-project-2020",
+            semester=self.semester,
+            description="Test description",
+            default_repo=False,
+        )
+        form = MagicMock()
+        
+        self.project_admin.save_model(self.request, project, form, change=False)
+        
+        project.refresh_from_db()
+        self.assertEqual(project.repository_set.count(), 0)
+
+    def test_save_model_does_not_create_repo_if_repos_exist(self):
+        """Test that no repository is created when project already has repositories."""
+        project = Project.objects.create(
+            name="Test Project",
+            slug="test-project-2020",
+            semester=self.semester,
+            description="Test description",
+            default_repo=True,
+        )
+        Repository.objects.create(
+            name="existing-repo",
+            project=project,
+        )
+        form = MagicMock()
+        
+        self.project_admin.save_model(self.request, project, form, change=True)
+        
+        project.refresh_from_db()
+        self.assertEqual(project.repository_set.count(), 1)
+        self.assertTrue(project.default_repo)
+
+    def test_save_model_with_special_characters_in_name(self):
+        """Test that slug is properly generated with special characters in project name."""
+        project = Project(
+            name="Test & Project!",
+            semester=self.semester,
+            description="Test description",
+            default_repo=False,
+        )
+        form = MagicMock()
+        
+        self.project_admin.save_model(self.request, project, form, change=False)
+        
+        project.refresh_from_db()
+        # slugify converts special characters appropriately
+        self.assertEqual(project.slug, "test-project-2020")
