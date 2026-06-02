@@ -20,6 +20,9 @@ class ProjectAdminForm(forms.ModelForm):
 
         model = Project
         exclude = []
+        # widgets = {
+        #     "users": forms.HiddenInput(),
+        # }
 
     def __init__(self, *args, **kwargs):
         """Initialize the form."""

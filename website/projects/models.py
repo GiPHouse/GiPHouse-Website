@@ -64,6 +64,11 @@ class Project(models.Model):
         help_text="This is the id of the team in the GitHub organization. ",
     )
 
+    # users = models.ManyToManyField(
+    #    Employee,
+    #    blank=True,
+    # )
+
     def __str__(self):
         """Return project name and semester."""
         return f"{self.name} ({self.semester})"
