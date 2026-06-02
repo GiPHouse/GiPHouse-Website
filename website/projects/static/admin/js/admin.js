@@ -7,6 +7,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const save = document.querySelector('[name="_save"]');
     const end_body = document.getElementById("django-admin-form-add-constants")
     const path = window.location.pathname;
+    const style = document.createElement("style");
+
+    //Removes the increment/decrement buttons from the repo id
+    style.textContent = `
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    `;
+
+    document.head.appendChild(style);
 
     if (path.endsWith("/change/")) {
         // Hides the default repo button when accessing an existing project
