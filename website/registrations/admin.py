@@ -208,7 +208,7 @@ class UserAdminSemesterFilter(admin.SimpleListFilter):
         if self.value() == "0":
             return queryset
         else:
-            return queryset.filter(registration__semester_id=self.value())
+            return queryset.filter(registrationsubmission__registration__semester_id=self.value())
 
 
 class UserAdminProjectFilter(AutocompleteFilter):
