@@ -246,7 +246,7 @@ smt_maker.require_groups_have_at_least_one_slot_among(
     [(engineer_data.WEDNESDAY, 1), (engineer_data.FRIDAY, 2)]
 )
 # this client cannot do their first meeting on Friday afternoon, but can do it on Thursday afternoon!
-smt_maker.require_group_has_slot("secret-ish", (engineer_data.THURSDAY, 2))
+# smt_maker.require_group_has_slot("secret-ish", (engineer_data.THURSDAY, 2))
 # for the sake of the two managers who cannot attend on those slots, there should be one team with an additional
 # Tuesday morning working slot!
 smt_maker.require_at_least_number_of_groups_with_slots(

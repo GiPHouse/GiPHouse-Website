@@ -80,27 +80,15 @@ def print_projects():
 # This returns the unique identifier for the project with the given name, if any.
 # If no such project is defined, it instead prints an error message and returns None.
 def get_project_identifier(name):
-    if isinstance(name, int):
-        return name
-    if name in short_names:
-        return short_names.index(name)
-    if name in full_names:
-        return full_names.index(name)
-    matches = [i for i in range(num_projects) if short_names[i] in name]
-    if len(matches) == 1:
-        return matches[0]
-    matches = [i for i in range(num_projects) if full_names[i] in name]
-    if len(matches) == 1:
-        return matches[0]
-    if name != "":
-        print(
-            RED
-            + 'The project "'
-            + name
-            + '" could not be (uniquely) identified.'
-        )
-    return None
-
+  if isinstance(name, int): return name
+  if name in short_names: return short_names.index(name)
+  if name in full_names: return full_names.index(name)
+  matches = [i for i in range(num_projects) if short_names[i] in name]
+  if len(matches) == 1: return matches[0]
+  matches = [i for i in range(num_projects) if full_names[i] in name]
+  if len(matches) == 1: return matches[0]
+  # if name != "": print(RED + "The project \"" + name + "\" could not be (uniquely) identified.")
+  return None
 
 # returns the short project name for the project with the given identifier (which must exist)
 def get_project_name(identifier):
