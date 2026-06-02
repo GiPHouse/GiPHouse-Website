@@ -355,7 +355,7 @@ class Answer(models.Model):
 
         else:
             try:
-                return ", ".join(c.value for c in self.multidata.choices.all())
+                return " § ".join(c.value for c in self.multidata.choices.all())
             except MultiData.DoesNotExist:
                 return ""
 
