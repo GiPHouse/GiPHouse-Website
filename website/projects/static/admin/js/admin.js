@@ -9,16 +9,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const path = window.location.pathname;
 
     if (path.endsWith("/change/")) {
+        // Hides the default repo button when accessing an existing project
+        // default repo button only appears on creation of a project
         default_repo_div.style.display = "none"
     }
-    
-    if (!name || !semester || !slug) {
-        return;
-    }
 
+    // Disable changes to the slug
     slug.disabled = true;
 
     function slugify(text) {
+        // This function should behave the same as the django slugify method
+        // This function is used to show live showcase of the slug before project creation
         return text
             .toLowerCase()
             .replace(/[^\w\s-]/g, "")
@@ -27,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateSlug() {
+        // This function generates a slug based on the name and semester year of a project
         const nameValue = name.value || "";
         var semesterText =
             semester.options[semester.selectedIndex]?.text.slice(-4) || "";
@@ -38,30 +40,34 @@ document.addEventListener("DOMContentLoaded", () => {
         slug.value = slugify(`${nameValue}-${semesterText}`);
     }
 
+    // When the name or semester of a project is being changed, the update function is called
     name.addEventListener("input", update);
     semester.addEventListener("input", update);
 
+    // Initial updating of the slug
     updateSlug();
 
-    function invalidRepoNames(checked){
+    function invalidRepoNames(){
+        // This function returns a list of repo names that are invalid
         const invalid = [];
-        const names = [];
+        const names = []; //This stores a list of names already appeared before
 
         const existing_repo_names = existingrepositoryFieldset.querySelectorAll(
             '[id^="id_existingrepository_set-"][id$="-name"]'
-        );
+        ); //Selects all existing repo names
 
         const repo_names = document.querySelectorAll(
             '[id^="id_newrepository_set-"][id$="-name"]'
-        );
+        ); //Selects all new repo names
         
-        if(checked && slug.value != ""){
+        if(default_repo.checked && slug.value != ""){
             for(const repo_name of repo_names){
                 if(repo_name.value == slug.value){
                     invalid.push(repo_name);
                 }
             }
-        }
+        } //If default repo is checked a repo will be created with the slug name.
+        //So this loop checks whether the user tried to make a repo with the same name as the slug, this would result in an error otherwise.
         
         for(const repo_name of existing_repo_names){
             if(!names.includes(repo_name.value)){
@@ -72,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     invalid.push(repo_name);
                 }
             }
-        }
+        } //Adds all existing repo names to the list of seen names, a duplicate name will be pushed to the invalid list
 
         for(const repo_name of repo_names){
             if(!names.includes(repo_name.value)){
@@ -83,24 +89,26 @@ document.addEventListener("DOMContentLoaded", () => {
                     invalid.push(repo_name);
                 }
             }
-        }
+        } //Adds all new repo names to the list of seen names, a duplicate name will be pushed to the invalid list
         return invalid;
     }
 
     function repoErrorUpdate(){
-        const invalid_repo_names = invalidRepoNames(default_repo.checked);
+        //This function handles any invalid repo names errors
+        const invalid_repo_names = invalidRepoNames(); //First checks for invalid repo names
 
+        //If there are invalid repo names it handles it, otherwise clears any error messages and enables the save button
         if(invalid_repo_names.length > 0){
             save.disabled = true;
-            clear();
+            clear(); //Clears the error messages before creating them again to prevent duplicates
 
-            if(!document.getElementById("default_repo_copy")){
+            if(!document.getElementById("default_repo_copy")){ //Creates an error message below the save button
                 const error = createErrorMessage("Naming a repo the same as the slug is not allowed when default repo is enabled.");
                 error.id = "default_repo_copy";
                 end_body.before(error);
             }
 
-            for(const repo_name of invalid_repo_names){
+            for(const repo_name of invalid_repo_names){ //Creates error messages at each invalid repo name
                 repo_name.style.border = "1px solid #e35f5f";
                 const parent = repo_name.closest(".form-row.field-name");
                 const error = createErrorMessage("Repo name already taken");
@@ -111,11 +119,12 @@ document.addEventListener("DOMContentLoaded", () => {
         else{
             clear();
             save.disabled = false;
-            document.querySelector("#default_repo_copy")?.remove();
+            document.querySelector("#default_repo_copy")?.remove(); //Removes error message below save button
         }
     }
 
     function createErrorMessage(message){
+        //Template for creating an error message
         const error = document.createElement("ul");
         error.className = "errorlist";
         const li = document.createElement("li");
@@ -126,6 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function clear(){
+        //Clears all the error messages for repo names
         const repo_names = document.querySelectorAll('[id^="id_newrepository_set-"][id$="-name"]');
         const existing_repo_names = document.querySelectorAll('[id^="id_existingrepository_set-"][id$="-name"]');
 
@@ -145,25 +155,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function update(){
+        //Updates the slug and also checks for any potential errors
         updateSlug();
         repoErrorUpdate();
     }
 
     const newrepositoryFieldset = document.querySelector(
         "#newrepository_set-group"
-    );
+    ); //Selects everything inside the new_repository HTML
 
     if (newrepositoryFieldset) {
         newrepositoryFieldset.addEventListener("input", repoErrorUpdate);
-    }
-    default_repo.addEventListener("change", repoErrorUpdate);
+    } //If anything is inputted in new_repository, repoErrorUpdate is called, checking for any errors
+    default_repo.addEventListener("change", repoErrorUpdate); //Checking and unchecking the default repo button checks for any errors
 
     const existingrepositoryFieldset = document.querySelector(
         "#existingrepository_set-group"
-    );
+    ); //Selects everything inside the existing_repository HTML
 
-    document.addEventListener("click", addLinkListener);
+    document.addEventListener("click", addLinkListener); //The first click on the website runs addLinkListener
     function addLinkListener(){
+        //Because the addlink is loaded after the website is already loaded, a listener can't be attached
+        //immediately, as a workaround, we attach a listener as soon as the user clicks anything.
+        //For both addlinks(new and existing repo), we make a listener for both addlinks and remove the global listener that calls this.
         const addlink1 = newrepositoryFieldset.querySelector(".addlink");
         const addlink2 = existingrepositoryFieldset.querySelector(".addlink");
         if(addlink1){
@@ -178,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     function createRemoveListeners(){
+        //This function creates "remove" listeners. The delete buttons at the new repository field will check for any errors when clicked
         const remove_buttons = newrepositoryFieldset.querySelectorAll(".inline-deletelink");
 
         for(const remove_button of remove_buttons){
@@ -187,6 +202,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function fetchTimeout(){
+        // This function does a couple of things, 
+        // - it does the same as createRemoveListeners for new repos
+        // - when an user stops typing the repo id it tries to fetch it from github
+        // - checks for invalid repo names when the repo names are changed
+        // - disables fields (everything except repo id when nothing is fetched and only disables the repo id when it is fetched)
         const repo_names = existingrepositoryFieldset.querySelectorAll(
             '[id^="id_existingrepository_set-"][id$="-name"]'
         );
@@ -217,6 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function disableFields(){
+        //disables fields (everything except repo id when nothing is fetched yet and only disables the repo id when it is fetched)
         const nameFields = existingrepositoryFieldset.querySelectorAll("input[name$='name']");
 
         for(const name of nameFields){
@@ -234,6 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const keyUp = (e) => {
+        //Listener that listens for when u stop typing
         clearTimeout(e.target._timeout);
 
         e.target._timeout = setTimeout(() => {
@@ -242,6 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     async function fetchData(e){
+        //Fetches the data from github
         const url = `/admin/projects/project/fetch-repo/?github_repo_id=${encodeURIComponent(e.target.value)}`;
         const row = e.target.closest(".inline-related");
 
@@ -288,6 +311,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     save.addEventListener('mouseenter', () => {
+        //When a mouse enters the save button it enables certain fields. Because disabled fields are not submitted when saved.
+        //A known problem is: when the user navigates to the save button using tab, the fields are still disabled and the save could
+        //run into problems, but we assume that the average user will not do this.
         const nameFields = existingrepositoryFieldset.querySelectorAll("input[name$='name']");
         const privateFields = existingrepositoryFieldset.querySelectorAll("input[name$='private']");
         const archivedFields = existingrepositoryFieldset.querySelectorAll("select[name$='is_archived']");
@@ -295,20 +321,24 @@ document.addEventListener("DOMContentLoaded", () => {
             '[id^="id_existingrepository_set-"][id$="-github_repo_id"]'
         );
 
-        disable(nameFields);
-        disable(privateFields);
-        disable(archivedFields);
-        disable(repo_ids);
+        enable(nameFields);
+        enable(privateFields);
+        enable(archivedFields);
+        enable(repo_ids);
+        slug.disabled = false;
     });
 
-    function disable(list){
+    function enable(list){
+        //Enables all the items in a list.
         for(item of list){
             item.disabled = false;
         }
     }
 
     save.addEventListener('mouseleave', () => {
+        //disables all the fields again when the mouse leaves the save button
         disableFields();
+        slug.disabled = true;
     });
 
 });

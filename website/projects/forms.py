@@ -63,7 +63,7 @@ class ProjectAdminForm(forms.ModelForm):
     )
 
     class Media:
-        js = ("admin/js/slug.js",)
+        js = ("admin/js/admin.js",)
 
     def clean(self):
         """Validate form data and handle semester changes."""
@@ -124,6 +124,10 @@ class ExistingRepositoryInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.fields["github_repo_id"].help_text = (
+            "Pasting the repository id is recommended because when a repository is fetched this field can not be altered anymore."
+        )
+
         # Limit the choices of is_archived.
         if self.instance and self.instance.pk:  # existing obj
             if self.instance.is_archived == Repository.Archived.CONFIRMED:
@@ -144,7 +148,7 @@ class ExistingRepositoryInlineForm(forms.ModelForm):
             self.fields["github_repo_id"].disabled = True
             self.fields[
                 "github_repo_id"
-            ].help_text = "If you want to provide a different id, create a new Existing Repository object.<br>Forcefully changing this field will avoid proper deletion flow and is not supported."
+            ].help_text = "This is the id of the GitHub repository."
 
         self.fields["github_repo_id"].widget.attrs["class"] = (
             "github_repo_id-field"

@@ -195,7 +195,7 @@ class ExistingRepository(Repository):
 
         if not self.pk and (self.github_repo_id and not self.name):
             raise ValidationError(
-                'Press "Fetch Info" to fill in missing fields.'
+                'Fetch info again by re-entering repo id'
             )
 
 
