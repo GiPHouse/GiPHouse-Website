@@ -4,14 +4,16 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('registrations', '0024_alter_question_label'),
+        ("registrations", "0024_alter_question_label"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='registrations',
-            options={'verbose_name': 'Registration', 'verbose_name_plural': 'Registrations'},
+            name="registrations",
+            options={
+                "verbose_name": "Registration",
+                "verbose_name_plural": "Registrations",
+            },
         ),
     ]

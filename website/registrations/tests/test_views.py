@@ -183,6 +183,8 @@ class Step2Test(TestCase):
 
         # choose any of the options, say, the first one
         cls.devexp = sample_reg.devexp[2][0]
+        cls.git_experience = sample_reg.gitexp[2][2]
+        cls.scrum_experience = sample_reg.scrumexp[2][0]
 
         cls.project_partner_preference1 = "Piet Janssen"
         cls.project_partner_preference2 = "FirstTest LastTest"
@@ -219,12 +221,11 @@ class Step2Test(TestCase):
             )
             .first()
             .pk,
-            # cannot choose actual projects because they have to be explicitly selected.
-            # Either way depends on the total number; we created 3, so 3 fields respectively.
+            # Depends on the total number; we created 3, so 3 fields respectively.
             f"question_{self.q_ids_start + 5}_0": "",
             f"question_{self.q_ids_start + 5}_1": "",
             f"question_{self.q_ids_start + 5}_2": "",
-            # apparently three partner preferences
+            # Three partner preferences
             f"question_{self.q_ids_start + 6}_0": self.project_partner_preference1,  # TEXTLIST
             f"question_{self.q_ids_start + 6}_1": self.project_partner_preference2,
             f"question_{self.q_ids_start + 6}_2": self.project_partner_preference3,
@@ -236,22 +237,34 @@ class Step2Test(TestCase):
             .pk,
             f"question_{self.q_ids_start + 8}": QuestionChoice.objects.filter(
                 question_id=self.q_ids_start + 8,
-                value=self.management_interest,  # CHOICE
+                value=self.git_experience,
             )
             .first()
             .pk,
             f"question_{self.q_ids_start + 9}": QuestionChoice.objects.filter(
                 question_id=self.q_ids_start + 9,
+                value=self.scrum_experience,
+            )
+            .first()
+            .pk,
+            f"question_{self.q_ids_start + 10}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 10,
+                value=self.management_interest,  # CHOICE
+            )
+            .first()
+            .pk,
+            f"question_{self.q_ids_start + 11}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 11,
                 value=self.non_dutch,  # CHOICE
             )
             .first()
             .pk,
-            f"question_{self.q_ids_start + 10}": [
+            f"question_{self.q_ids_start + 12}": [
                 self.availability_ids_start + t - 1
                 for t in self.available_during_scheduled_timeslots
             ],  # offset 1
-            f"question_{self.q_ids_start + 11}": QuestionChoice.objects.filter(
-                question_id=self.q_ids_start + 11,
+            f"question_{self.q_ids_start + 13}": QuestionChoice.objects.filter(
+                question_id=self.q_ids_start + 13,
                 value=self.problem_with_NDA,
             )
             .first()

@@ -428,6 +428,7 @@ def query_shared_timeslots(student_list, initial_list):
 
 def print_student(student, prestring, highlight):
     import csv_loader
+
     identifier = get_student_identifier(student)
     extra_data, extra_columns = csv_loader.get_extra_data()
     col = BROWN
@@ -472,7 +473,10 @@ def print_student(student, prestring, highlight):
         )
     if students[identifier].name in extra_data:
         for col in extra_columns:
-            print(f" ; {col}: {extra_data[students[identifier].name][col]}", end="")
+            print(
+                f" ; {col}: {extra_data[students[identifier].name][col]}",
+                end="",
+            )
     print()
 
 

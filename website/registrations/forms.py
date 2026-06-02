@@ -349,28 +349,56 @@ class Step2Form(forms.Form):
         cleaned_data = super().clean()
         active_ids = self._get_active_question_ids(cleaned_data)
         checked_subfield_questions = set()
-        
+
         email_field = self.user_fields.get("email")
         if email_field:
             email = cleaned_data.get(email_field)
             if email:
-                if User.objects.exclude(github_id=self.github_id).filter(email=email).exists():
-                    self.add_error(email_field, ValidationError("Email address already in use.", code="exists"))
+                if (
+                    User.objects.exclude(github_id=self.github_id)
+                    .filter(email=email)
+                    .exists()
+                ):
+                    self.add_error(
+                        email_field,
+                        ValidationError(
+                            "Email address already in use.", code="exists"
+                        ),
+                    )
                 elif wrong_email_regex.match(email) is not None:
-                    self.add_error(email_field, ValidationError("Non-existent email address.", code="invalid"))
-        
+                    self.add_error(
+                        email_field,
+                        ValidationError(
+                            "Non-existent email address.", code="invalid"
+                        ),
+                    )
+
         student_number_field = self.user_fields.get("student_number")
         if student_number_field:
             student_number = cleaned_data.get(student_number_field)
             if student_number:
                 m = student_number_regex.match(student_number)
                 if m is None:
-                    self.add_error(student_number_field, ValidationError("Invalid Student Number", code="invalid"))
+                    self.add_error(
+                        student_number_field,
+                        ValidationError(
+                            "Invalid Student Number", code="invalid"
+                        ),
+                    )
                 else:
                     student_number = "s" + m.group(1)
                     cleaned_data[student_number_field] = student_number
-                    if User.objects.exclude(github_id=self.github_id).filter(student_number=student_number).exists():
-                        self.add_error(student_number_field, ValidationError("Student Number already in use.", code="exists"))
+                    if (
+                        User.objects.exclude(github_id=self.github_id)
+                        .filter(student_number=student_number)
+                        .exists()
+                    ):
+                        self.add_error(
+                            student_number_field,
+                            ValidationError(
+                                "Student Number already in use.", code="exists"
+                            ),
+                        )
 
         for field_name in list(self.fields):
             if field_name.startswith("question_"):
