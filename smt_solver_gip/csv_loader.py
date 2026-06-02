@@ -133,7 +133,7 @@ def load_registrations(filename):
                     parse_timetable(row),
                     [p.strip() for p in row["project preferences"].split(",") if p.strip()]
                 )
-                partners = [p.strip() for p in row["partner preferences"].split(",") if p.strip()]
+                partners = [p.strip() for p in row["partner preferences"].split("§") if p.strip()]
                 friend_data.append((name, partners))
                 if extra_columns:
                     extra_data[name] = {col: row[col] for col in extra_columns}
