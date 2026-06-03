@@ -686,9 +686,9 @@ class GetProjectsTest(TestCase):
             default_repo=False,
         )
         form = MagicMock()
-        
+
         self.project_admin.save_model(self.request, project, form, change=False)
-        
+
         project.refresh_from_db()
         self.assertEqual(project.slug, "test-project-2020")
 
@@ -703,9 +703,9 @@ class GetProjectsTest(TestCase):
         )
         project.name = "New Name"
         form = MagicMock()
-        
+
         self.project_admin.save_model(self.request, project, form, change=True)
-        
+
         project.refresh_from_db()
         self.assertEqual(project.slug, "new-name-2020")
 
@@ -723,9 +723,9 @@ class GetProjectsTest(TestCase):
         )
         project.semester = new_semester
         form = MagicMock()
-        
+
         self.project_admin.save_model(self.request, project, form, change=True)
-        
+
         project.refresh_from_db()
         self.assertEqual(project.slug, "test-project-2021")
 
@@ -740,9 +740,9 @@ class GetProjectsTest(TestCase):
         )
         original_slug = project.slug
         form = MagicMock()
-        
+
         self.project_admin.save_model(self.request, project, form, change=True)
-        
+
         project.refresh_from_db()
         self.assertEqual(project.slug, original_slug)
 
@@ -756,9 +756,9 @@ class GetProjectsTest(TestCase):
             default_repo=True,
         )
         form = MagicMock()
-        
+
         self.project_admin.save_model(self.request, project, form, change=False)
-        
+
         project.refresh_from_db()
         self.assertEqual(project.repository_set.count(), 1)
         self.assertEqual(project.repository_set.first().name, "test-project-2020")
@@ -774,9 +774,9 @@ class GetProjectsTest(TestCase):
             default_repo=False,
         )
         form = MagicMock()
-        
+
         self.project_admin.save_model(self.request, project, form, change=False)
-        
+
         project.refresh_from_db()
         self.assertEqual(project.repository_set.count(), 0)
 
@@ -794,9 +794,9 @@ class GetProjectsTest(TestCase):
             project=project,
         )
         form = MagicMock()
-        
+
         self.project_admin.save_model(self.request, project, form, change=True)
-        
+
         project.refresh_from_db()
         self.assertEqual(project.repository_set.count(), 1)
         self.assertTrue(project.default_repo)
@@ -810,9 +810,9 @@ class GetProjectsTest(TestCase):
             default_repo=False,
         )
         form = MagicMock()
-        
+
         self.project_admin.save_model(self.request, project, form, change=False)
-        
+
         project.refresh_from_db()
         # slugify converts special characters appropriately
         self.assertEqual(project.slug, "test-project-2020")
