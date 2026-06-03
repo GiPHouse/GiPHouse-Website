@@ -267,16 +267,16 @@ wheels = [
 
 [[package]]
 name = "django-components"
-version = "0.150.0"
+version = "0.151.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "djc-core" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/44/bd/04a44fb709db11d5fcefc66caf6b1a95aaac2056c3de65268d0ac4ee8cda/django_components-0.150.0.tar.gz", hash = "sha256:84a021246f228a113e8c97332c8b2d55340cb2d435374ffd894c83d94a6a6214", size = 224502, upload-time = "2026-05-02T08:19:09.499Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/04/a7479a698747b35dc8f5ff73ffb0c38bb634d75893dd7336adcd51904a1d/django_components-0.151.0.tar.gz", hash = "sha256:256fb059984ea670a1320062bc2a4c80634a15d3718568fc8808185027e4f200", size = 230349, upload-time = "2026-06-03T14:43:48.336Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cb/7d/1e575d7603284a0d240d138b58dece45a55183d46de4bb90e591a0591b15/django_components-0.150.0-py3-none-any.whl", hash = "sha256:59b031a286744bb990f7122740ed80ea2a4c6afbd159e85a6c0dd75531dd1e8f", size = 243181, upload-time = "2026-05-02T08:19:07.864Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/78/62a33aee002cfdf49ceac93e23e87e8b20b864c087ae8b0a9c6b32bf842f/django_components-0.151.0-py3-none-any.whl", hash = "sha256:c0e82c998e4eaa4ca6d2dc02ad08ca1ce1d3ac327972d50d02d3ec985f40bcf6", size = 249368, upload-time = "2026-06-03T14:43:47.041Z" },
 ]
 
 [[package]]
@@ -429,7 +429,7 @@ requires-dist = [
     { name = "django-admin-autocomplete-filter", specifier = ">=0.7.1" },
     { name = "django-bleach", specifier = ">=3.1.0" },
     { name = "django-bootstrap5", specifier = ">=26.2" },
-    { name = "django-components", specifier = ">=0.150.0" },
+    { name = "django-components", specifier = ">=0.151.0" },
     { name = "django-easy-admin-object-actions", specifier = ">=1.1.0" },
     { name = "django-nested-admin", specifier = ">=4.1.6" },
     { name = "django-sass-processor", specifier = ">=1.4.2" },
