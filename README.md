@@ -91,7 +91,7 @@ To support this authentication flow, [a custom authentication backend](https://d
 Admin users (i.e. teacher, director or student assistant) do not have to register, they need to be created manually. In the backend it is possible to add new users. Every user should have their GitHub ID and GitHub username set. To promote a user to superuser, they should have the "Staff status", "Active" and "Superuser status" checkboxes checked.
 
 ### Semesters
-The website makes the distinction between the spring semester (February - August) and the fall semester (September - January). Most of the content on the site is split byjjuhuh semester and year, because the content of the course that are given in the spring semester generally have nothing to do with the courses of the fall semester.
+The website makes the distinction between the spring semester (February - August) and the fall semester (September - January). Most of the content on the site is split by semester and year, because the content of the course that are given in the spring semester generally have nothing to do with the courses of the fall semester.
 
 ### Registrations
 Every semester has a registration start and end date. Users will be able to between the start and end of the registration. They can do this by going to [https://giphouse.nl/register/](https://giphouse.nl/register/).
