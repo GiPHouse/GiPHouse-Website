@@ -29,10 +29,11 @@ class RegistrationManager(models.Manager):
 
 class Registrations(models.Model):
     """A group of questions."""
+
     class Meta:
-        verbose_name = "Registration"         # Singular name
-        verbose_name_plural = "Registrations" # Correct plural name
-    
+        verbose_name = "Registration"  # Singular name
+        verbose_name_plural = "Registrations"  # Correct plural name
+
     title = models.CharField(max_length=200)
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE)
 
@@ -355,7 +356,9 @@ class Answer(models.Model):
 
         else:
             try:
-                return " § ".join(c.value for c in self.multidata.choices.all())
+                return " § ".join(
+                    c.value for c in self.multidata.choices.all()
+                )
             except MultiData.DoesNotExist:
                 return ""
 
