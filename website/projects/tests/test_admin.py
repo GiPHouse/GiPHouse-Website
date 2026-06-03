@@ -10,12 +10,19 @@ from django.test import Client, RequestFactory, TestCase
 
 from freezegun import freeze_time
 
+from github import UnknownObjectException, GithubException
+
 from courses.models import Course, Semester
 
 from mailing_lists.models import MailingList
 
 from projects import githubsync
-from projects.admin import ProjectAdmin, ProjectAdminArchivedFilter
+from projects.admin import (
+    ProjectAdmin,
+    ProjectAdminArchivedFilter,
+    NewRepositoryInline,
+    ExistingRepositoryInline
+)
 from projects.forms import ProjectAdminForm
 from projects.models import Project, Repository
 
@@ -68,10 +75,77 @@ class GetProjectsStaffStatusTest(TestCase):
         self.project_admin.synchronise_to_GitHub = backup
 
 
-class FetchRepoTest(TestCase):
+class RepositoryInlinesTest(TestCase):
+    """
+    Instantiate inlines and test their querysets.
+    """
     @classmethod
     def setUpTestData(cls):
-        cls.admin_password = "hunter2"
+        cls.admin_password = "mccree"
+        cls.admin = User.objects.create_superuser(
+            github_id=0, github_username="admin"
+        )
+
+        cls.semester = Semester.objects.get_or_create_current_semester()
+        cls.project = Project.objects.create(
+            name="test",
+            slug="test",
+            semester=cls.semester,
+        )
+
+        cls.new_repo = Repository.objects.create(
+            name="new-repo",
+            github_repo_id=None,
+            project=cls.project,
+        )
+
+        cls.existing_repo = Repository.objects.create(
+            name="existing-repo",
+            github_repo_id=6969,
+            project=cls.project,
+        )
+
+    def setUp(self):
+        self.site = AdminSite()
+
+        self.request = RequestFactory().get("/")
+        self.request.user = self.admin
+
+    def test_new_repository_inline_queryset(self):
+        inline = NewRepositoryInline(
+            Project,
+            self.site,
+        )
+
+        self.assertIn(
+            "github_repo_id",
+            inline.get_readonly_fields(request=self.request),
+        )
+
+        qs = inline.get_queryset(self.request)
+
+        self.assertIn(self.new_repo, qs)
+        self.assertNotIn(self.existing_repo, qs)
+
+    def test_existing_repository_inline_queryset(self):
+        inline = ExistingRepositoryInline(
+            Project,
+            self.site,
+        )
+
+        qs = inline.get_queryset(self.request)
+
+        self.assertNotIn(self.new_repo, qs)
+        self.assertIn(self.existing_repo, qs)
+
+
+class FetchRepoTest(TestCase):
+    """
+    Tests for the "/fetch-repo" path of the Project admin.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin_password = "punk2008"
         cls.admin = User.objects.create_superuser(
             github_id=0, github_username="admin"
         )
@@ -84,20 +158,145 @@ class FetchRepoTest(TestCase):
         self.client = Client()
         self.client.force_login(self.admin)
 
-    def test_get_fetch_repo(self):
-        githubsync.talker.get_repo = MagicMock()
+    def test_missing_github_repo_id(self):
+        response = self.client.get(
+            "/admin/projects/project/fetch-repo/"
+        )
 
-        backup = self.project_admin.synchronise_to_GitHub
-        self.project_admin.synchronise_to_GitHub = MagicMock()
+        self.assertEqual(response.status_code, 400)
+
+        self.assertJSONEqual(
+            response.content,
+            {"error": "missing github_repo_id"},
+        )
+
+    def test_non_integer_github_repo_id(self):
+        response = self.client.get(
+            "/admin/projects/project/fetch-repo/?github_repo_id=abc"
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        self.assertJSONEqual(
+            response.content,
+            {"error": "github_repo_id must be an integer"},
+        )
+
+    @patch("projects.admin.GitHubAPITalker")
+    def test_repository_not_found(self, mock_talker_class):
+        mock_talker = MagicMock()
+        mock_talker.get_repo.side_effect = (
+            UnknownObjectException(
+                status=404,
+                data={},
+                headers={},
+            )
+        )
+
+        mock_talker_class.return_value = mock_talker
 
         response = self.client.get(
-            self.url + str("123")
+            "/admin/projects/project/fetch-repo/"
+            "?github_repo_id=11"
         )
-        # expect Permission Denied
-        self.assertEqual(response.status_code, 403)
-        self.project_admin.synchronise_to_GitHub.assert_not_called()
 
-        self.project_admin.synchronise_to_GitHub = backup
+        self.assertEqual(response.status_code, 404)
+
+        self.assertJSONEqual(
+            response.content,
+            {
+                "error":
+                    "repository with provided id does not exist"
+            },
+        )
+
+    @patch("projects.admin.GitHubAPITalker")
+    def test_github_exception(self, mock_talker_class):
+        mock_talker = MagicMock()
+
+        err_text = "im bout to bomb this whole ms GitHub"
+        status = 507
+        mock_talker.get_repo.side_effect = (
+            GithubException(
+                status=status,
+                message=err_text,
+            )
+        )
+
+        mock_talker_class.return_value = mock_talker
+
+        response = self.client.get(
+            "/admin/projects/project/fetch-repo/"
+            "?github_repo_id=1703"
+        )
+
+        self.assertEqual(response.status_code, status)
+
+        self.assertJSONEqual(
+            response.content,
+            {
+                "error": err_text,
+            },
+        )
+
+    @patch("projects.admin.GitHubAPITalker")
+    def test_success_not_archived(self, mock_talker_class):
+        repo = MagicMock()
+        repo.name = "test-repo"
+        repo.private = True
+        repo.archived = False
+
+        mock_talker = MagicMock()
+        mock_talker.get_repo.return_value = repo
+
+        mock_talker_class.return_value = mock_talker
+
+        response = self.client.get(
+            "/admin/projects/project/fetch-repo/"
+            "?github_repo_id=1999"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertJSONEqual(
+            response.content,
+            {
+                "name": "test-repo",
+                "private": True,
+                "archived":
+                    Repository.Archived.NOT_ARCHIVED,
+            },
+        )
+
+    @patch("projects.admin.GitHubAPITalker")
+    def test_fetch_repo_success_archived(self, mock_talker_class):
+        repo = MagicMock()
+        repo.name = "test-repo"
+        repo.private = False
+        repo.archived = True
+
+        mock_talker = MagicMock()
+        mock_talker.get_repo.return_value = repo
+
+        mock_talker_class.return_value = mock_talker
+
+        response = self.client.get(
+            "/admin/projects/project/fetch-repo/"
+            "?github_repo_id=123"
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertJSONEqual(
+            response.content,
+            {
+                "name": "test-repo",
+                "private": False,
+                "archived":
+                    Repository.Archived.CONFIRMED,
+            },
+        )
+
 
 class GetProjectsTest(TestCase):
     @classmethod
@@ -239,6 +438,7 @@ class GetProjectsTest(TestCase):
             name="p1",
             semester=self.semester,
             description="test1",
+            slug="p1",
         )
 
         sem2 = Semester.objects.create(year=2030, season=Semester.SPRING)
@@ -280,7 +480,7 @@ class GetProjectsTest(TestCase):
         course = Course.objects.create(name="testcourse")
 
         test_project = Project.objects.create(
-            name="test_project", semester=sem1, description="1"
+            name="test_project", semester=sem1, description="1", slug="test_project"
         )
         test_project2 = Project.objects.create(
             name="test_project2", semester=sem2, description="2"
@@ -332,7 +532,7 @@ class GetProjectsTest(TestCase):
         for mailing_list in lists:
             reg = Registration.objects.all()
             for r in reg:
-                if mailing_list.address == r.first_project.generate_email():
+                if mailing_list.address == r.get_projects().first().generate_email():
                     user_list.append(r.user.github_id)
 
         self.assertIn(test_user1.github_id, user_list)

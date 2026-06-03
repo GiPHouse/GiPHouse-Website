@@ -110,8 +110,6 @@ class ExistingRepositoryInline(admin.StackedInline):
 
     template = "admin/existing_repository_inline.html"
 
-    #
-
     class Media:
         js = ("admin/js/fetch_repo.js",)
 
@@ -313,7 +311,7 @@ class ProjectAdmin(admin.ModelAdmin):
                 status=404,
             )
         except GithubException as e:
-            return JsonResponse({"error": e.message}, status=500)
+            return JsonResponse({"error": e.message}, status=e.status)
 
         archived = Repository.Archived.NOT_ARCHIVED
         if repo.archived:

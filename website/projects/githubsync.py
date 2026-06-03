@@ -36,6 +36,7 @@ class GitHubAPITalker:
             if settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 == "":
                 return
 
+            # pragma: no cover
             settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY = base64.b64decode(
                 settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64
             )
@@ -252,7 +253,7 @@ class GitHubSync:
                 self.info(f"Created team {project_team.name}")
                 self.teams_created += 1
                 project_team.save()
-            except GithubException, AssertionError:
+            except (GithubException, AssertionError):
                 self.error(f"""Something went wrong creating
                             the project team for '{project_team}'.""")
         else:
@@ -260,7 +261,7 @@ class GitHubSync:
                 self.update_team(project_team)
                 # if this fails, we might have a problem
                 #  with the github_team_id
-            except GithubException, AssertionError:
+            except (GithubException, AssertionError):
                 self.error(
                     f"""Something went wrong syncing the project team for
                      '{project_team}'. Does the """
@@ -270,13 +271,13 @@ class GitHubSync:
         for employee in project_team.get_employees():
             try:
                 self.sync_team_member(employee, project_team)
-            except GithubException, AssertionError:
+            except (GithubException, AssertionError):
                 self.error(f"""Something went wrong syncing {employee}
                             with the GitHub team for '{project_team}'.""")
 
         try:
             self.remove_users_not_in_team(project_team)
-        except GithubException, AssertionError:
+        except (GithubException, AssertionError):
             self.error(f"""Something went wrong while removing unwanted
                         users from GitHub team for '{project_team}'.""")
 
@@ -380,7 +381,7 @@ class GitHubSync:
                 self.remove_team(project_team)
                 project_team.github_team_id = None
                 project_team.save()
-            except GithubException, AssertionError:
+            except (GithubException, AssertionError):
                 self.error(f"""Something went wrong removing
                             the GitHub team for '{project_team}'.""")
         else:
@@ -441,7 +442,7 @@ class GitHubSync:
                     project_repo.save()
                     self.info(f"Created repository {project_repo}")
                     self.repos_created += 1
-                except GithubException, AssertionError:
+                except (GithubException, AssertionError):
                     self.error(f"""Something went wrong creating repository
                                 '{project_repo}' for '{project_team}'.""")
             else:
@@ -449,7 +450,7 @@ class GitHubSync:
                     # if this fails, we might have a problem
                     #  with the github_repo_id
                     self.update_repo(project_repo)
-                except GithubException, AssertionError, PlainGitHubException:
+                except (GithubException, AssertionError, PlainGitHubException):
                     self.error(f"""Something went wrong syncing the repository
                                 '{project_repo}' for '{project_team}'.""")
 
@@ -515,7 +516,7 @@ class GitHubSync:
                         )
                     project_repo.is_archived = Repository.Archived.CONFIRMED
                     project_repo.save()
-                except GithubException, AssertionError:
+                except (GithubException, AssertionError):
                     self.error(f"""Something went wrong archiving
                                 the repository '{project_repo}'.""")
 
@@ -541,7 +542,7 @@ class GitHubSync:
                      GitHub repository with id {repo.github_repo_id}'. """
                     f"Maybe it was already deleted manually?"
                 )
-            except GithubException, AssertionError:
+            except (GithubException, AssertionError):
                 self.error(
                     f"""Something went wrong archiving orphan
                       GitHub repository with id {repo.github_repo_id}'. """
@@ -559,7 +560,7 @@ class GitHubSync:
                       GitHub team with id {team.github_team_id}'."""
                     f"Maybe it was already deleted manually?"
                 )
-            except GithubException, AssertionError:
+            except (GithubException, AssertionError):
                 self.error(
                     f"""Something went wrong removing orphan
                       GitHub team with id {team.github_team_id}'. """
@@ -572,11 +573,15 @@ class GitHubSync:
         """Sync all selected projects to GitHub."""
         try:
             self.delete_teams_and_repos_to_be_deleted()
+        except GithubException as e:
+            self.exception(e.message)
         except Exception as e:
             self.exception(e)
         for project in self.projects:
             try:
                 self.sync_project(project)
+            except GithubException as e:
+                self.exception(e.message)
             except Exception as e:
                 self.exception(e)
             self.task.completed += 1
