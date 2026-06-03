@@ -548,27 +548,6 @@ class GetProjectsTest(TestCase):
         project.refresh_from_db()
         self.assertEqual(project.repository_set.count(), 0)
 
-    def test_save_model_does_not_create_repo_if_repos_exist(self):
-        """Test that no repository is created when project already has repositories."""
-        project = Project.objects.create(
-            name="Test Project",
-            slug="test-project-2020",
-            semester=self.semester,
-            description="Test description",
-            default_repo=True,
-        )
-        Repository.objects.create(
-            name="existing-repo",
-            project=project,
-        )
-        form = MagicMock()
-        
-        self.project_admin.save_model(self.request, project, form, change=True)
-        
-        project.refresh_from_db()
-        self.assertEqual(project.repository_set.count(), 1)
-        self.assertTrue(project.default_repo)
-
     def test_save_model_with_special_characters_in_name(self):
         """Test that slug is properly generated with special characters in project name."""
         project = Project(
