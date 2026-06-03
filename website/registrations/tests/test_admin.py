@@ -85,6 +85,15 @@ class RegistrationAdminTest(TestCase):
         )
         cls.registration.add_project(cls.project)
 
+        # Create corresponding RegistrationSubmission with projects
+        cls.reg_submission_obj = Registrations.objects.create(title="Test", semester=cls.semester)
+        cls.reg_submission = RegistrationSubmission.objects.create(
+            registration=cls.reg_submission_obj,
+            participant=cls.manager,
+            course=cls.course,
+        )
+        cls.reg_submission.add_project(cls.project)
+
         cls.user = User.objects.create(
             github_id=2,
             github_username="lol",
@@ -100,6 +109,12 @@ class RegistrationAdminTest(TestCase):
             preference1=cls.project,
             course=cls.course,
             is_international=False,
+        )
+
+        cls.reg_submission2 = RegistrationSubmission.objects.create(
+            registration=cls.reg_submission_obj,
+            participant=cls.user,
+            course=cls.course,
         )
 
         cls.manager2 = User.objects.create(
@@ -120,6 +135,14 @@ class RegistrationAdminTest(TestCase):
         )
         cls.registration3.add_project(cls.project)
         cls.registration3.add_project(cls.project2)
+
+        cls.reg_submission3 = RegistrationSubmission.objects.create(
+            registration=cls.reg_submission_obj,
+            participant=cls.manager2,
+            course=cls.course,
+        )
+        cls.reg_submission3.add_project(cls.project)
+        cls.reg_submission3.add_project(cls.project2)
 
         cls.userNoReg = User.objects.create(
             github_id=9,
@@ -146,25 +169,21 @@ class RegistrationAdminTest(TestCase):
         )
 
         cls.message = {
+            "first_name": "Bob",
+            "last_name": "Bobby",
+            "email": "",
+            "student_number": "s0000000",
             "date_joined_0": "2000-12-01",
             "date_joined_1": "12:00:00",
             "initial-date_joined_0": "2000-12-01",
             "initial-date_joined_1": "12:00:00",
             "github_id": 4,
             "github_username": "bob",
-            "student_number": "s0000000",
-            "registration_set-TOTAL_FORMS": 1,
-            "registration_set-INITIAL_FORMS": 0,
-            "registration_set-MIN_NUM_FORMS": 0,
-            "registration_set-MAX_NUM_FORMS": 1,
-            "registration_set-0-preference1": cls.project.id,
-            "registration_set-0-semester": cls.semester.id,
-            "registration_set-0-course": cls.course.id,
-            "registration_set-0-projects": [cls.project.id],
-            "registration_set-0-dev_experience": Registration.EXPERIENCE_BEGINNER,
-            "registration_set-0-git_experience": Registration.EXPERIENCE_BEGINNER,
-            "registration_set-0-scrum_experience": Registration.EXPERIENCE_BEGINNER,
-            "registration_set-0-management_interest": False,
+            "comments": "",
+            "registrationsubmission_set-TOTAL_FORMS": 0,
+            "registrationsubmission_set-INITIAL_FORMS": 0,
+            "registrationsubmission_set-MIN_NUM_FORMS": 0,
+            "registrationsubmission_set-MAX_NUM_FORMS": 1000,
             "_save": "Save",
         }
 
@@ -357,12 +376,12 @@ class RegistrationAdminTest(TestCase):
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
-        self.registration.refresh_from_db()
-        self.registration2.refresh_from_db()
-        self.registration3.refresh_from_db()
-        self.assertFalse(self.registration.has_projects())
-        self.assertFalse(self.registration2.has_projects())
-        self.assertFalse(self.registration3.has_projects())
+        self.reg_submission.refresh_from_db()
+        self.reg_submission2.refresh_from_db()
+        self.reg_submission3.refresh_from_db()
+        self.assertFalse(self.reg_submission.has_projects())
+        self.assertFalse(self.reg_submission2.has_projects())
+        self.assertFalse(self.reg_submission3.has_projects())
 
     def test_import_csv__get(self):
         response = self.client.get(reverse("admin:import"), follow=True)
@@ -442,6 +461,7 @@ class RegistrationAdminTest(TestCase):
             last_name="Janssen",
             student_number="s1234569",
         )
+        # Create Registration object for reference
         registration = Registration.objects.create(
             user=user,
             semester=self.semester,
@@ -449,6 +469,13 @@ class RegistrationAdminTest(TestCase):
             preference1=self.project,
             course=self.course,
             is_international=False,
+        )
+        
+        # Create RegistrationSubmission object (which is what handle_csv works with)
+        reg_submission = RegistrationSubmission.objects.create(
+            registration=self.reg_submission_obj,
+            participant=user,
+            course=self.course,
         )
 
         test_csv_file = SimpleUploadedFile(
@@ -459,8 +486,8 @@ class RegistrationAdminTest(TestCase):
             {"csv_file": test_csv_file, "semester": self.semester.pk},
             follow=True,
         )
-        registration.refresh_from_db()
-        self.assertIn(self.project, registration.get_projects())
+        reg_submission.refresh_from_db()
+        self.assertIn(self.project, reg_submission.get_projects())
         self.assertEqual(response.status_code, 200)
 
     def test_handle_csv__already_assigned(self):
