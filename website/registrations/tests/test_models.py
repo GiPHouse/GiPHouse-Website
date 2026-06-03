@@ -146,7 +146,7 @@ class questionTest(TestCase):
             self.test_answer_BIGTEXT.answer_value,
         )
         self.assertEqual(
-            "Option 1, Option 2", self.test_answer_MULTI.answer_value
+            "Option 1 § Option 2", self.test_answer_MULTI.answer_value
         )
         self.assertEqual("Option 1", self.test_answer_DROPDOWN.answer_value)
 
@@ -939,7 +939,7 @@ class questionTest(TestCase):
             submission=self.test_submission, question=self.test_question_MULTI
         )
         answer.answer = [self.test_questionMulti1, self.test_questionMulti2]
-        self.assertEqual(answer.answer_value, "Option 1, Option 2")
+        self.assertEqual(answer.answer_value, "Option 1 § Option 2")
 
     def test_multi_answer_via_set_value(self):
         """Test setting MULTI answer via set_value method."""
@@ -951,7 +951,7 @@ class questionTest(TestCase):
             str(self.test_questionMulti2.pk),
         ]
         answer.set_value(choice_ids)
-        self.assertEqual(answer.answer_value, "Option 1, Option 2")
+        self.assertEqual(answer.answer_value, "Option 1 § Option 2")
 
     def test_multi_answer_order_preserved(self):
         """Test MULTI answer preserves choice order."""
