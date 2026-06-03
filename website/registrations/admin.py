@@ -303,7 +303,7 @@ class UserAdminProjectFilter(AutocompleteFilter):
     def queryset(self, request, queryset):
         """Filter out participants in the specified Project."""
         if self.value():
-            return queryset.filter(registrations__projects=self.value())
+            return queryset.filter(registrationsubmission__projects=self.value())
         return queryset
 
 
