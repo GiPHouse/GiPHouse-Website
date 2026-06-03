@@ -123,6 +123,7 @@ exclude = [
     "venv",
     "website/giphousewebsite/settings/",
     "website/registrations/models/__init__.py",
+    "smt_solver_gip",
 ]
 
 # Same as Black.
