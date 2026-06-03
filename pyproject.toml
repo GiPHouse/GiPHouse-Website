@@ -123,7 +123,7 @@ exclude = [
     "venv",
     "website/giphousewebsite/settings/",
     "website/registrations/models/__init__.py",
-    "smt_solver_gip",
+    "smt_solver_gip",   # This folder contains unused legacy code that is full of linting errors.
 ]
 
 # Same as Black.
