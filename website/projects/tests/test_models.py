@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.db import models
 
@@ -12,11 +13,32 @@ from projects.models import (
     Repository,
     RepositoryToBeDeleted,
     Client,
+    ExistingRepository,
+
 )
 
 from registrations.models import Employee, Registration
 
 from django.db.utils import IntegrityError
+
+
+class ExistingRepositoryTests(TestCase):
+    def test_clean_fails_with_id_no_name(self):
+        repo = ExistingRepository(
+            github_repo_id=12345,
+            name="",
+        )
+
+        with self.assertRaises(ValidationError):
+            repo.full_clean()
+
+    def test_valid_input_no_exception(self):
+        repo = ExistingRepository(
+            github_repo_id=12345,
+            name="test-repo",
+        )
+
+        repo.full_clean()
 
 
 class EmployeeQueryTest(TestCase):
