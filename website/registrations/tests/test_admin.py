@@ -86,7 +86,9 @@ class RegistrationAdminTest(TestCase):
         cls.registration.add_project(cls.project)
 
         # Create corresponding RegistrationSubmission with projects
-        cls.reg_submission_obj = Registrations.objects.create(title="Test", semester=cls.semester)
+        cls.reg_submission_obj = Registrations.objects.create(
+            title="Test", semester=cls.semester
+        )
         cls.reg_submission = RegistrationSubmission.objects.create(
             registration=cls.reg_submission_obj,
             participant=cls.manager,
@@ -462,7 +464,7 @@ class RegistrationAdminTest(TestCase):
             student_number="s1234569",
         )
         # Create Registration object for reference
-        registration = Registration.objects.create(
+        registration = Registration.objects.create(  # noqa: F841, REMOVE THIS COMMENT WHEN THIS OBJECT IS ACTUALLY USED.
             user=user,
             semester=self.semester,
             dev_experience=Registration.EXPERIENCE_BEGINNER,
@@ -470,7 +472,7 @@ class RegistrationAdminTest(TestCase):
             course=self.course,
             is_international=False,
         )
-        
+
         # Create RegistrationSubmission object (which is what handle_csv works with)
         reg_submission = RegistrationSubmission.objects.create(
             registration=self.reg_submission_obj,
