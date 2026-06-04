@@ -43,13 +43,20 @@ class GetProjectsStaffStatusTest(TestCase):
         cls.view_permission = Permission.objects.get(codename="view_project")
         cls.staff.user_permissions.add(cls.view_permission)
 
+        cls.sem = Semester.objects.get_or_create_current_semester()
+        cls.project = Project.objects.create(
+            name="cooper",
+            slug="cooper",
+            semester=cls.sem,
+        )
+
     def setUp(self):
         site = AdminSite
         self.project_admin = ProjectAdmin(Project, site)
         self.client = Client()
         self.client.force_login(self.staff)
 
-    def test_sync_button_hidden_without_permission(self):
+    def test_github_sync_all_button_hidden_without_permission(self):
         response = self.client.get(
             reverse("admin:projects_project_changelist")
         )
@@ -58,7 +65,7 @@ class GetProjectsStaffStatusTest(TestCase):
             response, "Synchronize projects of the current semester to GitHub"
         )
 
-    def test_no_sync_without_permission(self):
+    def test_sync_all_link_denied_without_permission(self):
         """
         A staff user can still try and sync using the link,
         but that is prevented in the backend. This is tested here.
@@ -72,6 +79,39 @@ class GetProjectsStaffStatusTest(TestCase):
         self.project_admin.synchronise_to_GitHub.assert_not_called()
 
         self.project_admin.synchronise_to_GitHub = backup
+
+    def test_github_sync_action_hidden_in_ui(self):
+        response = self.client.get(
+            reverse("admin:projects_project_changelist")
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertNotContains(
+            response,
+            'value="synchronise_to_GitHub"',
+        )
+
+    @patch("projects.admin.GitHubSync")
+    def test_github_sync_action_denied_with_no_perm(self, mock_sync_class):
+        mock_sync = MagicMock()
+
+        mock_sync_class.return_value = mock_sync
+
+        response = self.client.post(
+            reverse("admin:projects_project_changelist"),
+            {
+                "action": "synchronise_to_GitHub",
+                "_selected_action": [self.project.pk],
+            },
+        )
+
+        mock_sync_class.assert_not_called()
+
+        # Even though we want to see 403 (Permission Denied),
+        # we are instead redirected back to changelist in case
+        # of failure. We are redirected to the task bar if we
+        # succeed, so we check that it did not happen.
+        self.assertNotIn("task", response.url)
 
 
 class RepositoryInlinesTest(TestCase):
@@ -418,6 +458,39 @@ class GetProjectsTest(TestCase):
         self.assertContains(
             response, "Synchronize projects of the current semester to GitHub"
         )
+
+    def test_github_sync_action_appears_in_ui_with_permission(self):
+        response = self.client.get(
+            reverse("admin:projects_project_changelist")
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertContains(
+            response,
+            'value="synchronise_to_GitHub"',
+        )
+
+    @patch("projects.admin.GitHubSync")
+    def test_github_sync_action_allowed_with_perm(self, mock_sync_class):
+        task_id = 1
+
+        mock_sync = MagicMock()
+        mock_sync.perform_asynchronous_sync.return_value = task_id
+
+        mock_sync_class.return_value = mock_sync
+
+        response = self.client.post(
+            reverse("admin:projects_project_changelist"),
+            {
+                "action": "synchronise_to_GitHub",
+                "_selected_action": [self.project.pk],
+            },
+            follow=False
+        )
+        expected_redirect_url = reverse("admin:progress_bar", kwargs={"task": task_id})
+
+        self.assertEqual(response.status_code, 302) # redirects
+        self.assertEqual(response.url, expected_redirect_url)
 
     def test_create_mail_is_valid(self):
         p1 = Project.objects.create(

@@ -40,7 +40,7 @@ class Project(models.Model):
         unique_together = [["name", "semester"]]
 
         permissions = [
-            ("can_sync_to_github", "Can synchronize project(s) to GitHub"),
+            ("can_sync_to_github", "Can batch sync project(s) to GitHub"),
         ]
 
     name = models.CharField("name", max_length=50)
