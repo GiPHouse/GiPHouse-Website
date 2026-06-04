@@ -181,6 +181,9 @@ class GitHubSync:
         self.task = Task.objects.create(
             total=len(self.projects),
             completed=0,
+            logs="["
+            + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            + "] INFO: START OF LOGS\n",
             redirect_url=reverse("admin:projects_project_changelist"),
         )
 

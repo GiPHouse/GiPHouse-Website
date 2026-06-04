@@ -2,6 +2,7 @@ import csv
 import logging
 import threading
 from io import StringIO
+from datetime import datetime
 
 from django.urls import reverse
 
@@ -74,6 +75,9 @@ class TeamAssignmentGenerator:
         self.task = Task.objects.create(
             total=1,
             completed=0,
+            logs="["
+            + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            + "] INFO: START OF LOGS\n",
             redirect_url=reverse("admin:registrations_employee_changelist"),
         )
 
