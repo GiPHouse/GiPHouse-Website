@@ -14,7 +14,6 @@ from projects.models import (
     RepositoryToBeDeleted,
     Client,
     ExistingRepository,
-
 )
 
 from registrations.models import Employee, Registration
@@ -215,7 +214,9 @@ class EmployeeQueryTest(TestCase):
                 name="project2", slug="project-2020", semester=self.semester
             )
             project2.save()
-            self.fail("test_slug_name_already_exists FAILED: TWO PROJECTS WITH SAME SLUG")
+            self.fail(
+                "test_slug_name_already_exists FAILED: TWO PROJECTS WITH SAME SLUG"
+            )
         except IntegrityError:
             pass
 
@@ -229,6 +230,8 @@ class EmployeeQueryTest(TestCase):
                 name="project1",
             )
             repo2.save()
-            self.fail("test_repo_name_already_exists FAILED: TWO REPOS WITH SAME NAME")
+            self.fail(
+                "test_repo_name_already_exists FAILED: TWO REPOS WITH SAME NAME"
+            )
         except IntegrityError:
             pass

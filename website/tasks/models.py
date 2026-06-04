@@ -14,7 +14,8 @@ class Task(models.Model):
     redirect_url = models.CharField(max_length=60)
     logs = models.TextField(
         blank=True,
-        default= "[" + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        default="["
+        + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         + "] INFO: START OF LOGS\n",
         editable=False,
     )

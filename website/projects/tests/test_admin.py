@@ -21,7 +21,7 @@ from projects.admin import (
     ProjectAdmin,
     ProjectAdminArchivedFilter,
     NewRepositoryInline,
-    ExistingRepositoryInline
+    ExistingRepositoryInline,
 )
 from projects.forms import ProjectAdminForm
 from projects.models import Project, Repository
@@ -79,6 +79,7 @@ class RepositoryInlinesTest(TestCase):
     """
     Instantiate inlines and test their querysets.
     """
+
     @classmethod
     def setUpTestData(cls):
         cls.admin_password = "mccree"
@@ -143,6 +144,7 @@ class FetchRepoTest(TestCase):
     """
     Tests for the "/fetch-repo" path of the Project admin.
     """
+
     @classmethod
     def setUpTestData(cls):
         cls.admin_password = "punk2008"
@@ -159,9 +161,7 @@ class FetchRepoTest(TestCase):
         self.client.force_login(self.admin)
 
     def test_missing_github_repo_id(self):
-        response = self.client.get(
-            "/admin/projects/project/fetch-repo/"
-        )
+        response = self.client.get("/admin/projects/project/fetch-repo/")
 
         self.assertEqual(response.status_code, 400)
 
@@ -185,29 +185,23 @@ class FetchRepoTest(TestCase):
     @patch("projects.admin.GitHubAPITalker")
     def test_repository_not_found(self, mock_talker_class):
         mock_talker = MagicMock()
-        mock_talker.get_repo.side_effect = (
-            UnknownObjectException(
-                status=404,
-                data={},
-                headers={},
-            )
+        mock_talker.get_repo.side_effect = UnknownObjectException(
+            status=404,
+            data={},
+            headers={},
         )
 
         mock_talker_class.return_value = mock_talker
 
         response = self.client.get(
-            "/admin/projects/project/fetch-repo/"
-            "?github_repo_id=11"
+            "/admin/projects/project/fetch-repo/?github_repo_id=11"
         )
 
         self.assertEqual(response.status_code, 404)
 
         self.assertJSONEqual(
             response.content,
-            {
-                "error":
-                    "repository with provided id does not exist"
-            },
+            {"error": "repository with provided id does not exist"},
         )
 
     @patch("projects.admin.GitHubAPITalker")
@@ -216,18 +210,15 @@ class FetchRepoTest(TestCase):
 
         err_text = "im bout to bomb this whole ms GitHub"
         status = 507
-        mock_talker.get_repo.side_effect = (
-            GithubException(
-                status=status,
-                message=err_text,
-            )
+        mock_talker.get_repo.side_effect = GithubException(
+            status=status,
+            message=err_text,
         )
 
         mock_talker_class.return_value = mock_talker
 
         response = self.client.get(
-            "/admin/projects/project/fetch-repo/"
-            "?github_repo_id=1703"
+            "/admin/projects/project/fetch-repo/?github_repo_id=1703"
         )
 
         self.assertEqual(response.status_code, status)
@@ -252,8 +243,7 @@ class FetchRepoTest(TestCase):
         mock_talker_class.return_value = mock_talker
 
         response = self.client.get(
-            "/admin/projects/project/fetch-repo/"
-            "?github_repo_id=1999"
+            "/admin/projects/project/fetch-repo/?github_repo_id=1999"
         )
 
         self.assertEqual(response.status_code, 200)
@@ -263,8 +253,7 @@ class FetchRepoTest(TestCase):
             {
                 "name": "test-repo",
                 "private": True,
-                "archived":
-                    Repository.Archived.NOT_ARCHIVED,
+                "archived": Repository.Archived.NOT_ARCHIVED,
             },
         )
 
@@ -281,8 +270,7 @@ class FetchRepoTest(TestCase):
         mock_talker_class.return_value = mock_talker
 
         response = self.client.get(
-            "/admin/projects/project/fetch-repo/"
-            "?github_repo_id=123"
+            "/admin/projects/project/fetch-repo/?github_repo_id=123"
         )
 
         self.assertEqual(response.status_code, 200)
@@ -292,8 +280,7 @@ class FetchRepoTest(TestCase):
             {
                 "name": "test-repo",
                 "private": False,
-                "archived":
-                    Repository.Archived.CONFIRMED,
+                "archived": Repository.Archived.CONFIRMED,
             },
         )
 
@@ -480,7 +467,10 @@ class GetProjectsTest(TestCase):
         course = Course.objects.create(name="testcourse")
 
         test_project = Project.objects.create(
-            name="test_project", semester=sem1, description="1", slug="test_project"
+            name="test_project",
+            semester=sem1,
+            description="1",
+            slug="test_project",
         )
         test_project2 = Project.objects.create(
             name="test_project2", semester=sem2, description="2"
@@ -532,7 +522,10 @@ class GetProjectsTest(TestCase):
         for mailing_list in lists:
             reg = Registration.objects.all()
             for r in reg:
-                if mailing_list.address == r.get_projects().first().generate_email():
+                if (
+                    mailing_list.address
+                    == r.get_projects().first().generate_email()
+                ):
                     user_list.append(r.user.github_id)
 
         self.assertIn(test_user1.github_id, user_list)
@@ -676,7 +669,6 @@ class GetProjectsTest(TestCase):
             f'"{self.manager.student_number}","{self.manager.github_username}"',
         )
 
-
     def test_save_model_updates_slug_on_creation(self):
         """Test that slug is generated from project name and semester year on creation."""
         project = Project(
@@ -687,7 +679,9 @@ class GetProjectsTest(TestCase):
         )
         form = MagicMock()
 
-        self.project_admin.save_model(self.request, project, form, change=False)
+        self.project_admin.save_model(
+            self.request, project, form, change=False
+        )
 
         project.refresh_from_db()
         self.assertEqual(project.slug, "test-project-2020")
@@ -757,11 +751,15 @@ class GetProjectsTest(TestCase):
         )
         form = MagicMock()
 
-        self.project_admin.save_model(self.request, project, form, change=False)
+        self.project_admin.save_model(
+            self.request, project, form, change=False
+        )
 
         project.refresh_from_db()
         self.assertEqual(project.repository_set.count(), 1)
-        self.assertEqual(project.repository_set.first().name, "test-project-2020")
+        self.assertEqual(
+            project.repository_set.first().name, "test-project-2020"
+        )
         self.assertFalse(project.default_repo)
 
     def test_save_model_does_not_create_repo_if_default_repo_false(self):
@@ -775,7 +773,9 @@ class GetProjectsTest(TestCase):
         )
         form = MagicMock()
 
-        self.project_admin.save_model(self.request, project, form, change=False)
+        self.project_admin.save_model(
+            self.request, project, form, change=False
+        )
 
         project.refresh_from_db()
         self.assertEqual(project.repository_set.count(), 0)
@@ -811,7 +811,9 @@ class GetProjectsTest(TestCase):
         )
         form = MagicMock()
 
-        self.project_admin.save_model(self.request, project, form, change=False)
+        self.project_admin.save_model(
+            self.request, project, form, change=False
+        )
 
         project.refresh_from_db()
         # slugify converts special characters appropriately

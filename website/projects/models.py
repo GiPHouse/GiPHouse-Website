@@ -194,9 +194,7 @@ class ExistingRepository(Repository):
         super().clean()
 
         if not self.pk and (self.github_repo_id and not self.name):
-            raise ValidationError(
-                'Fetch info again by re-entering repo id'
-            )
+            raise ValidationError("Fetch info again by re-entering repo id")
 
 
 class RepositoryToBeDeleted(models.Model):

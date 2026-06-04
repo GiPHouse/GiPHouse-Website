@@ -352,6 +352,7 @@ class ProjectAdmin(admin.ModelAdmin):
     #             super().save_model(request, obj, form, change)  # save
     #             self.synchronise_to_GitHub(request, obj)
 
+
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     """Custom admin for clients."""
