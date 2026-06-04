@@ -14,10 +14,9 @@
 [![Font_Awesome](https://img.shields.io/badge/Font_Awesome-5.13-f0f1f3?logo=fontawesome&logoColor=f0f1f3&labelColor=538DD7)](https://docs-v5.fontawesome.com/)
 [![Django](https://img.shields.io/badge/Django-6.0-44B78B?logo=django&logoColor=white&labelColor=092E20)](https://docs.djangoproject.com/en/6.0/)
 [![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000000.svg)](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html)\
-[![Linting](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml)
+[![Linting](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml/badge.svg?branch=CI-test)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml)
 [![Testing](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml)
 [![Coverage](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml)
-[![Deployment](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/deployment.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/deployment.yml)
 [![Dependabot Updates](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates)
 
 This is the code for the website of [GiPHouse](https://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
