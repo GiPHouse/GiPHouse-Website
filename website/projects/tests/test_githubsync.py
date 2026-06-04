@@ -299,9 +299,11 @@ class GitHubSyncTest(TestCase):
         reg = Registration.objects.get(user=self.employee1)
         reg.projects.clear()
         reg.save()
+
         return_value = self.sync.sync_team_member(
             self.employee1, self.project1
         )
+
         self.talker.get_user.assert_not_called()
         self.github_team.add_membership.assert_not_called()
         self.assertFalse(return_value)

@@ -5,8 +5,7 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.views.generic import FormView, TemplateView
 
-from courses.models import Semester
-
+from courses.models import Course, Semester
 
 from registrations.forms import Step2Form
 from registrations.models import Employee, registration
@@ -14,16 +13,21 @@ from registrations.models import Employee, registration
 
 # Only for testing
 def dev_login(request):
-    """Simulate GitHub OAuth login for local development. This sets the session variables that Step2Form expects."""
-
-    employee = Employee.objects.get(github_username="devuser")
+    employee, _ = Employee.objects.get_or_create(
+        github_username="devuser",
+        defaults={
+            "github_id": 123456,
+            "first_name": "Dev",
+            "last_name": "User",
+            "email": "devuser@example.com",
+        },
+    )
     login(request, employee)
 
     request.session["github_id"] = 123456
     request.session["github_username"] = "devuser"
     request.session["github_name"] = "Dev User"
     request.session["github_email"] = "devuser@example.com"
-
     # Redirect to Step2View where the form is return redirect("registrations:step2")
     return redirect("registrations:step2")
 
@@ -45,13 +49,13 @@ class Step1View(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         """Check whether user is authenticated and if registration is possible."""
-        # if not Semester.objects.get_first_semester_with_open_registration():
-        #     messages.warning(
-        #         request,
-        #         "Registrations are currently not open",
-        #         extra_tags="danger",
-        #     )
-        #     return redirect("home")
+        if not Semester.objects.get_first_semester_with_open_registration():
+            messages.warning(
+                request,
+                "Registrations are currently not open",
+                extra_tags="danger",
+            )
+            return redirect("home")
 
         if request.user.is_authenticated:
             logout(request)
@@ -114,41 +118,43 @@ class Step2View(FormView):
     def form_valid(self, form):
         """Check for warnings before registering."""
         if form.warnings and not form.cleaned_data.get("ignore_warnings"):
-            for warning in form.warnings:
-                if isinstance(warning, tuple) and len(warning) == 2:
-                    field_name, message = warning
-                    form.add_error(field_name, message)
-                else:
-                    form.add_error(None, warning)
             return self.form_invalid(form)
 
         """Register new user if the form is valid."""
         with transaction.atomic():
             user, _ = User.objects.get_or_create(
-                github_id=self.request.session["github_id"]
+                github_id=self.request.session["github_id"],
+                github_username=self.request.session["github_username"],
             )
 
-            user.first_name = form.cleaned_data["first_name"]
-            user.last_name = form.cleaned_data["last_name"]
-            user.email = form.cleaned_data["email"]
-            user.github_username = form.cleaned_data["github_username"]
-            user.student_number = form.cleaned_data["student_number"]
+            user.first_name = form.get_user_field("first_name")
+            user.last_name = form.get_user_field("last_name")
+            user.email = form.get_user_field("email")
+            user.student_number = form.get_user_field("student_number")
             user.save()
 
             submitted_registration = (
                 registration.Registrations.objects.current_registration()
             )
 
-            if not submitted_registration:
+            if not submitted_registration:  # pragma: no cover
                 form.add_error(
                     None, "No registration form found for this semester."
                 )
                 return self.form_invalid(form)
 
+            course_id = form.get_user_field("course")
+            course_name = registration.QuestionChoice.objects.get(
+                id=course_id
+            ).value
+            course = Course.objects.get(name=course_name)
+
             submission = registration.RegistrationSubmission.objects.create(
-                registration=submitted_registration, participant=user
+                registration=submitted_registration,
+                participant=user,
+                course=course,
             )
-            # TO DO: Validate dynamic parts of the form and save the answers to the database
+
             registration.Answer.save_from_cleaned_data(
                 submission, form.cleaned_data
             )

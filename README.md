@@ -14,7 +14,7 @@
 [![Font_Awesome](https://img.shields.io/badge/Font_Awesome-5.13-f0f1f3?logo=fontawesome&logoColor=f0f1f3&labelColor=538DD7)](https://docs-v5.fontawesome.com/)
 [![Django](https://img.shields.io/badge/Django-6.0-44B78B?logo=django&logoColor=white&labelColor=092E20)](https://docs.djangoproject.com/en/6.0/)
 [![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000000.svg)](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html)\
-[![Linting](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml/badge.svg?branch=CI-test)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml)
+[![Linting](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml)
 [![Testing](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml)
 [![Coverage](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml)
 [![Dependabot Updates](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates)
@@ -278,7 +278,7 @@ The code of this project has high standards. This is enforced by continuous inte
 - [PEP 8](https://www.python.org/dev/peps/pep-0008/) (Python styling) is enforced by using [Black](https://github.com/psf/black) and [flake8](https://gitlab.com/pycqa/flake8).
   - `black` is a tool that formats Python code. It is meant to be run on Python code and always return the same well-formatted code. This removes the need of manually formatting Python code, because if a formatting mistake is made, running `black` on the project will fix the mistake.
 - Test coverage (both statement and branch coverage) is enforced by using [Coverage.py](https://coverage.readthedocs.io/en/coverage-5.0.3/).
-  - The website has 100% test coverage.
+  - The website has at least 95% test coverage.
 - [PEP 257](https://www.python.org/dev/peps/pep-0257/) (Python docstring conventions) is enforced by [`pydocstyle`](https://github.com/PyCQA/pydocstyle).
   - PEP 257 forces every function, method and class to have documentation.
 

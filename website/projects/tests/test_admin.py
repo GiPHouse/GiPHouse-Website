@@ -38,7 +38,9 @@ class GetProjectsStaffStatusTest(TestCase):
     def setUpTestData(cls):
         cls.staff_password = "hunter1"
         cls.staff = User.objects._create_user(
-            github_id=0, is_staff=True, is_superuser=False
+            github_id=0,
+            is_staff=True,
+            is_superuser=False
         )
 
         cls.view_permission = Permission.objects.get(codename="view_project")

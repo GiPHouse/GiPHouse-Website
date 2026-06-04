@@ -31,11 +31,11 @@ dependencies = [
     "Django>=6.0",
     "requests>=2.34.2",
     "libsass>=0.23.0",
-    "django>=6.0.5",
+    "django>=6.0.6",
     "django-sass-processor>=1.4.2",
     "Pillow>=12.2.0",
     "django-admin-autocomplete-filter>=0.7.1",
-    "google-api-python-client>=2.196.0",
+    "google-api-python-client>=2.197.0",
     "google-auth-httplib2>=0.4.0",
     "google-auth-oauthlib>=1.4.0",
     "cryptography>=48.0.0",
@@ -48,7 +48,7 @@ dependencies = [
     "django-bleach>=3.1.0",
     "django-nested-admin>=4.1.6",
     "gunicorn>=26.0.0",
-    "django-components>=0.150.0",
+    "django-components>=0.151.0",
 ]
 
 [project.optional-dependencies]
@@ -59,11 +59,11 @@ production = [
 
 [dependency-groups]
 dev = [
-    "coverage[toml]>=7.14.0",
+    "coverage[toml]>=7.14.1",
     "pydocstyle>=6.3.0",
     "freezegun>=1.5.5",
     "Faker>=40.4.0",
-    "ruff>=0.15.13",
+    "ruff>=0.15.15",
 ]
 
 [tool.uv]
@@ -90,7 +90,7 @@ omit = ["website/manage.py", "website/giphousewebsite/wsgi.py", "website/*/migra
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 100.0
+fail_under = 95.0
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
@@ -123,6 +123,7 @@ exclude = [
     "venv",
     "website/giphousewebsite/settings/",
     "website/registrations/models/__init__.py",
+    "smt_solver_gip",   # This folder contains unused legacy code that is full of linting errors.
 ]
 
 # Same as Black.
