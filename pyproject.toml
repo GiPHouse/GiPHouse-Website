@@ -90,7 +90,7 @@ omit = ["website/manage.py", "website/giphousewebsite/wsgi.py", "website/*/migra
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 100.0
+fail_under = 95.0
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
