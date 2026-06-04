@@ -228,7 +228,7 @@ class ProjectAdmin(admin.ModelAdmin):
         actions = super().get_actions(request)
 
         if not request.user.has_perm(
-                f"{ProjectsConfig.label}.can_sync_github"
+                f"{ProjectsConfig.label}.can_sync_to_github"
         ):
             del actions["synchronise_to_GitHub"]
 
