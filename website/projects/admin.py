@@ -155,20 +155,18 @@ class ProjectAdmin(admin.ModelAdmin):
 
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
+    dont_save_on_fields = ("semester", "comments", "github_team_id")
 
     def save_model(self, request, obj, form, change):
-        # This automatically appends the year of the semester to the slug when saving
-        super().save_model(request, obj, form, change)
-
-        obj.slug = slugify(f"{obj.name}-{obj.semester.year}")
-        obj.save(update_fields=["slug"])
-
-        if obj.default_repo:
-            obj.repository_set.create(
-                name=obj.slug,
-            )
-            obj.default_repo = False
-            obj.save(update_fields=["default_repo"])
+        if not change: # new project
+            super().save_model(request, obj, form, change) # save
+            self.synchronise_to_GitHub(request, obj)
+        else: # existing
+            changed_fields = form.changed_data
+            for field in [field for field in changed_fields if field not in self.dont_save_on_fields]:
+                super().save_model(request, obj, form, change)  # save
+                self.synchronise_to_GitHub(request, obj)
+                break
 
     def is_archived(self, instance):
         """Return the archived status of a Project instance (required to display property as check mark)."""
@@ -353,19 +351,6 @@ class ProjectAdmin(admin.ModelAdmin):
             ),
         ]
         return custom_urls + urls
-
-    # def save_model(self, request, obj, form, change):
-    #     if not change: # new project
-    #         super().save_model(request, obj, form, change) # save
-    #         self.synchronise_to_GitHub(request, obj)
-    #     else: # existing
-    #         changed_fields = form.changed_data
-    #         if ("name" in changed_fields or
-    #             "managers" in changed_fields or
-    #             "engineers" in changed_fields):
-    #             super().save_model(request, obj, form, change)  # save
-    #             self.synchronise_to_GitHub(request, obj)
-
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
