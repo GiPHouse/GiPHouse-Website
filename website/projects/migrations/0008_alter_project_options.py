@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
                 "permissions": [
                     (
                         "can_sync_to_github",
-                        "Can synchronize project(s) to GitHub",
+                        "Can batch sync project(s) to GitHub",
                     )
                 ],
             },
