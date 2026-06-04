@@ -36,6 +36,7 @@ class GitHubAPITalker:
             if settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 == "":
                 return
 
+            # pragma: no cover
             settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY = base64.b64decode(
                 settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64
             )
@@ -180,6 +181,9 @@ class GitHubSync:
         self.task = Task.objects.create(
             total=len(self.projects),
             completed=0,
+            logs="["
+            + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            + "] INFO: START OF LOGS\n",
             redirect_url=reverse("admin:projects_project_changelist"),
         )
 
@@ -572,11 +576,15 @@ class GitHubSync:
         """Sync all selected projects to GitHub."""
         try:
             self.delete_teams_and_repos_to_be_deleted()
+        except GithubException as e:
+            self.exception(e.message)
         except Exception as e:
             self.exception(e)
         for project in self.projects:
             try:
                 self.sync_project(project)
+            except GithubException as e:
+                self.exception(e.message)
             except Exception as e:
                 self.exception(e)
             self.task.completed += 1

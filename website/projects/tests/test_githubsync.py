@@ -197,7 +197,7 @@ class GitHubSyncTest(TestCase):
         )
         reg.add_project(cls.project1)
         cls.exception = GithubException(
-            status=MagicMock(status=404), data="abc", headers={}
+            status=MagicMock(status=404), data="abc", headers={}, message=""
         )
         cls.repoToBeDeleted1 = RepositoryToBeDeleted.objects.create(
             github_repo_id=1122334455
@@ -297,8 +297,7 @@ class GitHubSyncTest(TestCase):
 
     def test_sync_team_member__not_in_project(self):
         reg = Registration.objects.get(user=self.employee1)
-        # field first_project does not currently exist
-        reg.first_project = None
+        reg.projects.clear()
         reg.save()
         return_value = self.sync.sync_team_member(
             self.employee1, self.project1

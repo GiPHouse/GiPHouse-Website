@@ -110,8 +110,6 @@ class ExistingRepositoryInline(admin.StackedInline):
 
     template = "admin/existing_repository_inline.html"
 
-    #
-
     class Media:
         js = ("admin/js/fetch_repo.js",)
 
@@ -221,6 +219,9 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def synchronise_to_GitHub(self, request, queryset):
         """Synchronise projects to GitHub."""
+        if not request.user.has_perm(f"{ProjectsConfig.label}.can_sync_to_github"):
+            raise PermissionDenied
+
         sync = GitHubSync(queryset)
         task = sync.perform_asynchronous_sync()
         return redirect("admin:progress_bar", task=task)
@@ -270,6 +271,17 @@ class ProjectAdmin(admin.ModelAdmin):
 
     export_project_members.short_description = "Export project members to CSV"
 
+    def get_actions(self, request):
+        """Override to hide certain actions from the UI"""
+        actions = super().get_actions(request)
+
+        if not request.user.has_perm(
+                f"{ProjectsConfig.label}.can_sync_to_github"
+        ):
+            del actions["synchronise_to_GitHub"]
+
+        return actions
+
     def synchronise_current_projects_to_GitHub(self, request):
         """Synchronise project(teams) of the current semester to GitHub."""
         if not request.user.has_perm(
@@ -311,7 +323,7 @@ class ProjectAdmin(admin.ModelAdmin):
                 status=404,
             )
         except GithubException as e:
-            return JsonResponse({"error": e.message}, status=500)
+            return JsonResponse({"error": e.message}, status=e.status)
 
         archived = Repository.Archived.NOT_ARCHIVED
         if repo.archived:

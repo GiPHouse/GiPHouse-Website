@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.db import models
 
@@ -12,11 +13,31 @@ from projects.models import (
     Repository,
     RepositoryToBeDeleted,
     Client,
+    ExistingRepository,
 )
 
 from registrations.models import Employee, Registration
 
 from django.db.utils import IntegrityError
+
+
+class ExistingRepositoryTests(TestCase):
+    def test_clean_fails_with_id_no_name(self):
+        repo = ExistingRepository(
+            github_repo_id=12345,
+            name="",
+        )
+
+        with self.assertRaises(ValidationError):
+            repo.full_clean()
+
+    def test_valid_input_no_exception(self):
+        repo = ExistingRepository(
+            github_repo_id=12345,
+            name="test-repo",
+        )
+
+        repo.full_clean()
 
 
 class EmployeeQueryTest(TestCase):
@@ -193,7 +214,9 @@ class EmployeeQueryTest(TestCase):
                 name="project2", slug="project-2020", semester=self.semester
             )
             project2.save()
-            self.fail("test_slug_name_already_exists FAILED: TWO PROJECTS WITH SAME SLUG")
+            self.fail(
+                "test_slug_name_already_exists FAILED: TWO PROJECTS WITH SAME SLUG"
+            )
         except IntegrityError:
             pass
 
@@ -207,6 +230,8 @@ class EmployeeQueryTest(TestCase):
                 name="project1",
             )
             repo2.save()
-            self.fail("test_repo_name_already_exists FAILED: TWO REPOS WITH SAME NAME")
+            self.fail(
+                "test_repo_name_already_exists FAILED: TWO REPOS WITH SAME NAME"
+            )
         except IntegrityError:
             pass

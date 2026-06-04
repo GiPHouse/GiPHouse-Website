@@ -124,9 +124,9 @@ class ExistingRepositoryInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields["github_repo_id"].help_text = (
-            "Pasting the repository id is recommended because when a repository is fetched this field can not be altered anymore."
-        )
+        self.fields[
+            "github_repo_id"
+        ].help_text = "Pasting the repository id is recommended because when a repository is fetched this field can not be altered anymore."
 
         # Limit the choices of is_archived.
         if self.instance and self.instance.pk:  # existing obj

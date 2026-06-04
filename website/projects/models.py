@@ -40,7 +40,7 @@ class Project(models.Model):
         unique_together = [["name", "semester"]]
 
         permissions = [
-            ("can_sync_to_github", "Can synchronize project(s) to GitHub"),
+            ("can_sync_to_github", "Can batch sync project(s) to GitHub"),
         ]
 
     name = models.CharField("name", max_length=50)
@@ -194,9 +194,7 @@ class ExistingRepository(Repository):
         super().clean()
 
         if not self.pk and (self.github_repo_id and not self.name):
-            raise ValidationError(
-                'Fetch info again by re-entering repo id'
-            )
+            raise ValidationError("Fetch info again by re-entering repo id")
 
 
 class RepositoryToBeDeleted(models.Model):
