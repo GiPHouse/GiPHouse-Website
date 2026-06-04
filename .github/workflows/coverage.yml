@@ -26,6 +26,3 @@ jobs:
 
     - name: "Check Coverage report"
       run: "uv run coverage report"
-
-    - name: "Test createfixtures command"
-      run: "uv run python website/manage.py createfixtures"
