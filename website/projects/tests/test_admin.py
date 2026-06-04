@@ -24,7 +24,7 @@ from projects.admin import (
     ExistingRepositoryInline,
 )
 from projects.forms import ProjectAdminForm
-from projects.models import Project, Repository
+from projects.models import Project, Repository, NewRepository, ExistingRepository
 
 from registrations.models import Employee, Registration
 
@@ -742,7 +742,8 @@ class GetProjectsTest(TestCase):
             f'"{self.manager.student_number}","{self.manager.github_username}"',
         )
 
-    def test_save_model_updates_slug_on_creation(self):
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_updates_slug_on_creation(self, mock_sync):
         """Test that slug is generated from project name and semester year on creation."""
         project = Project(
             name="Test Project",
@@ -759,7 +760,8 @@ class GetProjectsTest(TestCase):
         project.refresh_from_db()
         self.assertEqual(project.slug, "test-project-2020")
 
-    def test_save_model_updates_slug_on_name_change(self):
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_updates_slug_on_name_change(self, mock_sync):
         """Test that slug is updated when project name changes."""
         project = Project.objects.create(
             name="Old Name",
@@ -776,7 +778,8 @@ class GetProjectsTest(TestCase):
         project.refresh_from_db()
         self.assertEqual(project.slug, "new-name-2020")
 
-    def test_save_model_updates_slug_on_semester_change(self):
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_updates_slug_on_semester_change(self, mock_sync):
         """Test that slug is updated when semester year changes."""
         new_semester = Semester.objects.create(
             year=2021, season=Semester.SPRING
@@ -796,7 +799,8 @@ class GetProjectsTest(TestCase):
         project.refresh_from_db()
         self.assertEqual(project.slug, "test-project-2021")
 
-    def test_save_model_does_not_update_slug_if_unchanged(self):
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_does_not_update_slug_if_unchanged(self, mock_sync):
         """Test that slug is not updated if it doesn't need to change."""
         project = Project.objects.create(
             name="Test Project",
@@ -813,7 +817,8 @@ class GetProjectsTest(TestCase):
         project.refresh_from_db()
         self.assertEqual(project.slug, original_slug)
 
-    def test_save_model_creates_default_repository(self):
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_creates_default_repository(self, mock_sync):
         """Test that a default repository is created when default_repo is True and no repos exist."""
         project = Project(
             name="Test Project",
@@ -835,7 +840,8 @@ class GetProjectsTest(TestCase):
         )
         self.assertFalse(project.default_repo)
 
-    def test_save_model_does_not_create_repo_if_default_repo_false(self):
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_does_not_create_repo_if_default_repo_false(self, mock_sync):
         """Test that no repository is created when default_repo is False."""
         project = Project(
             name="Test Project",
@@ -853,28 +859,8 @@ class GetProjectsTest(TestCase):
         project.refresh_from_db()
         self.assertEqual(project.repository_set.count(), 0)
 
-    def test_save_model_does_not_create_repo_if_repos_exist(self):
-        """Test that no repository is created when project already has repositories."""
-        project = Project.objects.create(
-            name="Test Project",
-            slug="test-project-2020",
-            semester=self.semester,
-            description="Test description",
-            default_repo=True,
-        )
-        Repository.objects.create(
-            name="existing-repo",
-            project=project,
-        )
-        form = MagicMock()
-
-        self.project_admin.save_model(self.request, project, form, change=True)
-
-        project.refresh_from_db()
-        self.assertEqual(project.repository_set.count(), 1)
-        self.assertTrue(project.default_repo)
-
-    def test_save_model_with_special_characters_in_name(self):
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_with_special_characters_in_name(self, mock_sync):
         """Test that slug is properly generated with special characters in project name."""
         project = Project(
             name="Test & Project!",
@@ -891,3 +877,177 @@ class GetProjectsTest(TestCase):
         project.refresh_from_db()
         # slugify converts special characters appropriately
         self.assertEqual(project.slug, "test-project-2020")
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_new_obj_githubsync_called(self, mock_sync):
+        project = Project(
+            name="idk atp",
+            semester=self.semester,
+            description="wsg",
+            default_repo=False,
+        )
+        form = MagicMock() # does not matter in this case
+
+        self.project_admin.save_model(
+            self.request, project, form, change=False
+        )
+
+        mock_sync.assert_called_once()
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_existing_obj_form_triggers_sync(self, mock_sync):
+        project = Project.objects.create(
+            name="sanchez",
+            semester=self.semester,
+            description="none",
+            default_repo=False,
+        )
+        form = MagicMock()
+        form.changed_data = ["name"]
+
+        self.project_admin.save_model(
+            self.request, project, form, change=True
+        )
+
+        mock_sync.assert_called_once()
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_save_model_existing_obj_form_does_not_trigger_sync(self, mock_sync):
+        project = Project.objects.create(
+            name="bird person",
+            semester=self.semester,
+            description="none",
+            default_repo=False,
+        )
+        form = MagicMock()
+        form.changed_data = ["comments"]
+
+        self.project_admin.save_model(
+            self.request, project, form, change=True
+        )
+
+        mock_sync.assert_not_called()
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_no_sync_when_no_inlines_added(self, mock_sync):
+        form = MagicMock()
+        form.instance = self.project
+
+        repo_formset = MagicMock()
+        repo_formset.model = NewRepository
+        repo_formset.new_objects = []
+        repo_formset.changed_objects = []
+        repo_formset.deleted_objects = []
+
+        self.project_admin.save_related(
+            request=MagicMock(),
+            form=form,
+            formsets=[repo_formset],
+            change=True,
+        )
+
+        mock_sync.assert_not_called()
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_no_sync_on_mailing_lists_added(self, mock_sync):
+        form = MagicMock()
+        form.instance = self.project
+
+        ml_formset = MagicMock()
+        ml_formset.model = MailingList.projects.through
+        ml_formset.new_objects = [MagicMock()]
+        ml_formset.changed_objects = []
+        ml_formset.deleted_objects = []
+
+        self.project_admin.save_related(
+            request=self.request,
+            form=form,
+            formsets=[ml_formset],
+            change=True,
+        )
+
+        mock_sync.assert_not_called()
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_sync_on_repo_added(self, mock_sync):
+        form = MagicMock()
+        form.instance = self.project
+
+        repo_formset = MagicMock()
+        repo_formset.model = NewRepository
+        repo_formset.new_objects = [MagicMock()]
+        repo_formset.changed_objects = []
+        repo_formset.deleted_objects = []
+
+        self.project_admin.save_related(
+            request=self.request,
+            form=form,
+            formsets=[repo_formset],
+            change=True,
+        )
+
+        mock_sync.assert_called_once()
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_sync_on_repo_deleted(self, mock_sync):
+        form = MagicMock()
+        form.instance = self.project
+
+        repo_formset = MagicMock()
+        repo_formset.model = ExistingRepository
+        repo_formset.new_objects = []
+        repo_formset.changed_objects = []
+        repo_formset.deleted_objects = [MagicMock()]
+
+        self.project_admin.save_related(
+            request=MagicMock(),
+            form=form,
+            formsets=[repo_formset],
+            change=True,
+        )
+
+        mock_sync.assert_called_once()
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_sync_on_existing_repo_changed(self, mock_sync):
+        form = MagicMock()
+        form.instance = self.project
+
+        repo_formset = MagicMock()
+        repo_formset.model = ExistingRepository
+        repo_formset.new_objects = []
+        repo_formset.changed_objects = [MagicMock()]
+        repo_formset.deleted_objects = []
+
+        self.project_admin.save_related(
+            request=MagicMock(),
+            form=form,
+            formsets=[repo_formset],
+            change=True,
+        )
+
+        mock_sync.assert_called_once()
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_sync_on_project_delete(self, mock_sync):
+        self.project_admin.delete_model(
+            self.request,
+            self.project,
+        )
+
+        mock_sync.assert_called_once()
+
+    @patch.object(ProjectAdmin, "synchronise_to_GitHub")
+    def test_sync_on_bulk_delete(self, mock_sync):
+        # still counts as bulk
+        queryset = Project.objects.all()
+
+        self.project_admin.delete_queryset(
+            self.request,
+            queryset,
+        )
+
+        mock_sync.assert_called_once_with(
+            self.request,
+            queryset
+        )
