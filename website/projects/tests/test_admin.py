@@ -16,7 +16,6 @@ from courses.models import Course, Semester
 
 from mailing_lists.models import MailingList
 
-from projects import githubsync
 from projects.admin import (
     ProjectAdmin,
     ProjectAdminArchivedFilter,
