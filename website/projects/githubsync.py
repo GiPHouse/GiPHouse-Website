@@ -36,6 +36,7 @@ class GitHubAPITalker:
             if settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64 == "":
                 return
 
+            # pragma: no cover
             settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY = base64.b64decode(
                 settings.DJANGO_GITHUB_SYNC_APP_PRIVATE_KEY_BASE64
             )
@@ -180,21 +181,42 @@ class GitHubSync:
         self.task = Task.objects.create(
             total=len(self.projects),
             completed=0,
+            logs="["
+            + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            + "] INFO: START OF LOGS\n",
             redirect_url=reverse("admin:projects_project_changelist"),
         )
 
+    def log(self, message, level="INFO"):
+        """Store the logs on the task."""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        message = message.replace("\n", "")
+        log_entry = f"[{timestamp}] {level}: {message}\n"
+
+        self.task.logs += log_entry
+        self.task.save(update_fields=["logs"])
+
     def error(self, msg):
         """Log an error message and set the fail state to True."""
+        self.log(msg, "ERROR")
         self.logger.error(msg)
         self.fail = True
 
     def warning(self, msg):
         """Log a warning message."""
+        self.log(msg, "WARNING")
         self.logger.warning(msg)
 
     def info(self, msg):
         """Log an info message."""
+        self.log(msg, "INFO")
         self.logger.info(msg)
+
+    def exception(self, msg):
+        """Log an exception message."""
+        self.log(msg, "EXCEPTION")
+        self.logger.exception(msg)
+        self.fail = True
 
     def sync_team_member(self, employee, project):
         """
@@ -461,9 +483,16 @@ class GitHubSync:
         :param repo: The repository to create
         :return: the GitHub repository that is created
         """
+
+        # local wrapper makes interacts with the GitHub library,
+        # receives a class from the GitHub library
         github_repo = self.github.create_repo(repo)
         self.info(f"Created repository {repo.name}")
+
+        # again, this is a class from the GitHub library
         github_team = self.github.get_team(repo.project.github_team_id)
+
+        # a class from the GitHub library has these methods
         github_team.add_to_repos(github_repo)
 
         success = github_team.update_team_repository(github_repo, "admin")
@@ -547,17 +576,20 @@ class GitHubSync:
         """Sync all selected projects to GitHub."""
         try:
             self.delete_teams_and_repos_to_be_deleted()
+        except GithubException as e:
+            self.exception(e.message)
         except Exception as e:
-            self.logger.exception(e)
-            self.fail = True
+            self.exception(e)
         for project in self.projects:
             try:
                 self.sync_project(project)
+            except GithubException as e:
+                self.exception(e.message)
             except Exception as e:
-                self.logger.exception(e)
-                self.fail = True
+                self.exception(e)
             self.task.completed += 1
             self.task.save()
+        self.task.status = not self.fail
         self.task.fail = self.fail
 
         self.task.success_message = (

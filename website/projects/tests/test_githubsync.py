@@ -169,10 +169,6 @@ class GitHubAPITalkerTest(TestCase):
 class GitHubSyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Course.objects.create(name="Software Engineering")
-        Course.objects.create(name="System Development Management")
-        Course.objects.create(name="Software Development Entrepreneurship")
-
         cls.semester = Semester.objects.create(year=2020, season=Semester.FALL)
         cls.project1 = Project.objects.create(
             name="test1", github_team_id="87654321", semester=cls.semester
@@ -201,7 +197,7 @@ class GitHubSyncTest(TestCase):
         )
         reg.add_project(cls.project1)
         cls.exception = GithubException(
-            status=MagicMock(status=404), data="abc", headers={}
+            status=MagicMock(status=404), data="abc", headers={}, message=""
         )
         cls.repoToBeDeleted1 = RepositoryToBeDeleted.objects.create(
             github_repo_id=1122334455
@@ -301,6 +297,7 @@ class GitHubSyncTest(TestCase):
 
     def test_sync_team_member__not_in_project(self):
         reg = Registration.objects.get(user=self.employee1)
+        reg.projects.clear()
         reg.save()
 
         return_value = self.sync.sync_team_member(
@@ -591,7 +588,10 @@ class GitHubSyncTest(TestCase):
         self.create_or_update_repo__create()
         self.assertEqual(self.repo1.github_repo_id, 25)
         self.assertEqual(self.sync.repos_created, 1)
-        self.assert_info()
+
+        self.logger.warning.assert_not_called()
+        self.logger.error.assert_not_called()
+        self.assertFalse(self.sync.fail)
 
     def test_create_or_update_repo__create_exception(self):
         self.create_or_update_repo__create(self.exception)

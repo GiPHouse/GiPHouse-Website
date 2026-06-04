@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.admin import widgets
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.utils.text import slugify
+from django.core.exceptions import ValidationError
 
 from courses.models import Course, Semester
 
@@ -63,6 +65,27 @@ class ProjectAdminForm(forms.ModelForm):
         widget=widgets.FilteredSelectMultiple("Engineers", False),
     )
 
+    class Media:
+        js = ("admin/js/admin.js",)
+
+    def clean(self):
+        """Validate form data and handle semester changes."""
+        cleaned_data = super().clean()
+        name = cleaned_data.get("name")
+        semester = cleaned_data.get("semester")
+
+        if semester and name:
+            expected_slug = slugify(f"{name}-{semester.year}")
+
+            existing_project = Project.objects.filter(
+                slug=expected_slug
+            ).exclude(pk=self.instance.pk if self.instance.pk else None)
+
+            if existing_project.exists():
+                raise ValidationError(
+                    f'A project with slug "{expected_slug}" already exists please choose a different name'
+                )
+
     def save_m2m(self):
         """Add the users to the Project and remove other users from the Project."""
         new_users = [
@@ -85,24 +108,51 @@ class ProjectAdminForm(forms.ModelForm):
         return instance
 
 
-class RepositoryInlineForm(forms.ModelForm):
-    """Form for RepositoryInline."""
+class NewRepositoryInlineForm(forms.ModelForm):
+    """Form for NewRepositoryInline."""
 
     def __init__(self, *args, **kwargs):
         """Limit the choices of is_archived."""
         super().__init__(*args, **kwargs)
-        if (
-            self.instance is not None
-            and self.instance.is_archived == Repository.Archived.CONFIRMED
-        ):
-            self.fields["is_archived"].disabled = True
+
+        self.fields["is_archived"].choices = Repository.Archived.choices[:-1]
+        self.fields[
+            "is_archived"
+        ].help_text = "Setting this to 'To be archived' will archive this repository during the next GitHub sync."
+
+
+class ExistingRepositoryInlineForm(forms.ModelForm):
+    """Form for ExistingRepositoryInline."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields[
+            "github_repo_id"
+        ].help_text = "Pasting the repository id is recommended because when a repository is fetched this field can not be altered anymore."
+
+        # Limit the choices of is_archived.
+        if self.instance and self.instance.pk:  # existing obj
+            if self.instance.is_archived == Repository.Archived.CONFIRMED:
+                self.fields["is_archived"].disabled = True
+                self.fields[
+                    "is_archived"
+                ].help_text = "This repository is already archived on GitHub. It is currently not possible to unarchive them."
+            else:
+                self.fields[
+                    "is_archived"
+                ].choices = Repository.Archived.choices[:-1]
+                self.fields[
+                    "is_archived"
+                ].help_text = "Setting this to 'To be archived' will archive this repository during the next GitHub sync."
+
+        # Set other fields' statuses (on/off) and help texts.
+        if self.instance and self.instance.pk:  # existing obj
+            self.fields["github_repo_id"].disabled = True
             self.fields[
-                "is_archived"
-            ].help_text = "This repository is already archived on GitHub. It is currently not possible to unarchive them."
-        else:
-            self.fields["is_archived"].choices = Repository.Archived.choices[
-                :-1
-            ]
-            self.fields[
-                "is_archived"
-            ].help_text = "Setting this to 'To be archived' will archive this repository during the next GitHub sync."
+                "github_repo_id"
+            ].help_text = "This is the id of the GitHub repository."
+
+        self.fields["github_repo_id"].widget.attrs["class"] = (
+            "github_repo_id-field"
+        )
