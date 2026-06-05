@@ -23,6 +23,4 @@ class SuffixWidgetTest(TestCase):
         render.return_value = "<a>somehtml</a>"
         test_suffix = "testsuffix"
         widget = SuffixTextInputWidget(suffix="testsuffix")
-        self.assertEqual(
-            widget.render(None, None), render.return_value + test_suffix
-        )
+        self.assertEqual(widget.render(None, None), render.return_value + test_suffix)

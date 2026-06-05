@@ -25,9 +25,7 @@ class TaskAdmin(admin.ModelAdmin):
             {
                 "completed": task.completed,
                 "total": task.total,
-                "hasData": (
-                    not task.fail and task.data is not None and task.data != ""
-                ),
+                "hasData": (not task.fail and task.data is not None and task.data != ""),
             }
         )
 
@@ -37,9 +35,7 @@ class TaskAdmin(admin.ModelAdmin):
         if t.fail or t.data == "" or t.data is None:
             raise Http404
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = (
-            'attachment; filename="proposed-groups.csv"'
-        )
+        response["Content-Disposition"] = 'attachment; filename="proposed-groups.csv"'
         response.write(t.data)
         return response
 
@@ -58,11 +54,7 @@ class TaskAdmin(admin.ModelAdmin):
 
     def task_progress_bar(self, request, task):
         """Show a progress bar for a Task."""
-        return render(
-            request,
-            "admin/tasks/progress_bar.html",
-            {"task": task, "title": "Progress"},
-        )
+        return render(request, "admin/tasks/progress_bar.html", {"task": task, "title": "Progress"})
 
     def get_urls(self):
         """Get admin urls."""
