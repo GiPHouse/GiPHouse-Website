@@ -10,6 +10,10 @@ class SampleRegistrationForm:
             semester=Semester.objects.get_or_create_current_semester(),
         )
 
+        current_projects = Project.objects.filter(semester=self.reg.semester)
+        if current_projects.exists():
+            self.reg.projects.set(current_projects)
+
         self.first_name = ("First name", Question.TEXT)
         self.last_name = ("Last name", Question.TEXT)
         self.email = ("Email", Question.TEXT)
