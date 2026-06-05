@@ -284,16 +284,37 @@ class UserAdminSemesterFilter(admin.SimpleListFilter):
     rel_model = Registrations
 
     def lookups(self, request, model_admin):
-        return [(s.id, str(s)) for s in Semester.objects.all()]
+        """Defines all the filter options including All"""
+        semesters = Semester.objects.all()
+        id = 1
+        filter_options = [(0, "All ")]
+        for s in semesters:
+            filter_options.append((id, s))
+            id += 1
+        return filter_options
+
+    def choices(self, changelist):
+        """Hides the non functional All button"""
+        for choice in super().choices(changelist):
+            if choice["display"] == "All":
+                continue
+            yield choice
+
+    def value(self):
+        """Autoselects the newest semester"""
+        val = super().value()
+        if val is not None:
+            return val
+        return str(1) if Semester.objects.all().first() else None
 
     def queryset(self, request, queryset):
         """Filter semesters."""
-        if self.value():
+        if self.value() == 0:
+            return queryset
+        else:
             return queryset.filter(
                 registrationsubmission__registration__semester=self.value()
             )
-        else:
-            return queryset
 
 
 class UserAdminProjectFilter(AutocompleteFilter):
