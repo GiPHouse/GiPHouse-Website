@@ -5,8 +5,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("courses", "0004_auto_20220204_1357"),
-        ("projects", "0008_alter_project_options"),
+        ("courses", "0001_initial"),
+        ("projects", "0002_alter_project_options"),
     ]
 
     operations = [
