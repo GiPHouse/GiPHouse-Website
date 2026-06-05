@@ -309,7 +309,7 @@ class UserAdminSemesterFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         """Filter semesters."""
-        if self.value() == 0:
+        if self.value() == "0":
             return queryset
         else:
             return queryset.filter(
