@@ -17,6 +17,7 @@
 [![Linting](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml)
 [![Testing](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml)
 [![Coverage](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml)
+[![Deployment](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/deployment.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/deployment.yml)
 [![Dependabot Updates](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates)
 
 This is the code for the website of [GiPHouse](https://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
