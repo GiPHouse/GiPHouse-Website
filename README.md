@@ -8,7 +8,7 @@
 
 [![License](https://img.shields.io/badge/License-AGPL--3.0-742e68?style=flat)](https://www.gnu.org/licenses/agpl-3.0)
 [![Python](https://img.shields.io/badge/Python-3.14-ffdd54?logo=python&logoColor=ffdd54&labelColor=3776AB)](https://docs.python.org/3.14/)
-[![Ruff](https://img.shields.io/badge/Ruff-261230?logo=Ruff&logoColor=D7FF64)](https://docs.astral.sh/ruff/)
+[![Ruff](https://img.shields.io/badge/Ruff-0.15-D7FF64?logo=Ruff&logoColor=D7FF64&labelColor=261230)](https://docs.astral.sh/ruff/)
 [![uv](https://img.shields.io/badge/uv-261230?logo=uv&logoColor=DE5FE9)](https://docs.astral.sh/uv/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-e5e1ea?logo=bootstrap&logoColor=e5e1ea&labelColor=7952B3)](https://getbootstrap.com/docs/5.3)
 [![Font_Awesome](https://img.shields.io/badge/Font_Awesome-5.13-f0f1f3?logo=fontawesome&logoColor=f0f1f3&labelColor=538DD7)](https://docs-v5.fontawesome.com/)
