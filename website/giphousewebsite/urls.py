@@ -31,11 +31,6 @@ urlpatterns = [
         GitHubLoginRedirectView.as_view(),
         name="login-redirect",
     ),
-    path(
-        "admin/logout/",
-        RedirectView.as_view(url="/logout", query_string=True),
-        name="logout-redirect",
-    ),
     path("admin/", admin.site.urls),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("oauth/", include("github_oauth.urls")),
