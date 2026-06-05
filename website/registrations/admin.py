@@ -280,8 +280,11 @@ class UserAdminSemesterFilter(admin.SimpleListFilter):
     """Filter class to filter Semester objects."""
 
     title = "Semester"
-    field_name = "semester"
+    parameter_name = "semester"
     rel_model = Registrations
+
+    def lookups(self, request, model_admin):
+        return [(s.id, str(s)) for s in Semester.objects.all()]
 
     def queryset(self, request, queryset):
         """Filter semesters."""
@@ -300,6 +303,9 @@ class UserAdminProjectFilter(AutocompleteFilter):
     field_name = "projects"
     rel_model = Registrations
 
+    def lookups(self, request, model_admin):
+        return [(c.id, c.name) for c in Course.objects.all()]
+
     def queryset(self, request, queryset):
         """Filter out participants in the specified Project."""
         if self.value():
@@ -312,6 +318,7 @@ class UserAdminProjectFilter(AutocompleteFilter):
 class UserAdminCourseFilter(admin.SimpleListFilter):
     title = "Course"
     parameter_name = "course"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [(c.id, c.name) for c in Course.objects.all()]
@@ -345,6 +352,7 @@ class UserAdminDevExpFilter(UserAdminAnswerFilter):
     title = "Dev Experience"
     parameter_name = "devexp"
     label = "devexp"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [
@@ -358,6 +366,7 @@ class UserAdminGitExpFilter(UserAdminAnswerFilter):
     title = "Git Experience"
     parameter_name = "gitexp"
     label = "gitexp"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [
@@ -371,6 +380,7 @@ class UserAdminScrumExpFilter(UserAdminAnswerFilter):
     title = "Scrum Experience"
     parameter_name = "scrumexp"
     label = "scrumexp"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [
@@ -384,6 +394,7 @@ class UserAdminManagementFilter(UserAdminAnswerFilter):
     title = "Management Interest"
     parameter_name = "management"
     label = "management"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
@@ -393,6 +404,7 @@ class UserAdminInternationalFilter(UserAdminAnswerFilter):
     title = "Non-dutch"
     parameter_name = "nondutch"
     label = "nondutch"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
@@ -402,6 +414,7 @@ class UserAdminTimeslot1Filter(UserAdminAnswerFilter):
     title = "Timeslot 1"
     parameter_name = "timeslot1"
     label = "timeslot1"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
@@ -411,6 +424,7 @@ class UserAdminTimeslot2Filter(UserAdminAnswerFilter):
     title = "Timeslot 2"
     parameter_name = "timeslot2"
     label = "timeslot2"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
@@ -420,6 +434,7 @@ class UserAdminTimeslot3Filter(UserAdminAnswerFilter):
     title = "Timeslot 3"
     parameter_name = "timeslot3"
     label = "timeslot3"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
@@ -492,6 +507,7 @@ class UserAdminNdaFilter(UserAdminAnswerFilter):
     title = "Has problems with NDA"
     parameter_name = "nonda"
     label = "nonda"
+    template = "admin/registrations/collapsible_filter.html"
 
     def lookups(self, request, model_admin):
         return [("True", "True"), ("False", "False")]
@@ -510,19 +526,6 @@ class RegistrationSubmissionInline(NestedTabularInline):
     model = RegistrationSubmission
     extra = 0
     inlines = [AnswerInline]
-
-
-class CollapsedRelatedFieldFilter(admin.RelatedFieldListFilter):
-    """Class to collapse related field filters on default"""
-
-    template = "admin/registrations/collapsible_filter.html"
-
-
-class CollapsedChoicesFieldFilter(admin.ChoicesFieldListFilter):
-    """Class to collapse choices field filters on default"""
-
-    template = "admin/registrations/collapsible_filter.html"
-
 
 class CollapsedBooleanFieldFilter(admin.BooleanFieldListFilter):
     """Class to collapse boolean field filters on default"""
@@ -576,7 +579,7 @@ class UserAdmin(NestedModelAdmin):
     )
 
     list_filter = (
-        # UserAdminSemesterFilter,
+        UserAdminSemesterFilter,
         UserAdminProjectFilter,
         UserAdminCourseFilter,
         UserAdminDevExpFilter,
@@ -588,7 +591,7 @@ class UserAdmin(NestedModelAdmin):
         UserAdminTimeslot2Filter,
         UserAdminTimeslot3Filter,
         UserAdminNdaFilter,
-        "is_staff",
+        ("is_staff", CollapsedBooleanFieldFilter),
     )
 
     # Necessary for the autocomplete filter
