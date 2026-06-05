@@ -1,8 +1,27 @@
-# GiPHouse website
+<div align="center">
 
-![](https://github.com/giphouse/Website/workflows/Linting%20and%20Testing/badge.svg) ![](https://github.com/giphouse/Website/workflows/Deploy%20to%20production/badge.svg) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) ![](https://img.shields.io/badge/coverage-100%25-brightgreen)
+<a href="https://giphouse.nl/">
+<img src="website/giphousewebsite/static/img/favicon/android-chrome-512x512.png" height=150>
+</a>
 
-This is the code for the website of [GiPHouse](http://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
+# __GiPHouse website__
+
+[![License](https://img.shields.io/badge/License-AGPL--3.0-742e68?style=flat)](https://www.gnu.org/licenses/agpl-3.0)
+[![Python](https://img.shields.io/badge/Python-3.14-ffdd54?logo=python&logoColor=ffdd54&labelColor=3776AB)](https://docs.python.org/3.14/)
+[![Ruff](https://img.shields.io/badge/Ruff-0.15-D7FF64?logo=Ruff&logoColor=D7FF64&labelColor=261230)](https://docs.astral.sh/ruff/)
+[![uv](https://img.shields.io/badge/uv-0.11-DE5FE9?logo=uv&logoColor=DE5FE9&labelColor=261230)](https://docs.astral.sh/uv/)
+[![Code style: Black](https://img.shields.io/badge/Code%20style-Black-000000.svg)](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html)\
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-e5e1ea?logo=bootstrap&logoColor=e5e1ea&labelColor=7952B3)](https://getbootstrap.com/docs/5.3)
+[![Font_Awesome](https://img.shields.io/badge/Font_Awesome-5.13-f0f1f3?logo=fontawesome&logoColor=f0f1f3&labelColor=538DD7)](https://docs-v5.fontawesome.com/)
+[![Django](https://img.shields.io/badge/Django-6.0-44B78B?logo=django&logoColor=white&labelColor=092E20)](https://docs.djangoproject.com/en/6.0/)\
+[![Linting](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/linting.yml)
+[![Testing](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/testing.yml)
+[![Coverage](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/coverage.yml)
+[![Deployment](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/deployment.yml/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/deployment.yml)
+[![Dependabot Updates](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/GiPHouse/GiPHouse-Website/actions/workflows/dependabot/dependabot-updates)
+
+This is the code for the website of [GiPHouse](https://giphouse.nl/) powered by [Django](https://www.djangoproject.com/).
+</div>
 
 ## Table of Contents
 - [GiPHouse website](#giphouse-website)
@@ -82,7 +101,11 @@ The registration process consists of two steps:
 1. Authorizing the GiPHouse GitHub (OAuth) App.
 2. A form that asks question about the registration (e.g. email, student number and project preferences).
 
-The project preference is required to fill in during the registration, but registrations can be deleted later if necessary if for instance a project which people gave as preference is being discontinued. 
+The questions for the registration can be dynamically generated and any new questions will appear on the form in the front end. We do make use of "labels" for every question so they can be accounted for in the back end. Questions should thus be properly labeled whenever possible. Non-labeled questions will be added as an additional column in the csv export but will not be considered for the SAT solver.
+
+There is an option to create a sample registration with the most important questions listed and labeled. The labels here should be appropriate already but the wording of the questions and the choices for the questions can be changed.
+
+The project and partner preference is not required. They can be left open if people do not have any preferences. The amount of possible partner and project preferences can be adjusted by using the CHOICELIST and TEXTLIST and then adjusting the amount of max_choices in the admin. 
 
 If multiple semesters have open registrations at one moment, the chronologically newest semester is picked. For example, if the fall 2019 and spring 2020 semester both allow registrations at one moment, users will register for the spring 2020 semester (even if at the moment of registration it is officially fall 2019).
 
@@ -167,22 +190,45 @@ The website has multiple settings. By default, the development settings are used
 
 ### Getting Started
 Follow the following steps to setup your own personal development environment.
-1. Install Python 3.8+ and [poetry](https://poetry.eustace.io/).
-2. Clone this repository.
-3. Run `poetry install` to install all dependencies into virtual environment.
-4. Run `poetry shell` to enter the virtual environment.
-5. Run `python website/manage.py migrate` to initialize the database.
-6. Run `python website/manage.py runserver` to start the local testing server.
-7. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
+1. Install Python 3.14.
+2. Install [uv](https://docs.astral.sh/uv/#installation), make sure it uses the intended python version for installation.
+3. Add `uv` to PATH as an environment variable.
+4. Clone this repository.
+	1. Open a terminal in the project root.
+5. Run `uv venv --clear` to create and enter a virtual environment.
+6. Run `.venv/Scripts\activate` to activate the virtual environment.
+7. Run `uv sync` to install all dependencies into virtual environment.
+**All commands from this point on must be ran inside the virtual environment**.
+8. Run `python website/manage.py migrate` to initialize the database.
+9. Run `python website/manage.py runserver` to start the local testing server.
+10. Run `python website/manage.py runserver` again, to make sure the server discovers the just created `/static/` files.
+
+Command 6. will create a database file which is configured to be not commited via .gitignore. Hence, the changes you make to a database are local, and will persist after you pull.
 
 #### Logging into the Backend
 Because the authentication is based on Github OAuth authentication, some setup is required for users to be able to login in their own development environment.
-You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/) that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and set your client ID and client secret key as environment variables (`DJANGO_GITHUB_CLIENT_ID` and `DJANGO_GITHUB_CLIENT_SECRET` respectively). [direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
 
-You will then be able to create a new superuser with the `createsuperuser` management command.
+<!-- You will need to set up [your own GitHub App](https://developer.github.com/apps/building-github-apps/creating-a-github-app/)
+that we will use for OAuth (and for repository synchronisation as well, as explained in the next step) and 
+set your client ID and client secret key as environment variables (`DJANGO_GITHUB_CLIENT_ID` and `DJANGO_GITHUB_CLIENT_SECRET` respectively). 
+[direnv](https://direnv.net/) is a tool that allows Linux users to do this automatically.
+-->
+
+When the `createsuperuser` management command is ran:
 ```Bash
 $ python website/manage.py createsuperuser --github_id=<your_github_id> --github_username=<your_github_username> --no-input
 ```
+, the added superuser will be added as an entry to the database file. Hence, the created superusers are local.  
+One's GitHub account will be used for login; you can find your GitHub id by changing your username in the link and following it: https://api.github.com/users/yourusername.
+
+To make the backend (`localhost:8000/admin/`) work, an existing GitHub App must be present and Django must have access to it. For now, these are the credentials one can use (Valerijs' app):
+```
+DJANGO_GITHUB_CLIENT_ID=Iv23liE9mYKxrugudlw2
+DJANGO_GITHUB_CLIENT_SECRET=4ba6c12caa5ad485b997d68336cadffd9a221c79
+```
+To make Django see them, one must set them as environment variables. For now, they can be added as temporary (**after the shell is closed, they disappear**) shell environment variables. As an example, in PowerShell (but still inside the poetry virtual environment!) it can be done via `$env:NAME="val"`. Do so for the provided credentials.
+
+After server restart (step 7.), one should be able to log into the [backend](http://127.0.0.1:8000/admin/) (using their GitHub account).
 
 #### Registering a GitHub App for repository synchronisation
 To enable the synchronisation functionality of repositories and project(team)s, a GitHub App must be registered and installed in an organization. This GitHub App needs the following permissions:
@@ -215,7 +261,7 @@ To enable the synchronisation feature of mailing lists to G Suite, a project and
 The credentials and admin user can then be setup in Github secrets. The email of the G Suite user used to manage to the G Suite domain has to be stored in the Github secret `DJANGO_GSUITE_ADMIN_USER`. The credentials json file has to be `base64` encoded and stored in the Github secret `DJANGO_GSUITE_ADMIN_CREDENTIALS_BASE64` (you can use the linux command `base64` for encoding the json file).
 
 ### Dependency Management
-The Python dependencies are managed using a tool called [Poetry](https://python-poetry.org/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies. See the [Poetry documentation](https://python-poetry.org/docs/) for more information.
+The Python dependencies are managed using a tool called [uv](https://docs.astral.sh/uv/), which automatically creates virtual environments that ease development and makes it easy to manage the dependencies.
 
 ### Fixtures
 To make testing in your development environment easier, the management command `createfixtures` exists. This management command creates dummy data in your local database.
@@ -237,7 +283,7 @@ The code of this project has high standards. This is enforced by continuous inte
 - [PEP 8](https://www.python.org/dev/peps/pep-0008/) (Python styling) is enforced by using [Black](https://github.com/psf/black) and [flake8](https://gitlab.com/pycqa/flake8).
   - `black` is a tool that formats Python code. It is meant to be run on Python code and always return the same well-formatted code. This removes the need of manually formatting Python code, because if a formatting mistake is made, running `black` on the project will fix the mistake.
 - Test coverage (both statement and branch coverage) is enforced by using [Coverage.py](https://coverage.readthedocs.io/en/coverage-5.0.3/).
-  - The website has 100% test coverage.
+  - The website has at least 95% test coverage.
 - [PEP 257](https://www.python.org/dev/peps/pep-0257/) (Python docstring conventions) is enforced by [`pydocstyle`](https://github.com/PyCQA/pydocstyle).
   - PEP 257 forces every function, method and class to have documentation.
 
@@ -271,7 +317,7 @@ The following services are created by `docker-compose`.
 Runs a Postgres Database.
 
 ##### `web`
-[`giphouse/giphousewebsite`](https://hub.docker.com/r/giphouse/giphousewebsite) is the Docker image that runs the actual website using `uWSGI` as server.
+[`giphouse/giphousewebsite`](https://hub.docker.com/r/giphouse/giphousewebsite) is the Docker image that runs the actual website using `gunicorn` as server.
 
 ### Deployment Pipeline
 #### `deploy.yaml` workflow
@@ -321,8 +367,8 @@ These steps are the necessary setup for a production server.
 
 ### Keeping Everything Up to Date
 All moving parts should be regularly updated to make sure all code is up to date and secure. There is no process in place to automate updates, because that may break something.
-The following 
+The following items should be taken into account:
 
 1. The Ubuntu server should be updated.
-2. The Python dependencies should be updated (through `poetry`).
+2. The Python dependencies should be updated (through `uv`).
 3. The JavaScript, font and [S]CSS files should be updated by replacing the current files with new ones.
