@@ -102,7 +102,7 @@ class RegistrationSubmission(models.Model):
     registration = models.ForeignKey(Registrations, on_delete=models.CASCADE)
     # Change participant to user after removing Registration class and its dependencies
     participant = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    projects = models.ManyToManyField(Project)
+    projects = models.ManyToManyField(Project, null=True, blank=True)
     course = models.ForeignKey(
         Course, null=True, blank=True, on_delete=models.CASCADE
     )
