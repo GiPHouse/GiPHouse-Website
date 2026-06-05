@@ -16,7 +16,6 @@ from courses.models import Course, Semester
 
 from mailing_lists.models import MailingList
 
-from projects import githubsync
 from projects.admin import (
     ProjectAdmin,
     ProjectAdminArchivedFilter,
@@ -24,7 +23,12 @@ from projects.admin import (
     ExistingRepositoryInline,
 )
 from projects.forms import ProjectAdminForm
-from projects.models import Project, Repository, NewRepository, ExistingRepository
+from projects.models import (
+    Project,
+    Repository,
+    NewRepository,
+    ExistingRepository,
+)
 
 from registrations.models import Employee, Registration
 
@@ -38,9 +42,7 @@ class GetProjectsStaffStatusTest(TestCase):
     def setUpTestData(cls):
         cls.staff_password = "hunter1"
         cls.staff = User.objects._create_user(
-            github_id=0,
-            is_staff=True,
-            is_superuser=False
+            github_id=0, is_staff=True, is_superuser=False
         )
 
         cls.view_permission = Permission.objects.get(codename="view_project")
@@ -488,11 +490,13 @@ class GetProjectsTest(TestCase):
                 "action": "synchronise_to_GitHub",
                 "_selected_action": [self.project.pk],
             },
-            follow=False
+            follow=False,
         )
-        expected_redirect_url = reverse("admin:progress_bar", kwargs={"task": task_id})
+        expected_redirect_url = reverse(
+            "admin:progress_bar", kwargs={"task": task_id}
+        )
 
-        self.assertEqual(response.status_code, 302) # redirects
+        self.assertEqual(response.status_code, 302)  # redirects
         self.assertEqual(response.url, expected_redirect_url)
 
     def test_create_mail_is_valid(self):
@@ -843,7 +847,9 @@ class GetProjectsTest(TestCase):
         self.assertFalse(project.default_repo)
 
     @patch.object(ProjectAdmin, "synchronise_to_GitHub")
-    def test_save_model_does_not_create_repo_if_default_repo_false(self, mock_sync):
+    def test_save_model_does_not_create_repo_if_default_repo_false(
+        self, mock_sync
+    ):
         """Test that no repository is created when default_repo is False."""
         project = Project(
             name="Test Project",
@@ -888,7 +894,7 @@ class GetProjectsTest(TestCase):
             description="wsg",
             default_repo=False,
         )
-        form = MagicMock() # does not matter in this case
+        form = MagicMock()  # does not matter in this case
 
         self.project_admin.save_model(
             self.request, project, form, change=False
@@ -907,14 +913,14 @@ class GetProjectsTest(TestCase):
         form = MagicMock()
         form.changed_data = ["name"]
 
-        self.project_admin.save_model(
-            self.request, project, form, change=True
-        )
+        self.project_admin.save_model(self.request, project, form, change=True)
 
         mock_sync.assert_called_once()
 
     @patch.object(ProjectAdmin, "synchronise_to_GitHub")
-    def test_save_model_existing_obj_form_does_not_trigger_sync(self, mock_sync):
+    def test_save_model_existing_obj_form_does_not_trigger_sync(
+        self, mock_sync
+    ):
         project = Project.objects.create(
             name="bird person",
             semester=self.semester,
@@ -924,9 +930,7 @@ class GetProjectsTest(TestCase):
         form = MagicMock()
         form.changed_data = ["comments"]
 
-        self.project_admin.save_model(
-            self.request, project, form, change=True
-        )
+        self.project_admin.save_model(self.request, project, form, change=True)
 
         mock_sync.assert_not_called()
 
@@ -1049,7 +1053,4 @@ class GetProjectsTest(TestCase):
             queryset,
         )
 
-        mock_sync.assert_called_once_with(
-            self.request,
-            queryset
-        )
+        mock_sync.assert_called_once_with(self.request, queryset)

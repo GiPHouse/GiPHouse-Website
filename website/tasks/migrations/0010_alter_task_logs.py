@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tasks', '0009_alter_task_logs'),
+        ("tasks", "0009_alter_task_logs"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='logs',
-            field=models.TextField(blank=True, default='', editable=False),
+            model_name="task",
+            name="logs",
+            field=models.TextField(blank=True, default="", editable=False),
         ),
     ]

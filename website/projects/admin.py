@@ -155,7 +155,12 @@ class ProjectAdmin(admin.ModelAdmin):
 
     search_fields = ("name",)
     readonly_fields = ("github_team_id",)
-    dont_save_on_project_fields = ("description", "client", "comments", "github_team_id")
+    dont_save_on_project_fields = (
+        "description",
+        "client",
+        "comments",
+        "github_team_id",
+    )
 
     def save_model(self, request, obj, form, change):
         # This automatically appends the year of the semester to the slug when saving
@@ -172,10 +177,10 @@ class ProjectAdmin(admin.ModelAdmin):
             obj.save(update_fields=["default_repo"])
 
         queryset = Project.objects.filter(pk=obj.pk)
-        if not change: # new project
+        if not change:  # new project
             self.synchronise_to_GitHub(request, queryset)
-        else: # existing
-            for field in form.changed_data: # field names
+        else:  # existing
+            for field in form.changed_data:  # field names
                 if field not in self.dont_save_on_project_fields:
                     self.synchronise_to_GitHub(request, queryset)
                     break
@@ -192,14 +197,16 @@ class ProjectAdmin(admin.ModelAdmin):
                 continue
 
             if (
-                    formset.new_objects
-                    or formset.changed_objects #  existing
-                    or formset.deleted_objects
+                formset.new_objects
+                or formset.changed_objects  #  existing
+                or formset.deleted_objects
             ):
                 should_sync = True
 
         if should_sync:
-            self.synchronise_to_GitHub(request, Project.objects.filter(pk=project.pk))
+            self.synchronise_to_GitHub(
+                request, Project.objects.filter(pk=project.pk)
+            )
 
     def delete_queryset(self, request, queryset):
         """Override delete action"""
@@ -263,7 +270,9 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def synchronise_to_GitHub(self, request, queryset):
         """Synchronise projects to GitHub."""
-        if not request.user.has_perm(f"{ProjectsConfig.label}.can_sync_to_github"):
+        if not request.user.has_perm(
+            f"{ProjectsConfig.label}.can_sync_to_github"
+        ):
             raise PermissionDenied
 
         sync = GitHubSync(queryset)
@@ -320,7 +329,7 @@ class ProjectAdmin(admin.ModelAdmin):
         actions = super().get_actions(request)
 
         if not request.user.has_perm(
-                f"{ProjectsConfig.label}.can_sync_to_github"
+            f"{ProjectsConfig.label}.can_sync_to_github"
         ):
             del actions["synchronise_to_GitHub"]
 
@@ -395,6 +404,7 @@ class ProjectAdmin(admin.ModelAdmin):
             ),
         ]
         return custom_urls + urls
+
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
