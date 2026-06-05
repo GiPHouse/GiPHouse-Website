@@ -4,18 +4,12 @@ from django.db import models
 class Task(models.Model):
     """A task."""
 
-    total = models.IntegerField(null=True, blank=True, editable=False)
-    completed = models.IntegerField(null=True, blank=True, editable=False)
-    fail = models.BooleanField(default=False, editable=False)
-    status = models.BooleanField(default=True)
+    total = models.IntegerField(null=True, blank=True)
+    completed = models.IntegerField(null=True, blank=True)
+    fail = models.BooleanField(default=False)
     success_message = models.TextField(null=True, blank=True)
-    data = models.TextField(null=True, blank=True, editable=False)
+    data = models.TextField(null=True, blank=True)
     redirect_url = models.CharField(max_length=60)
-    logs = models.TextField(
-        blank=True,
-        default="",
-        editable=False,
-    )
 
     def __str__(self):
         """Show task as string."""
