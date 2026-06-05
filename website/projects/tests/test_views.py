@@ -15,7 +15,8 @@ class GetProjectsTest(TestCase):
     def test_get_success(self):
         response = self.client.get(
             reverse(
-                "projects:overview",
+                "projects:projects",
+                kwargs={"year": self.semester.year, "season_slug": self.semester.get_season_display()},
             )
         )
 

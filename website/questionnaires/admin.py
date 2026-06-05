@@ -30,12 +30,7 @@ from questionnaires.filters import (
     SubmissionAdminQuestionnaireFilter,
     SubmissionAdminSemesterFilter,
 )
-from questionnaires.models import (
-    Answer,
-    Question,
-    Questionnaire,
-    QuestionnaireSubmission,
-)
+from questionnaires.models import Answer, Question, Questionnaire, QuestionnaireSubmission
 
 from registrations.models import Employee
 
@@ -57,12 +52,7 @@ class AnswerInline(admin.TabularInline):
 
     model = Answer
     can_delete = False
-    readonly_fields = (
-        "question",
-        "peer",
-        "answer_display",
-        "comments_display",
-    )
+    readonly_fields = ("question", "peer", "answer_display", "comments_display")
     extra = 0
     ordering = ["peer", "question"]
 
@@ -102,19 +92,14 @@ class QuestionnaireAdmin(ObjectActionsMixin, admin.ModelAdmin):
     inlines = (QuestionInline,)
     search_fields = ("title",)
 
-    object_actions_after_fieldsets = (
-        "duplicate",
-        "download_emails_for_employees_without_submission",
-    )
+    object_actions_after_fieldsets = ("duplicate", "download_emails_for_employees_without_submission")
 
     @object_action(label="Duplicate", include_in_queryset_actions=False)
     def duplicate(self, request, obj):
         """Duplicate a questionnaire and all its questions into a new questionnaire."""
         new_questionnaire = Questionnaire.objects.get(pk=obj.pk)
         new_questionnaire.pk = None
-        new_questionnaire.semester = (
-            Semester.objects.get_or_create_current_semester()
-        )
+        new_questionnaire.semester = Semester.objects.get_or_create_current_semester()
         new_questionnaire.save()
 
         for old_question in obj.question_set.all():
@@ -129,9 +114,7 @@ class QuestionnaireAdmin(ObjectActionsMixin, admin.ModelAdmin):
             f"Do not forget to update the availability deadlines!",
             messages.SUCCESS,
         )
-        return redirect(
-            "admin:questionnaires_questionnaire_change", new_questionnaire.pk
-        )
+        return redirect("admin:questionnaires_questionnaire_change", new_questionnaire.pk)
 
     @object_action(
         label="Download emails for employees without submission",
@@ -141,12 +124,8 @@ class QuestionnaireAdmin(ObjectActionsMixin, admin.ModelAdmin):
         """Export the email addresses of employees that did not submit for the questionnaire to a .TXT file."""
         content = StringIO()
 
-        employees = Employee.objects.filter(
-            registration__semester=obj.semester
-        ).exclude(
-            pk__in=obj.questionnairesubmission_set.filter(
-                submitted=True
-            ).values("participant__pk")
+        employees = Employee.objects.filter(registration__semester=obj.semester).exclude(
+            pk__in=obj.questionnairesubmission_set.filter(submitted=True).values("participant__pk")
         )
         emails = ", ".join(employees.values_list("email", flat=True))
         content.write(f"No submission for {obj}:\n\n")
@@ -154,9 +133,7 @@ class QuestionnaireAdmin(ObjectActionsMixin, admin.ModelAdmin):
         content.write("\n\n\n\n")
 
         response = HttpResponse(content.getvalue(), content_type="text/plain")
-        response["Content-Disposition"] = (
-            "attachment; filename=not-submitted.txt"
-        )
+        response["Content-Disposition"] = "attachment; filename=not-submitted.txt"
         return response
 
 
@@ -174,27 +151,19 @@ class SubmittedSubmissionsFilter(SimpleListFilter):
         """Override the default value to display only submitted."""
         yield {
             "selected": self.value() is None,
-            "query_string": changelist.get_query_string(
-                {}, [self.parameter_name]
-            ),
+            "query_string": changelist.get_query_string({}, [self.parameter_name]),
             "display": "Only submitted",
         }
         for lookup, title in self.lookup_choices:
             yield {
                 "selected": self.value() == force_str(lookup),
-                "query_string": changelist.get_query_string(
-                    {self.parameter_name: lookup}, []
-                ),
+                "query_string": changelist.get_query_string({self.parameter_name: lookup}, []),
                 "display": title,
             }
 
     def queryset(self, request, queryset):
         """Filter the queryset."""
-        return (
-            queryset
-            if self.value() is not None
-            else queryset.filter(submitted=True)
-        )
+        return queryset if self.value() is not None else queryset.filter(submitted=True)
 
 
 @admin.register(QuestionnaireSubmission)
@@ -239,23 +208,14 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
     def export_submissions(self, request, queryset):
         """Export selected submissions to a CSV file."""
         content = StringIO()
-        writer = csv.writer(
-            content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
-        )
+        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
         writer.writerow(
-            [
-                "Questionnaire",
-                "Participant",
-                "Late",
-                "Question",
-                "Peer",
-                "Answer (as text)",
-                "Answer (as number)",
-            ]
+            ["Questionnaire", "Participant", "Late", "Question", "Peer", "Answer (as text)", "Answer (as number)"]
         )
 
         for submission in queryset:
             for answer in submission.answer_set.all():
+
                 writer.writerow(
                     [
                         answer.submission.questionnaire,
@@ -263,25 +223,13 @@ class QuestionnaireSubmissionAdmin(admin.ModelAdmin):
                         answer.submission.late,
                         answer.question.question,
                         answer.peer,
-                        (
-                            answer.answer.get_value_display()
-                            if answer.question.is_closed
-                            else answer.answer.value
-                        ),
-                        (
-                            answer.answer.value
-                            if answer.question.is_closed
-                            else ""
-                        ),
+                        answer.answer.get_value_display() if answer.question.is_closed else answer.answer.value,
+                        answer.answer.value if answer.question.is_closed else "",
                     ]
                 )
 
-        response = HttpResponse(
-            content.getvalue(), content_type="application/x-zip-compressed"
-        )
-        response["Content-Disposition"] = (
-            "attachment; filename=submissions.csv"
-        )
+        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
+        response["Content-Disposition"] = "attachment; filename=submissions.csv"
         return response
 
 
@@ -290,11 +238,7 @@ class SubmittedSubmissionsAnswerFilter(SubmittedSubmissionsFilter):
 
     def queryset(self, request, queryset):
         """Filter the queryset."""
-        return (
-            queryset
-            if self.value() is not None
-            else queryset.filter(submission__submitted=True)
-        )
+        return queryset if self.value() is not None else queryset.filter(submission__submitted=True)
 
 
 @admin.register(Answer)
@@ -327,10 +271,7 @@ class AnswerAdmin(ModelAdminTotals):
     list_totals = [
         (
             "answer_display",
-            lambda field: Avg(
-                Coalesce("qualityanswerdata__value", 0)
-                + Coalesce("agreementanswerdata__value", 0)
-            ),
+            lambda field: Avg(Coalesce("qualityanswerdata__value", 0) + Coalesce("agreementanswerdata__value", 0)),
         ),
     ]
 
@@ -385,22 +326,13 @@ class AnswerAdmin(ModelAdminTotals):
     def export_answers(self, request, queryset):
         """Export selected answers to a CSV file."""
         content = StringIO()
-        writer = csv.writer(
-            content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL
-        )
+        writer = csv.writer(content, delimiter=",", quotechar='"', quoting=csv.QUOTE_ALL)
         writer.writerow(
-            [
-                "Questionnaire",
-                "Participant",
-                "Late",
-                "Question",
-                "Peer",
-                "Answer (as text)",
-                "Answer (as number)",
-            ]
+            ["Questionnaire", "Participant", "Late", "Question", "Peer", "Answer (as text)", "Answer (as number)"]
         )
 
         for answer in queryset:
+
             writer.writerow(
                 [
                     answer.submission.questionnaire,
@@ -408,21 +340,13 @@ class AnswerAdmin(ModelAdminTotals):
                     answer.submission.late,
                     answer.question.question,
                     answer.peer,
-                    (
-                        answer.answer.get_value_display()
-                        if answer.question.is_closed
-                        else answer.answer.value
-                    ),
+                    answer.answer.get_value_display() if answer.question.is_closed else answer.answer.value,
                     answer.answer.value if answer.question.is_closed else "",
                 ]
             )
 
-        response = HttpResponse(
-            content.getvalue(), content_type="application/x-zip-compressed"
-        )
-        response["Content-Disposition"] = (
-            "attachment; filename=submissions.csv"
-        )
+        response = HttpResponse(content.getvalue(), content_type="application/x-zip-compressed")
+        response["Content-Disposition"] = "attachment; filename=submissions.csv"
         return response
 
     class Media:
