@@ -100,7 +100,11 @@ The registration process consists of two steps:
 1. Authorizing the GiPHouse GitHub (OAuth) App.
 2. A form that asks question about the registration (e.g. email, student number and project preferences).
 
-The project preference is required to fill in during the registration, but registrations can be deleted later if necessary if for instance a project which people gave as preference is being discontinued. 
+The questions for the registration can be dynamically generated and any new questions will appear on the form in the front end. We do make use of "labels" for every question so they can be accounted for in the back end. Questions should thus be properly labeled whenever possible. Non-labeled questions will be added as an additional column in the csv export but will not be considered for the SAT solver.
+
+There is an option to create a sample registration with the most important questions listed and labeled. The labels here should be appropriate already but the wording of the questions and the choices for the questions can be changed.
+
+The project and partner preference is not required. They can be left open if people do not have any preferences. The amount of possible partner and project preferences can be adjusted by using the CHOICELIST and TEXTLIST and then adjusting the amount of max_choices in the admin. 
 
 If multiple semesters have open registrations at one moment, the chronologically newest semester is picked. For example, if the fall 2019 and spring 2020 semester both allow registrations at one moment, users will register for the spring 2020 semester (even if at the moment of registration it is officially fall 2019).
 
